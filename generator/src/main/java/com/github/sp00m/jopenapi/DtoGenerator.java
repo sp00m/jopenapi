@@ -20,6 +20,7 @@ public final class DtoGenerator {
 
     private final String basePackage;
     private final String dtoName;
+    private final String className;
     private final Schema<?> schema;
     private final CompilationUnit cu;
     private final ClassOrInterfaceDeclaration dto;
@@ -28,6 +29,7 @@ public final class DtoGenerator {
     public DtoGenerator(String basePackage, String dtoName, Schema<?> schema) {
         this.basePackage = basePackage;
         this.dtoName = dtoName;
+        this.className = normalizeClassName(dtoName);
         this.schema = schema;
         this.cu = new CompilationUnit(basePackage);
         this.dto = cu
@@ -40,14 +42,15 @@ public final class DtoGenerator {
                 .orElseGet(Collections::emptyList);
     }
 
-    public void run() {
+    public String run() {
         if (!"object".equals(schema.getType())) {
             log.error("Schema {} has type {}", schema.getName(), schema.getType());
+            return null;
         }
         schema
                 .getProperties()
                 .forEach(this::generateField);
-        System.out.println(cu);
+        return cu.toString();
     }
 
     private void generateField(String name, Schema<?> schema) {
@@ -58,6 +61,10 @@ public final class DtoGenerator {
     static String normalizeClassName(String schemaName) {
         // TODO UpperCamelCase
         return schemaName;
+    }
+
+    public String getClassName() {
+        return className;
     }
 
 }
