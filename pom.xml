@@ -21,7 +21,7 @@
 
     <modules>
         <module>generator</module>
-        <module>beautifier</module>
+        <module>packager</module>
     </modules>
 
 </project>

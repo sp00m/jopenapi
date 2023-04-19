@@ -5,7 +5,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>jopenapi-beautifier</artifactId>
+    <artifactId>jopenapi-packager</artifactId>
 
     <parent>
         <groupId>com.github.sp00m</groupId>

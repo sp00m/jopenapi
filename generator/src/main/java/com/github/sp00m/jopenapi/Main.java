@@ -9,8 +9,8 @@ public class Main {
 
     public static void main(String[] args) {
         String generatorDir = args[0];
-        File beautifierSrcDir = new File(generatorDir, "../beautifier/src/main/java");
-        var generator = new Generator("https://petstore3.swagger.io/api/v3/openapi.json", "com.petstore", beautifierSrcDir);
+        File packagerSrcDir = new File(generatorDir, "../packager/src/main/java");
+        var generator = new Generator("https://petstore3.swagger.io/api/v3/openapi.json", "com.petstore", packagerSrcDir);
         generator.run();
     }
 
