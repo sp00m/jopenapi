@@ -616,6 +616,8 @@ components:
           type: integer
           format: int32
           example: 7
+          minimum: 1
+          maximum: 50
         shipDate:
           type: string
           format: date-time
@@ -627,6 +629,7 @@ components:
           - placed
           - approved
           - delivered
+          - null
         complete:
           type: boolean
       xml:
@@ -641,6 +644,8 @@ components:
         username:
           type: string
           example: fehguy
+          minLength: 5
+          maxLength: 20
         address:
           type: array
           xml:
@@ -665,6 +670,7 @@ components:
         zip:
           type: string
           example: '94301'
+          pattern: '^\d{5}$'
       xml:
         name: address
     Category:
