@@ -20,6 +20,7 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,8 +47,12 @@ public final class FieldGenerator {
         this.dto = dto;
         this.name = name;
         this.schema = schema;
-        // TODO handle nullable enums (https://swagger.io/docs/specification/data-models/enums/)
-        this.optional = !required || Boolean.TRUE.equals(schema.getNullable());
+        // https://swagger.io/docs/specification/data-models/enums/
+        List<?> enumValues = Optional
+                .ofNullable(schema.getEnum())
+                .orElseGet(Collections::emptyList);
+        this.optional = (!required || Boolean.TRUE.equals(schema.getNullable()))
+                && (enumValues.isEmpty() || enumValues.contains(null));
     }
 
     public void run() {
@@ -79,8 +84,8 @@ public final class FieldGenerator {
     private void generateRefField() {
         String ref = schema.get$ref();
         String schemaName = ref.substring(ref.lastIndexOf('/') + 1);
-        String type = basePackage + "." + DtoGenerator.normalizeClassName(schemaName);
-        generateField(resolveType(type));
+        String type = basePackage + "." + Generator.normalizeClassName(schemaName);
+        generateField(type);
     }
 
     private void generateArrayField() {
@@ -103,10 +108,10 @@ public final class FieldGenerator {
                 .ofNullable(schema.getFormat())
                 .orElse("");
         switch (format) {
-            case "date" -> generateField(resolveType(LocalDate.class));
-            case "date-time" -> generateField(resolveType(OffsetDateTime.class));
-            case "uuid" -> generateField(resolveType(UUID.class));
-            case "uri" -> generateField(resolveType(URI.class));
+            case "date" -> generateField(LocalDate.class);
+            case "date-time" -> generateField(OffsetDateTime.class);
+            case "uuid" -> generateField(UUID.class);
+            case "uri" -> generateField(URI.class);
             default -> generateStringField();
         }
     }
@@ -119,15 +124,16 @@ public final class FieldGenerator {
                 .filter(Objects::nonNull)
                 .toList();
         if (enumValueNames.isEmpty()) {
-            FieldDeclaration field = generateField(resolveType(String.class));
-            // TODO
+            FieldDeclaration field = generateField(String.class);
+            // TODO:
             schema.getMinLength();
             schema.getMaxLength();
             schema.getPattern();
         } else {
+            // TODO move into dedicated generator class to be reused
             dto.tryAddImportToParentCompilationUnit(JsonValue.class);
             dto.tryAddImportToParentCompilationUnit(RequiredArgsConstructor.class);
-            String enumName = DtoGenerator.normalizeClassName(name);
+            String enumName = Generator.normalizeClassName(name);
             EnumDeclaration enumDeclaration = new EnumDeclaration(createModifierList(Modifier.Keyword.PUBLIC), enumName)
                     .addAnnotation(RequiredArgsConstructor.class);
             enumDeclaration.addField(String.class, "value", Modifier.Keyword.FINAL);
@@ -137,18 +143,22 @@ public final class FieldGenerator {
                     .addAnnotation(JsonValue.class);
             // TODO add JsonCreator
             enumValueNames.forEach(valueName -> {
-                var enumValue = new EnumConstantDeclaration(normalizeEnumValueName(valueName.toString()));
+                var enumValue = new EnumConstantDeclaration(Generator.normalizeEnumValueName(valueName.toString()));
                 enumValue.addArgument("\"" + valueName + "\"");
                 enumDeclaration.addEntry(enumValue);
             });
             dto.addMember(enumDeclaration);
-            generateField(resolveType(enumName));
+            generateField(enumName);
         }
+    }
+
+    private FieldDeclaration generateField(Class<?> type) {
+        return generateField(type.getName());
     }
 
     private FieldDeclaration generateField(String type) {
         var field = dto
-                .addField(type, normalizeFieldName(name))
+                .addField(resolveType(type), Generator.normalizeFieldName(name))
                 .addAnnotation(generateJsonPropertyAnnotation());
         if (!optional) {
             field.addAnnotation(NotNull.class);
@@ -167,21 +177,8 @@ public final class FieldGenerator {
         return new NormalAnnotationExpr(parseName(JsonProperty.class.getName()), attributes);
     }
 
-    private String resolveType(Class<?> type) {
-        return resolveType(type.getName());
-    }
-
     private String resolveType(String type) {
         return optional ? "java.util.Optional<" + type + ">" : type;
     }
 
-    private static String normalizeFieldName(String name) {
-        // TODO lowerCamelCase
-        return name;
-    }
-
-    private static String normalizeEnumValueName(String name) {
-        // TODO SCREAMING_SNAKE_CASE
-        return name;
-    }
 }

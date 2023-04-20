@@ -29,11 +29,11 @@ public final class DtoGenerator {
     public DtoGenerator(String basePackage, String dtoName, Schema<?> schema) {
         this.basePackage = basePackage;
         this.dtoName = dtoName;
-        this.className = normalizeClassName(dtoName);
+        this.className = Generator.normalizeClassName(dtoName);
         this.schema = schema;
         this.cu = new CompilationUnit(basePackage);
         this.dto = cu
-                .addClass(normalizeClassName(dtoName))
+                .addClass(Generator.normalizeClassName(dtoName))
                 .addAnnotation(Value.class)
                 .addAnnotation(Builder.class)
                 .addAnnotation(Jacksonized.class);
@@ -56,11 +56,6 @@ public final class DtoGenerator {
     private void generateField(String name, Schema<?> schema) {
         var generator = new FieldGenerator(basePackage, dto, name, schema, requiredFields.contains(name));
         generator.run();
-    }
-
-    static String normalizeClassName(String schemaName) {
-        // TODO UpperCamelCase
-        return schemaName;
     }
 
     public String getClassName() {

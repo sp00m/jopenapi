@@ -11,6 +11,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class Generator {
 
@@ -68,6 +70,29 @@ public final class Generator {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    static String normalizeClassName(String name) {
+        return Stream
+                .of(toWords(name))
+                .map(string -> string.substring(0, 1).toUpperCase() + string.substring(1))
+                .collect(Collectors.joining());
+    }
+
+    static String normalizeFieldName(String name) {
+        String className = normalizeClassName(name);
+        return className.substring(0, 1).toLowerCase() + className.substring(1);
+    }
+
+    static String normalizeEnumValueName(String name) {
+        return Stream
+                .of(toWords(name))
+                .map(String::toUpperCase)
+                .collect(Collectors.joining("_"));
+    }
+
+    private static String[] toWords(String name) {
+        return name.split("([_\\W]|(?!=[a-z])(?=[A-Z]))", -1);
     }
 
 }
