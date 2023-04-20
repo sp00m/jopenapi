@@ -125,6 +125,8 @@ public final class FieldGenerator {
             schema.getMaxLength();
             schema.getPattern();
         } else {
+            dto.tryAddImportToParentCompilationUnit(JsonValue.class);
+            dto.tryAddImportToParentCompilationUnit(RequiredArgsConstructor.class);
             String enumName = DtoGenerator.normalizeClassName(name);
             EnumDeclaration enumDeclaration = new EnumDeclaration(createModifierList(Modifier.Keyword.PUBLIC), enumName)
                     .addAnnotation(RequiredArgsConstructor.class);
