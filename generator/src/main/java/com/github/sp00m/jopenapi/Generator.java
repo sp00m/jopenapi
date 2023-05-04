@@ -1,6 +1,5 @@
 package com.github.sp00m.jopenapi;
 
-import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 
@@ -46,26 +45,26 @@ public final class Generator {
             }
 
         });
-        File outputDir = new File(baseDir, basePackage.replaceAll("\\.", "/"));
+        var outputDir = new File(baseDir, basePackage.replaceAll("\\.", "/"));
         outputDir.mkdirs();
         return outputDir;
     }
 
     public void run() {
-        OpenAPI openAPI = new OpenAPIV3Parser().read(openApiLocation);
+        var openAPI = new OpenAPIV3Parser().read(openApiLocation);
         openAPI
                 .getComponents()
                 .getSchemas()
-                .forEach(this::generateDto);
+                .forEach(this::generateVo);
     }
 
-    private void generateDto(String name, Schema<?> schema) {
-        var generator = new DtoGenerator(basePackage, name, schema);
-        String dto = generator.run();
-        if (dto != null) {
+    private void generateVo(String name, Schema<?> schema) {
+        var generator = new VoGenerator(basePackage, name, schema);
+        var vo = generator.run();
+        if (vo != null) {
             try {
-                Path outputFile = new File(outputDir, generator.getClassName() + ".java").toPath();
-                Files.write(outputFile, dto.getBytes());
+                var outputFile = new File(outputDir, generator.getClassName() + ".java").toPath();
+                Files.write(outputFile, vo.getBytes());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -80,7 +79,7 @@ public final class Generator {
     }
 
     static String normalizeFieldName(String name) {
-        String className = normalizeClassName(name);
+        var className = normalizeClassName(name);
         return className.substring(0, 1).toLowerCase() + className.substring(1);
     }
 

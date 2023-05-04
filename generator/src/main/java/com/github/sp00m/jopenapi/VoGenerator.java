@@ -16,24 +16,24 @@ import java.util.Optional;
  * https://swagger.io/docs/specification/data-models/data-types
  */
 @Slf4j
-public final class DtoGenerator {
+public final class VoGenerator {
 
     private final String basePackage;
-    private final String dtoName;
+    private final String voName;
     private final String className;
     private final Schema<?> schema;
     private final CompilationUnit cu;
-    private final ClassOrInterfaceDeclaration dto;
+    private final ClassOrInterfaceDeclaration vo;
     private final List<String> requiredFields;
 
-    public DtoGenerator(String basePackage, String dtoName, Schema<?> schema) {
+    public VoGenerator(String basePackage, String voName, Schema<?> schema) {
         this.basePackage = basePackage;
-        this.dtoName = dtoName;
-        this.className = Generator.normalizeClassName(dtoName);
+        this.voName = voName;
+        this.className = Generator.normalizeClassName(voName);
         this.schema = schema;
         this.cu = new CompilationUnit(basePackage);
-        this.dto = cu
-                .addClass(Generator.normalizeClassName(dtoName))
+        this.vo = cu
+                .addClass(Generator.normalizeClassName(voName))
                 .addAnnotation(Value.class)
                 .addAnnotation(Builder.class)
                 .addAnnotation(Jacksonized.class);
@@ -54,7 +54,7 @@ public final class DtoGenerator {
     }
 
     private void generateField(String name, Schema<?> schema) {
-        var generator = new FieldGenerator(basePackage, dto, name, schema, requiredFields.contains(name));
+        var generator = new FieldGenerator(basePackage, vo, name, schema, requiredFields.contains(name));
         generator.run();
     }
 

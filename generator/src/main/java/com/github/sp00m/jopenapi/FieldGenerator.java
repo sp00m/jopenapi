@@ -20,7 +20,6 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,7 +47,7 @@ public final class FieldGenerator {
         this.name = name;
         this.schema = schema;
         // https://swagger.io/docs/specification/data-models/enums/
-        List<?> enumValues = Optional
+        var enumValues = Optional
                 .ofNullable(schema.getEnum())
                 .orElseGet(Collections::emptyList);
         this.optional = (!required || Boolean.TRUE.equals(schema.getNullable()))
@@ -82,9 +81,9 @@ public final class FieldGenerator {
     }
 
     private void generateRefField() {
-        String ref = schema.get$ref();
-        String schemaName = ref.substring(ref.lastIndexOf('/') + 1);
-        String type = basePackage + "." + Generator.normalizeClassName(schemaName);
+        var ref = schema.get$ref();
+        var schemaName = ref.substring(ref.lastIndexOf('/') + 1);
+        var type = basePackage + "." + Generator.normalizeClassName(schemaName);
         generateField(type);
     }
 
@@ -104,7 +103,7 @@ public final class FieldGenerator {
     }
 
     private void generateStringFormattedField() {
-        String format = Optional
+        var format = Optional
                 .ofNullable(schema.getFormat())
                 .orElse("");
         switch (format) {
@@ -124,7 +123,7 @@ public final class FieldGenerator {
                 .filter(Objects::nonNull)
                 .toList();
         if (enumValueNames.isEmpty()) {
-            FieldDeclaration field = generateField(String.class);
+            var field = generateField(String.class);
             // TODO:
             schema.getMinLength();
             schema.getMaxLength();
@@ -133,8 +132,8 @@ public final class FieldGenerator {
             // TODO move into dedicated generator class to be reused
             dto.tryAddImportToParentCompilationUnit(JsonValue.class);
             dto.tryAddImportToParentCompilationUnit(RequiredArgsConstructor.class);
-            String enumName = Generator.normalizeClassName(name);
-            EnumDeclaration enumDeclaration = new EnumDeclaration(createModifierList(Modifier.Keyword.PUBLIC), enumName)
+            var enumName = Generator.normalizeClassName(name);
+            var enumDeclaration = new EnumDeclaration(createModifierList(Modifier.Keyword.PUBLIC), enumName)
                     .addAnnotation(RequiredArgsConstructor.class);
             enumDeclaration.addField(String.class, "value", Modifier.Keyword.FINAL);
             enumDeclaration.addMethod("getValue", Modifier.Keyword.PUBLIC)
