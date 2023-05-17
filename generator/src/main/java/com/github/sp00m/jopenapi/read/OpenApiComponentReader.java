@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -13,10 +14,26 @@ public final class OpenApiComponentReader {
     private final String basePackage;
     private final OpenApiComponent component;
 
-    public JavaClassDefinition read() {
-        if (!"object".equals(component.getSchema().getType())) {
-            throw new IllegalArgumentException(component.getSchema().getType());
+    public JavaTypeDefinition read() {
+        if ("object".equals(component.getSchema().getType())) {
+            return toClassDefinition();
+        } else if ("string".equals(component.getSchema().getType())) {
+            var enumValueNames = Optional
+                    .ofNullable(component.getSchema().getEnum())
+                    .orElseGet(Collections::emptyList)
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .map(Object::toString)
+                    .toList();
+            if (!enumValueNames.isEmpty()) {
+                var enumName = Names.toClassName(component.getName());
+                return new JavaEnumDefinition(enumName, enumValueNames);
+            }
         }
+        throw new IllegalStateException();
+    }
+
+    private JavaClassDefinition toClassDefinition() {
         var requiredProperties = Optional
                 .ofNullable(component.getSchema().getRequired())
                 .orElseGet(Collections::emptyList);

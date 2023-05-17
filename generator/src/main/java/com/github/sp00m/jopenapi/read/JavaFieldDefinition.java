@@ -16,18 +16,18 @@ public class JavaFieldDefinition {
     public static class Type {
 
         String rawType;
-        JavaInnerTypeDefinition innerType;
+        JavaTypeDefinition innerType;
         Set<JavaFieldAnnotator> annotators;
         String defaultIfNull;
 
-        private Type(String rawType, JavaInnerTypeDefinition innerType, Set<JavaFieldAnnotator> annotators, String defaultIfNull) {
+        private Type(String rawType, JavaTypeDefinition innerType, Set<JavaFieldAnnotator> annotators, String defaultIfNull) {
             this.rawType = rawType;
             this.innerType = innerType;
             this.annotators = annotators;
             this.defaultIfNull = defaultIfNull;
         }
 
-        public Type(String rawType, JavaInnerTypeDefinition innerType) {
+        public Type(String rawType, JavaTypeDefinition innerType) {
             this(rawType, innerType, Set.of(JavaFieldAnnotator.JSON_PROPERTY), null);
         }
 

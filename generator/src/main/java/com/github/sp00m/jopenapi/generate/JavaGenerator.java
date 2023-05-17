@@ -2,6 +2,8 @@ package com.github.sp00m.jopenapi.generate;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.sp00m.jopenapi.read.JavaClassDefinition;
+import com.github.sp00m.jopenapi.read.JavaEnumDefinition;
+import com.github.sp00m.jopenapi.read.JavaTypeDefinition;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -10,22 +12,29 @@ import java.util.List;
 public final class JavaGenerator {
 
     private final String basePackage;
-    private final List<JavaClassDefinition> classDefinitions;
+    private final List<JavaTypeDefinition> javaTypeDefinitions;
 
     public List<JavaFile> generate() {
-        return classDefinitions
+        return javaTypeDefinitions
                 .stream()
                 .map(this::generate)
                 .toList();
     }
 
-    private JavaFile generate(JavaClassDefinition classDefinition) {
-        var generator = new JavaClassGenerator(classDefinition);
-        var generatedClass = generator.generate();
+    private JavaFile generate(JavaTypeDefinition typeDefinition) {
+        final JavaTypeGenerator generator;
+        if (typeDefinition instanceof JavaClassDefinition classDefinition) {
+            generator = new JavaClassGenerator(classDefinition);
+        } else if (typeDefinition instanceof JavaEnumDefinition enumDefinition) {
+            generator = new JavaEnumGenerator(enumDefinition);
+        } else {
+            throw new IllegalStateException();
+        }
+        var generatedType = generator.generate();
         var compiler = new CompilationUnit(basePackage);
-        compiler.addType(generatedClass.getType(0));
-        compiler.setImports(generatedClass.getImports());
-        return new JavaFile(classDefinition.getName(), compiler.toString());
+        compiler.addType(generatedType.getType(0));
+        compiler.setImports(generatedType.getImports());
+        return new JavaFile(typeDefinition.getName(), compiler.toString());
     }
 
 }

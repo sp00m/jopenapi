@@ -11,7 +11,7 @@ public final class OpenApiReader {
     private final String basePackage;
     private final OpenAPI openApi;
 
-    public List<JavaClassDefinition> read() {
+    public List<JavaTypeDefinition> read() {
         return openApi
                 .getComponents()
                 .getSchemas()
@@ -22,7 +22,7 @@ public final class OpenApiReader {
                 .toList();
     }
 
-    private JavaClassDefinition readComponent(OpenApiComponent component) {
+    private JavaTypeDefinition readComponent(OpenApiComponent component) {
         var generator = new OpenApiComponentReader(basePackage, component);
         return generator.read();
     }

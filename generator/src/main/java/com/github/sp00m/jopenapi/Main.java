@@ -22,9 +22,9 @@ public class Main {
         var openApiContents = Files.readString(Paths.get("/Users/christophemaillard/Work/codebases/github.com/sp00m/jopenapi/generator/openapi-petstore.yaml"));
         var openApi = new OpenAPIV3Parser().readContents(openApiContents).getOpenAPI();
         var reader = new OpenApiReader(basePackage, openApi);
-        var javaClassDefinitions = reader.read();
+        var javaTypeDefinitions = reader.read();
 
-        var converter = new JavaGenerator(basePackage, javaClassDefinitions);
+        var converter = new JavaGenerator(basePackage, javaTypeDefinitions);
         var javaFiles = converter.generate();
 
         String generatorDir = args.length == 0 ? "/Users/christophemaillard/Work/codebases/github.com/sp00m/jopenapi/generator" : args[0];

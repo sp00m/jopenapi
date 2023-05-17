@@ -5,7 +5,7 @@ import lombok.Value;
 import java.util.List;
 
 @Value
-public class JavaClassDefinition implements JavaInnerTypeDefinition {
+public class JavaClassDefinition implements JavaTypeDefinition {
 
     OpenApiComponent component;
     String name;

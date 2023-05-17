@@ -5,7 +5,7 @@ import lombok.Value;
 import java.util.List;
 
 @Value
-public class JavaEnumDefinition implements JavaInnerTypeDefinition {
+public class JavaEnumDefinition implements JavaTypeDefinition {
 
     String name;
     List<String> values;

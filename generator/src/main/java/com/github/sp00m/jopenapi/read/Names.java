@@ -30,7 +30,7 @@ public final class Names {
     }
 
     private static String[] toWords(String name) {
-        return name.split("([_\\W]|(?!=[a-z])(?=[A-Z]))", -1);
+        return name.split("([_\\W]|(?>=[a-z])(?=[A-Z]))", -1);
     }
 
 }

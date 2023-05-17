@@ -5,7 +5,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.sp00m.jopenapi.read.JavaClassDefinition;
 import com.github.sp00m.jopenapi.read.JavaEnumDefinition;
 import com.github.sp00m.jopenapi.read.JavaFieldDefinition;
-import com.github.sp00m.jopenapi.read.JavaInnerTypeDefinition;
+import com.github.sp00m.jopenapi.read.JavaTypeDefinition;
 import com.github.sp00m.jopenapi.read.Names;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -90,7 +90,7 @@ public final class JavaClassGenerator implements JavaTypeGenerator {
                 .setBody(parseBlock("{return %s;}".formatted(fieldDefinition.getName())));
     }
 
-    private void addMember(ClassOrInterfaceDeclaration classDeclaration, JavaInnerTypeDefinition innerTypeDefinition) {
+    private void addMember(ClassOrInterfaceDeclaration classDeclaration, JavaTypeDefinition innerTypeDefinition) {
         final JavaTypeGenerator innerTypeGenerator;
         if (innerTypeDefinition instanceof JavaEnumDefinition enumDefinition) {
             innerTypeGenerator = new JavaEnumGenerator(enumDefinition);
