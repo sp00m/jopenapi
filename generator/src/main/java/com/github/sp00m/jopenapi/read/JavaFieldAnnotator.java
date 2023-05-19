@@ -1,6 +1,9 @@
 package com.github.sp00m.jopenapi.read;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.sp00m.jopenapi.read.vo.OpenApiProperty;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Pattern;
@@ -10,114 +13,105 @@ import java.util.Optional;
 
 public enum JavaFieldAnnotator {
 
-    MAX {
-        @Override
-        public String annotate(String type, OpenApiProperty property) {
-            if (property.getSchema().getMaximum() == null) {
-                return type;
-            }
-            var max = property.getSchema().getMaximum().toString();
-            var exclusive = Boolean.TRUE.equals(property.getSchema().getExclusiveMaximum());
-            return "@%s(value = \"%s\", inclusive = %b) %s".formatted(
-                    DecimalMax.class.getName(),
-                    max,
-                    !exclusive,
-                    type
-            );
-        }
-    },
-
     MIN {
         @Override
-        public String annotate(String type, OpenApiProperty property) {
+        public void annotate(FieldDeclaration fieldDeclaration, OpenApiProperty property) {
             if (property.getSchema().getMinimum() == null) {
-                return type;
+                return;
             }
             var min = property.getSchema().getMinimum().toString();
             var exclusive = Boolean.TRUE.equals(property.getSchema().getExclusiveMinimum());
-            return "@%s(value = \"%s\", inclusive = %b) %s".formatted(
-                    DecimalMin.class.getName(),
-                    min,
-                    !exclusive,
-                    type
-            );
+            fieldDeclaration
+                    .addAndGetAnnotation(DecimalMin.class)
+                    .addPair("value", "\"%s\"".formatted(min))
+                    .addPair("inclusive", "%b".formatted(!exclusive));
         }
     },
 
-    PATTERN {
+    MAX {
         @Override
-        public String annotate(String type, OpenApiProperty property) {
-            if (property.getSchema().getPattern() == null) {
-                return type;
+        public void annotate(FieldDeclaration fieldDeclaration, OpenApiProperty property) {
+            if (property.getSchema().getMaximum() == null) {
+                return;
             }
-            return "@%s(regexp = \"%s\") %s".formatted(
-                    Pattern.class.getName(),
-                    property.getSchema().getPattern().replace("\\", "\\\\"),
-                    type
-            );
+            var max = property.getSchema().getMaximum().toString();
+            var exclusive = Boolean.TRUE.equals(property.getSchema().getExclusiveMaximum());
+            fieldDeclaration
+                    .addAndGetAnnotation(DecimalMax.class)
+                    .addPair("value", "\"%s\"".formatted(max))
+                    .addPair("inclusive", "%b".formatted(!exclusive));
         }
     },
 
     SIZE {
         @Override
-        public String annotate(String type, OpenApiProperty property) {
+        public void annotate(FieldDeclaration fieldDeclaration, OpenApiProperty property) {
             if (property.getSchema().getMinLength() == null && property.getSchema().getMaxLength() == null
-                    && property.getSchema().getMinItems() == null && property.getSchema().getMaxItems() == null) {
-                return type;
+                    && property.getSchema().getMinItems() == null && property.getSchema().getMaxItems() == null
+                    && property.getSchema().getMinProperties() == null && property.getSchema().getMaxProperties() == null) {
+                return;
             }
             var min = Optional.ofNullable(property.getSchema().getMinLength())
                     .or(() -> Optional.ofNullable(property.getSchema().getMinItems()))
+                    .or(() -> Optional.ofNullable(property.getSchema().getMinProperties()))
                     .orElse(0);
             var max = Optional.ofNullable(property.getSchema().getMaxLength())
                     .or(() -> Optional.ofNullable(property.getSchema().getMaxItems()))
+                    .or(() -> Optional.ofNullable(property.getSchema().getMaxProperties()))
                     .orElse(Integer.MAX_VALUE);
-            return "@%s(min = %d, max = %d) %s".formatted(
-                    Size.class.getName(),
-                    min,
-                    max,
-                    type
-            );
+            fieldDeclaration
+                    .addAndGetAnnotation(Size.class)
+                    .addPair("min", "%d".formatted(min))
+                    .addPair("max", "%d".formatted(max));
+        }
+    },
+
+    PATTERN {
+        @Override
+        public void annotate(FieldDeclaration fieldDeclaration, OpenApiProperty property) {
+            if (property.getSchema().getPattern() == null) {
+                return;
+            }
+            var pattern = property.getSchema().getPattern().replace("\\", "\\\\");
+            fieldDeclaration
+                    .addAndGetAnnotation(Pattern.class)
+                    .addPair("regexp", "\"%s\"".formatted(pattern));
+        }
+    },
+
+    JSON_UNWRAPPED {
+        @Override
+        public void annotate(FieldDeclaration fieldDeclaration, OpenApiProperty property) {
+            fieldDeclaration.addAnnotation(JsonUnwrapped.class);
         }
     },
 
     JSON_PROPERTY {
         @Override
-        public String annotate(String type, OpenApiProperty property) {
-            return getAccess(property)
-                    .map(access -> withAccess(type, property, access))
-                    .orElseGet(() -> withoutAccess(type, property));
-        }
-
-        private String withAccess(String type, OpenApiProperty property, JsonProperty.Access access) {
-            return "@%s(value = \"%s\", access = %s.%s.%s) %s".formatted(
-                    JsonProperty.class.getName(),
-                    property.getName(),
-                    JsonProperty.class.getName(),
+        public void annotate(FieldDeclaration fieldDeclaration, OpenApiProperty property) {
+            var value = "\"%s\"".formatted(property.getName());
+            var access = "%s.%s.%s".formatted(
+                    JsonProperty.class.getSimpleName(),
                     JsonProperty.Access.class.getSimpleName(),
-                    access.name(),
-                    type
+                    getAccess(property).name()
             );
+            fieldDeclaration
+                    .addAndGetAnnotation(JsonProperty.class)
+                    .addPair("value", value)
+                    .addPair("access", access);
         }
 
-        private String withoutAccess(String type, OpenApiProperty property) {
-            return "@%s(value = \"%s\") %s".formatted(
-                    JsonProperty.class.getName(),
-                    property.getName(),
-                    type
-            );
-        }
-
-        private Optional<JsonProperty.Access> getAccess(OpenApiProperty property) {
+        private JsonProperty.Access getAccess(OpenApiProperty property) {
             if (Boolean.TRUE.equals(property.getSchema().getReadOnly())) {
-                return Optional.of(JsonProperty.Access.READ_ONLY);
+                return JsonProperty.Access.READ_ONLY;
             } else if (Boolean.TRUE.equals(property.getSchema().getWriteOnly())) {
-                return Optional.of(JsonProperty.Access.WRITE_ONLY);
+                return JsonProperty.Access.WRITE_ONLY;
             } else {
-                return Optional.empty();
+                return JsonProperty.Access.AUTO;
             }
         }
     };
 
-    public abstract String annotate(String type, OpenApiProperty property);
+    public abstract void annotate(FieldDeclaration fieldDeclaration, OpenApiProperty property);
 
 }

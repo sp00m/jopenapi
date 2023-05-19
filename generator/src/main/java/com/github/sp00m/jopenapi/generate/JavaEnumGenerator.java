@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
-import com.github.sp00m.jopenapi.read.JavaEnumDefinition;
-import com.github.sp00m.jopenapi.read.Names;
+import com.github.sp00m.jopenapi.Names;
+import com.github.sp00m.jopenapi.read.vo.JavaEnumDefinition;
 import lombok.RequiredArgsConstructor;
 
 import static com.github.javaparser.StaticJavaParser.parseBlock;
@@ -17,7 +17,7 @@ import static com.github.javaparser.ast.Modifier.Keyword.PUBLIC;
 import static com.github.javaparser.ast.Modifier.Keyword.STATIC;
 
 @RequiredArgsConstructor
-public final class JavaEnumGenerator implements JavaTypeGenerator {
+final class JavaEnumGenerator implements JavaTypeGenerator {
 
     private final JavaEnumDefinition enumDefinition;
     private final CompilationUnit compiler = new CompilationUnit();
@@ -38,21 +38,21 @@ public final class JavaEnumGenerator implements JavaTypeGenerator {
 
         enumDeclaration.addField(String.class, "value", PRIVATE, FINAL);
 
-        enumDeclaration.addMethod("getValue", PUBLIC)
+        enumDeclaration.addMethod("get", PUBLIC)
                 .setType(String.class)
                 .setBody(parseBlock("{return value;}"))
                 .addAnnotation(JsonValue.class);
 
-        enumDeclaration.addMethod("getByValue", PUBLIC, STATIC)
+        enumDeclaration.addMethod("get", PUBLIC, STATIC)
                 .setType(enumDefinition.getName())
                 .addParameter(String.class, "value")
-                .setBody(parseBlock("{return java.util.Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new java.lang.IllegalArgumentException(\"No %s with value \" + value));}".formatted(enumDefinition.getName())))
+                .setBody(parseBlock("{return java.util.Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException(\"No %s with value \" + value));}".formatted(enumDefinition.getName())))
                 .addAnnotation(JsonCreator.class);
 
         enumDefinition.getValues().forEach(value -> {
-            var entry = new EnumConstantDeclaration(Names.toEnumValue(value));
-            entry.addArgument("\"" + value + "\"");
-            enumDeclaration.addEntry(entry);
+            var valueDeclaration = new EnumConstantDeclaration(Names.toEnumValue(value));
+            valueDeclaration.addArgument("\"" + value + "\"");
+            enumDeclaration.addEntry(valueDeclaration);
         });
 
         return compiler;

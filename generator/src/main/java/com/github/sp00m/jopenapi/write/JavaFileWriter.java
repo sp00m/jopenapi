@@ -1,7 +1,9 @@
 package com.github.sp00m.jopenapi.write;
 
-import com.github.sp00m.jopenapi.generate.JavaFile;
+import com.github.sp00m.jopenapi.generate.vo.JavaFile;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,28 +14,25 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 
+@RequiredArgsConstructor
+@Slf4j
 public final class JavaFileWriter {
 
-    private final File baseDir;
-    private final File outputDir;
+    private final File baseOutputDir;
     private final List<JavaFile> javaFiles;
 
-    public JavaFileWriter(String basePackage, File baseDir, List<JavaFile> javaFiles) {
-        this.baseDir = baseDir;
-        this.outputDir = new File(baseDir, basePackage.replaceAll("\\.", "/"));
-        this.javaFiles = javaFiles;
-    }
-
     public void write() {
-        outputDir.mkdirs();
-        emptyDirectory(baseDir);
-        outputDir.mkdirs();
+        baseOutputDir.mkdirs();
+        emptyDirectory(baseOutputDir);
         javaFiles.forEach(this::write);
     }
 
     @SneakyThrows
     private void write(JavaFile javaFile) {
+        var outputDir = new File(baseOutputDir, javaFile.getPackageName().replaceAll("\\.", "/"));
+        outputDir.mkdirs();
         var outputFile = new File(outputDir, javaFile.getName() + ".java").toPath();
+        log.info("Writing into {}...", outputFile);
         Files.writeString(outputFile, javaFile.getContent());
     }
 

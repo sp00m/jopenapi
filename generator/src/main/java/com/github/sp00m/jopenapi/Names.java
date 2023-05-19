@@ -1,4 +1,4 @@
-package com.github.sp00m.jopenapi.read;
+package com.github.sp00m.jopenapi;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -11,8 +11,7 @@ import static java.util.stream.Collectors.joining;
 public final class Names {
 
     public static String toClassName(String name) {
-        return Stream
-                .of(toWords(name))
+        return toWords(name)
                 .map(string -> string.substring(0, 1).toUpperCase() + string.substring(1))
                 .collect(joining());
     }
@@ -23,14 +22,22 @@ public final class Names {
     }
 
     public static String toEnumValue(String name) {
-        return Stream
-                .of(toWords(name))
+        String value = toWords(name)
                 .map(String::toUpperCase)
+                .collect(joining("_"));
+        return value.isEmpty() ? "UNKNOWN" : value;
+    }
+
+    public static String toPackageName(String name) {
+        return toWords(name.replaceAll("\\.yml$", ""))
+                .map(String::toLowerCase)
                 .collect(joining("_"));
     }
 
-    private static String[] toWords(String name) {
-        return name.split("([_\\W]|(?>=[a-z])(?=[A-Z]))", -1);
+    private static Stream<String> toWords(String name) {
+        return Stream
+                .of(name.split("([_\\W]|(?>=[a-z])(?=[A-Z]))", -1))
+                .filter(word -> !word.isBlank());
     }
 
 }

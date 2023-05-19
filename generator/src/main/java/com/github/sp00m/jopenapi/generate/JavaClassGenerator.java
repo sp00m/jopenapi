@@ -2,13 +2,15 @@ package com.github.sp00m.jopenapi.generate;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.sp00m.jopenapi.read.JavaClassDefinition;
-import com.github.sp00m.jopenapi.read.JavaEnumDefinition;
-import com.github.sp00m.jopenapi.read.JavaFieldDefinition;
-import com.github.sp00m.jopenapi.read.JavaTypeDefinition;
-import com.github.sp00m.jopenapi.read.Names;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.sp00m.jopenapi.Names;
+import com.github.sp00m.jopenapi.read.vo.JavaClassDefinition;
+import com.github.sp00m.jopenapi.read.vo.JavaFieldDefinition;
+import com.github.sp00m.jopenapi.read.vo.JavaTypeDefinition;
 import jakarta.validation.constraints.NotNull;
+import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
@@ -21,95 +23,102 @@ import static com.github.javaparser.ast.Modifier.Keyword.PUBLIC;
 import static com.github.javaparser.ast.Modifier.Keyword.STATIC;
 
 @RequiredArgsConstructor
-public final class JavaClassGenerator implements JavaTypeGenerator {
+final class JavaClassGenerator implements JavaTypeGenerator {
 
     private final JavaClassDefinition classDefinition;
     private final CompilationUnit compiler = new CompilationUnit();
 
     @Override
     public CompilationUnit generate() {
+        compiler.addImport(AccessLevel.class);
         var classDeclaration = compiler
                 .addClass(classDefinition.getName())
                 .addAnnotation(Value.class)
                 .addAnnotation(Builder.class)
-                .addAnnotation(Jacksonized.class);
-        classDefinition.getFields().forEach(field -> addField(classDeclaration, field));
+                .addAnnotation(Jacksonized.class)
+                .addSingleMemberAnnotation(Getter.class, "AccessLevel.NONE");
+        classDefinition
+                .getImplementedTypes()
+                .forEach(classDeclaration::addImplementedType);
+        classDefinition
+                .getFields()
+                .forEach(field -> addField(compiler, classDeclaration, field));
         return compiler;
     }
 
-    private void addField(ClassOrInterfaceDeclaration classDeclaration, JavaFieldDefinition fieldDefinition) {
+    static MethodDeclaration addField(CompilationUnit compiler, ClassOrInterfaceDeclaration classDeclaration, JavaFieldDefinition fieldDefinition) {
         var fieldType = fieldDefinition.getType();
-        var finalType = fieldType
-                .getAnnotators()
-                .stream()
-                .reduce(
-                        fieldType.getRawType(),
-                        (rawType, annotator) -> annotator.annotate(rawType, fieldDefinition.getProperty()),
-                        (x, y) -> {
-                            throw new IllegalStateException();
-                        }
-                );
-        var field = classDeclaration.addField(finalType, fieldDefinition.getName());
-        if (fieldDefinition.getType().getDefaultIfNull() != null) {
-            addGetterWithDefaultIfNull(classDeclaration, fieldDefinition);
-        } else if (fieldDefinition.getProperty().isOptional()) {
-            addOptionalGetter(classDeclaration, fieldDefinition);
-        } else {
-            field.addAnnotation(NotNull.class);
-            toPrimitiveType(fieldType.getRawType()).ifPresent(primitiveType -> addPrimitiveGetter(classDeclaration, fieldDefinition, primitiveType));
-        }
         Optional
-                .ofNullable(fieldType.getInnerType())
-                .ifPresent(innerType -> addMember(classDeclaration, innerType));
+                .ofNullable(fieldType.getDefinition())
+                .ifPresent(typeDefinition -> addMember(compiler, classDeclaration, typeDefinition));
+        var fieldDeclaration = classDeclaration.addField(fieldType.getFullName(), fieldDefinition.getName());
+        fieldType
+                .getFieldAnnotators()
+                .forEach(annotator -> annotator.annotate(fieldDeclaration, fieldDefinition.getProperty()));
+        if (fieldDefinition.getType().getDefaultIfNull() != null) {
+            return addGetterWithDefaultIfNull(classDeclaration, fieldDefinition);
+        } else if (fieldDefinition.getProperty().isOptional()) {
+            return addOptionalGetter(classDeclaration, fieldDefinition);
+        } else {
+            fieldDeclaration.addAnnotation(NotNull.class);
+            return toPrimitiveType(fieldType.getFullName())
+                    .map(primitiveType -> addPrimitiveGetter(classDeclaration, fieldDefinition, primitiveType))
+                    .orElseGet(() -> addGetter(classDeclaration, fieldDefinition));
+        }
     }
 
-    private void addGetterWithDefaultIfNull(ClassOrInterfaceDeclaration classDeclaration, JavaFieldDefinition fieldDefinition) {
+    private static MethodDeclaration addGetterWithDefaultIfNull(ClassOrInterfaceDeclaration classDeclaration, JavaFieldDefinition fieldDefinition) {
         var fieldType = fieldDefinition.getType();
-        classDeclaration
+        return classDeclaration
                 .addMethod("get%s".formatted(Names.toClassName(fieldDefinition.getName())), PUBLIC)
-                .setType(fieldType.getRawType())
+                .setType(fieldType.getFullName())
                 .setBody(parseBlock("{return %s == null ? %s : %s;}".formatted(fieldDefinition.getName(), fieldType.getDefaultIfNull(), fieldDefinition.getName())));
     }
 
-    private void addOptionalGetter(ClassOrInterfaceDeclaration classDeclaration, JavaFieldDefinition fieldDefinition) {
+    private static MethodDeclaration addOptionalGetter(ClassOrInterfaceDeclaration classDeclaration, JavaFieldDefinition fieldDefinition) {
+        classDeclaration.tryAddImportToParentCompilationUnit(Optional.class);
         var fieldType = fieldDefinition.getType();
-        classDeclaration
+        return classDeclaration
                 .addMethod("get%s".formatted(Names.toClassName(fieldDefinition.getName())), PUBLIC)
-                .setType("java.util.Optional<%s>".formatted(fieldType.getRawType()))
-                .setBody(parseBlock("{return java.util.Optional.ofNullable(%s);}".formatted(fieldDefinition.getName())));
+                .setType("Optional<%s>".formatted(fieldType.getFullName()))
+                .setBody(parseBlock("{return Optional.ofNullable(%s);}".formatted(fieldDefinition.getName())));
     }
 
-    private void addPrimitiveGetter(ClassOrInterfaceDeclaration classDeclaration, JavaFieldDefinition fieldDefinition, Class<?> primitiveType) {
-        var methodNameFormat = boolean.class.equals(primitiveType) ? "is%s" : "get%s";
-        var methodName = methodNameFormat
+    private static MethodDeclaration addPrimitiveGetter(ClassOrInterfaceDeclaration classDeclaration, JavaFieldDefinition fieldDefinition, Class<?> primitiveType) {
+        var getterNameFormat = boolean.class.equals(primitiveType) ? "is%s" : "get%s";
+        var getterName = getterNameFormat
                 .formatted(Names.toClassName(fieldDefinition.getName()))
                 .replaceFirst("^isIs(?=[A-Z])", "is");
-        classDeclaration
-                .addMethod(methodName, PUBLIC)
+        return classDeclaration
+                .addMethod(getterName, PUBLIC)
                 .setType(primitiveType)
                 .setBody(parseBlock("{return %s;}".formatted(fieldDefinition.getName())));
     }
 
-    private void addMember(ClassOrInterfaceDeclaration classDeclaration, JavaTypeDefinition innerTypeDefinition) {
-        final JavaTypeGenerator innerTypeGenerator;
-        if (innerTypeDefinition instanceof JavaEnumDefinition enumDefinition) {
-            innerTypeGenerator = new JavaEnumGenerator(enumDefinition);
-        } else if (innerTypeDefinition instanceof JavaClassDefinition innerClassDefinition) {
-            innerTypeGenerator = new JavaClassGenerator(innerClassDefinition);
-        } else {
-            throw new IllegalStateException();
+    private static MethodDeclaration addGetter(ClassOrInterfaceDeclaration classDeclaration, JavaFieldDefinition fieldDefinition) {
+        var fieldType = fieldDefinition.getType();
+        return classDeclaration
+                .addMethod("get%s".formatted(Names.toClassName(fieldDefinition.getName())), PUBLIC)
+                .setType(fieldType.getFullName())
+                .setBody(parseBlock("{return %s;}".formatted(fieldDefinition.getName())));
+    }
+
+    private static void addMember(CompilationUnit compiler, ClassOrInterfaceDeclaration classDeclaration, JavaTypeDefinition innerTypeDefinition) {
+        var innerTypeCompiler = JavaGenerator.generateCompiler(innerTypeDefinition);
+        var innerType = innerTypeCompiler.getType(0);
+        if (innerType instanceof ClassOrInterfaceDeclaration declaration && !declaration.isInterface()) {
+            declaration.addModifier(STATIC);
         }
-        var innerTypeCompiler = innerTypeGenerator.generate();
-        classDeclaration.addMember(innerTypeCompiler.getType(0).addModifier(STATIC));
+        classDeclaration.addMember(innerType);
         innerTypeCompiler.getImports().forEach(compiler::addImport);
     }
 
-    private static Optional<? extends Class<?>> toPrimitiveType(String type) {
+    private static Optional<? extends Class<?>> toPrimitiveType(String wrapperType) {
         try {
             return Optional
-                    .ofNullable(ClassUtils.wrapperToPrimitive(Class.forName(type)))
-                    .filter(primitive -> !type.equals(primitive.getName()));
-        } catch (Exception e) {
+                    .ofNullable(ClassUtils.wrapperToPrimitive(Class.forName("java.lang.%s".formatted(wrapperType))))
+                    .filter(primitive -> !wrapperType.equals(primitive.getName()));
+        } catch (Throwable t) {
             return Optional.empty();
         }
     }
