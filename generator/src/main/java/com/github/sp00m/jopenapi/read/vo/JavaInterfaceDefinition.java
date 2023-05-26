@@ -9,6 +9,7 @@ public class JavaInterfaceDefinition implements JavaTypeDefinition {
 
     String packageName;
     String name;
+    String description;
     String propertyName;
     Map<String, String> mapping;
 

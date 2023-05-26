@@ -1,0 +1,41 @@
+openapi: 3.0.3
+components:
+  schemas:
+
+    SimpleEnum:
+      type: string
+      enum:
+        - value 1
+        - value 2
+        - null
+
+    EnumVariations:
+      type: object
+      properties:
+        enum_without_type:
+          enum:
+            - without type
+        optional_enum:
+          type: string
+          enum:
+            - optional
+        nullable_enum:
+          type: string
+          enum:
+            - nullable
+          nullable: true
+        enum_with_null:
+          type: string
+          enum:
+            - with null
+            - null
+        nullable_enum_with_null:
+          type: string
+          enum:
+            - with null
+            - null
+          nullable: true
+      required:
+        - enum_without_type
+        - nullable_enum
+        - enum_with_null

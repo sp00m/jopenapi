@@ -1,0 +1,104 @@
+openapi: 3.0.3
+components:
+  schemas:
+
+    SimpleArray:
+      type: array
+      items:
+        type: integer
+
+    UniqueItemsArrayWithMinMax:
+      type: array
+      items:
+        type: integer
+      minItems: 1
+      maxItems: 5
+      uniqueItems: true
+
+#    CustomTypedArray:
+#      type: array
+#      items:
+#        type: object
+#        properties:
+#          i:
+#            type: integer
+#        required:
+#          - i
+
+    ArrayVariations:
+      type: object
+      properties:
+        untyped_array:
+          type: array
+          items: { }
+        nested_array:
+          type: array
+          items:
+            type: array
+            items:
+              type: integer
+        custom_typed_array:
+          type: array
+          items:
+            type: object
+            properties:
+              i:
+                type: integer
+            required:
+              - i
+        custom_typed_nested_array:
+          type: array
+          items:
+            type: array
+            items:
+              type: object
+              properties:
+                i:
+                  type: integer
+              required:
+                - i
+        optional_array:
+          type: array
+          items:
+            type: integer
+        unique_items_array:
+          type: array
+          items:
+            type: integer
+          uniqueItems: true
+        unique_items_optional_array:
+          type: array
+          items:
+            type: integer
+          uniqueItems: true
+        array_with_min:
+          type: array
+          items:
+            type: integer
+          minItems: 1
+        optional_array_with_min:
+          type: array
+          items:
+            type: integer
+          minItems: 1
+        array_with_max:
+          type: array
+          items:
+            type: integer
+          maxItems: 5
+        unique_items_array_with_min_max:
+          type: array
+          items:
+            type: integer
+          minItems: 1
+          maxItems: 5
+          uniqueItems: true
+      required:
+        - untyped_array
+        - nested_array
+        - custom_typed_array
+        - custom_typed_nested_array
+        - unique_items_array
+        - array_with_min
+        - array_with_max
+        - unique_items_array_with_min_max

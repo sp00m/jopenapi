@@ -1,0 +1,47 @@
+openapi: 3.0.3
+components:
+  schemas:
+
+    SimpleString:
+      type: string
+
+    StringVariations:
+      type: object
+      properties:
+        as_date:
+          type: string
+          format: date
+        as_date_time:
+          type: string
+          format: date-time
+        as_uuid:
+          type: string
+          format: uuid
+        as_uri:
+          type: string
+          format: uri
+        string_with_pattern:
+          type: string
+          pattern: ^\d+$
+        string_with_min:
+          type: string
+          minLength: 1
+        string_with_max:
+          type: string
+          maxLength: 5
+        string_with_pattern_min_max:
+          type: string
+          pattern: ^\d+$
+          minLength: 1
+          maxLength: 5
+        optional_string:
+          type: string
+      required:
+        - as_date
+        - as_date_time
+        - as_uuid
+        - as_uri
+        - string_with_pattern
+        - string_with_min
+        - string_with_max
+        - string_with_pattern_min_max

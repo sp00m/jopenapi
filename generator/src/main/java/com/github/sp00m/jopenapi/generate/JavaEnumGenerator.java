@@ -9,6 +9,12 @@ import com.github.sp00m.jopenapi.Names;
 import com.github.sp00m.jopenapi.read.vo.JavaEnumDefinition;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import static com.github.javaparser.StaticJavaParser.parseBlock;
 import static com.github.javaparser.StaticJavaParser.parseExpression;
 import static com.github.javaparser.ast.Modifier.Keyword.FINAL;
@@ -29,10 +35,17 @@ final class JavaEnumGenerator implements JavaTypeGenerator {
                 .addEnum(enumDefinition.getName())
                 .addAnnotation(RequiredArgsConstructor.class);
 
+        compiler
+                .addImport(Map.class)
+                .addImport(Stream.class)
+                .addImport(Collectors.class)
+                .addImport(Function.class)
+                .addImport(Optional.class);
+
         enumDeclaration.addFieldWithInitializer(
-                "java.util.Map<String, %s>".formatted(enumDefinition.getName()),
+                "Map<String, %s>".formatted(enumDefinition.getName()),
                 "BY_VALUE",
-                parseExpression("java.util.stream.Stream.of(values()).collect(java.util.stream.Collectors.toUnmodifiableMap(%s::getValue, java.util.function.Function.identity()))".formatted(enumDefinition.getName())),
+                parseExpression("Stream.of(values()).collect(Collectors.toUnmodifiableMap(%s::get, Function.identity()))".formatted(enumDefinition.getName())),
                 PRIVATE, STATIC, FINAL
         );
 
@@ -46,7 +59,7 @@ final class JavaEnumGenerator implements JavaTypeGenerator {
         enumDeclaration.addMethod("get", PUBLIC, STATIC)
                 .setType(enumDefinition.getName())
                 .addParameter(String.class, "value")
-                .setBody(parseBlock("{return java.util.Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException(\"No %s with value \" + value));}".formatted(enumDefinition.getName())))
+                .setBody(parseBlock("{return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException(\"No %s with value \" + value));}".formatted(enumDefinition.getName())))
                 .addAnnotation(JsonCreator.class);
 
         enumDefinition.getValues().forEach(value -> {

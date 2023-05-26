@@ -1,4 +1,4 @@
-package jopenapi.test.example;
+package jopenapi.test.booleans;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -11,18 +11,18 @@ import lombok.Value;
 @Value()
 @Getter(AccessLevel.NONE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class SomeNumber {
+public class SimpleBoolean {
 
     @NotNull()
-    Number value;
+    Boolean value;
 
     @JsonValue()
-    public Number get() {
+    public boolean get() {
         return value;
     }
 
     @JsonCreator()
-    public static SomeNumber of(Number value) {
-        return new SomeNumber(value);
+    public static SimpleBoolean of(Boolean value) {
+        return new SimpleBoolean(value);
     }
 }

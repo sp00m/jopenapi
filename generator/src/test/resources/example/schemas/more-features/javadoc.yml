@@ -1,0 +1,17 @@
+openapi: 3.0.3
+components:
+  schemas:
+
+    DocumentedClass:
+      description: Javadoc on the class.
+      type: object
+      properties:
+        documented_field:
+          description: Javadoc on the field.
+          type: integer
+        documented_inner_type:
+          description: Javadoc on the inner type.
+          type: object
+          properties:
+            i:
+              type: integer

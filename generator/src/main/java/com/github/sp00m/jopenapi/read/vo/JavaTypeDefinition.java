@@ -6,6 +6,8 @@ public interface JavaTypeDefinition {
 
     String getName();
 
+    String getDescription();
+
     default String getFullName() {
         return "%s.%s".formatted(getPackageName(), getName());
     }

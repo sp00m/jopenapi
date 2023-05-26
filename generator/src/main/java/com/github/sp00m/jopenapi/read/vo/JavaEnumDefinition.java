@@ -9,6 +9,7 @@ public class JavaEnumDefinition implements JavaTypeDefinition {
 
     String packageName;
     String name;
+    String description;
     List<String> values;
 
 }

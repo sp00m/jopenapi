@@ -1,0 +1,53 @@
+openapi: 3.0.3
+components:
+  schemas:
+
+    DefaultedValues:
+      type: object
+      properties:
+        defaulted_int:
+          type: integer
+          default: 1
+        defaulted_long:
+          type: integer
+          format: int64
+          default: 2
+        defaulted_float:
+          type: number
+          format: float
+          default: 3.3
+        defaulted_double:
+          type: number
+          format: double
+          default: 4.4
+        defaulted_number:
+          type: number
+          default: 5.5
+        defaulted_boolean:
+          type: boolean
+          default: true
+        defaulted_string:
+          type: string
+          default: hello world
+        defaulted_date:
+          type: string
+          format: date
+          default: 2020-06-30
+        defaulted_datetime:
+          type: string
+          format: date-time
+          default: 2020-06-30T15:30:50.123+01:00
+        defaulted_uuid:
+          type: string
+          format: uuid
+          default: cb855a07-11d3-432f-936f-cd79590482df
+        defaulted_uri:
+          type: string
+          format: uri
+          default: https://github.com/sp00m/jopenapi
+        defaulted_internal_enum:
+          type: string
+          enum:
+            - foo
+            - bar
+          default: bar

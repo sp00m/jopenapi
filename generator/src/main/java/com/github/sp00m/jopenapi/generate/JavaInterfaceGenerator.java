@@ -10,6 +10,9 @@ import com.github.javaparser.ast.expr.Expression;
 import com.github.sp00m.jopenapi.read.vo.JavaInterfaceDefinition;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Comparator;
+import java.util.Map;
+
 @RequiredArgsConstructor
 final class JavaInterfaceGenerator implements JavaTypeGenerator {
 
@@ -22,6 +25,7 @@ final class JavaInterfaceGenerator implements JavaTypeGenerator {
                 .getMapping()
                 .entrySet()
                 .stream()
+                .sorted(Comparator.comparing(Map.Entry::getKey))
                 .map(mapping -> "@JsonSubTypes.Type(name = \"%s\", value = %s.class)".formatted(mapping.getKey(), mapping.getValue()))
                 .map(StaticJavaParser::parseAnnotation)
                 .map(Expression.class::cast)

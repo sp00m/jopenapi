@@ -1,0 +1,14 @@
+openapi: 3.0.3
+components:
+  schemas:
+
+    NotString:
+      not:
+        type: string
+
+    NestedNotString:
+      type: object
+      properties:
+        not_string:
+          not:
+            type: string

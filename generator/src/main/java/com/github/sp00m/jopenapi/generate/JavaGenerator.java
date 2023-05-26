@@ -14,6 +14,7 @@ import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -62,7 +63,11 @@ public final class JavaGenerator {
         } else {
             throw new IllegalStateException();
         }
-        return typeGenerator.generate();
+        var compiler = typeGenerator.generate();
+        Optional
+                .ofNullable(typeDefinition.getDescription())
+                .ifPresent(description -> compiler.getType(0).setJavadocComment(description));
+        return compiler;
     }
 
 }

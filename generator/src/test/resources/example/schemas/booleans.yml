@@ -1,0 +1,19 @@
+openapi: 3.0.3
+components:
+  schemas:
+
+    SimpleBoolean:
+      type: boolean
+
+    BooleanVariations:
+      type: object
+      properties:
+        mandatory_boolean:
+          type: boolean
+        is_prefixed_mandatory_boolean:
+          type: boolean
+        optional_boolean:
+          type: boolean
+      required:
+        - mandatory_boolean
+        - is_prefixed_mandatory_boolean

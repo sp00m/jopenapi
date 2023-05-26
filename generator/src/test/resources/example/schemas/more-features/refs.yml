@@ -1,0 +1,37 @@
+openapi: 3.0.3
+components:
+  schemas:
+
+    LocalCommonObject:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+
+    SimpleExternalRef:
+      $ref: "../common.yml#/components/schemas/CommonObject"
+
+    SimpleLocalRef:
+      $ref: "#/components/schemas/LocalCommonObject"
+
+    RefVariations:
+      type: object
+      properties:
+        mandatory_ref:
+          $ref: "#/components/schemas/LocalCommonObject"
+        optional_ref:
+          $ref: "#/components/schemas/LocalCommonObject"
+        ref_array:
+          type: array
+          items:
+            $ref: "#/components/schemas/LocalCommonObject"
+        ref_map:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/LocalCommonObject"
+      required:
+        - mandatory_ref
+        - ref_array
+        - ref_map

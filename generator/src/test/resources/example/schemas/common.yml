@@ -1,0 +1,11 @@
+openapi: 3.0.3
+components:
+  schemas:
+
+    CommonObject:
+      type: object
+      properties:
+        id:
+          type: integer
+      required:
+        - id

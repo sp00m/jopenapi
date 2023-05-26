@@ -1,4 +1,4 @@
-package jopenapi.test.example;
+package jopenapi.test.numbers;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.DecimalMax;
@@ -12,9 +12,9 @@ import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
 @Value()
-@Builder()
 @Jacksonized()
 @Getter(AccessLevel.NONE)
+@Builder(toBuilder = true)
 public class NumberVariations {
 
     @DecimalMin(value = "1", inclusive = true)

@@ -1,10 +1,14 @@
-package jopenapi.test.example;
+package jopenapi.test.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.validation.constraints.NotNull;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,17 +17,17 @@ import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
 @Value()
-@Builder()
 @Jacksonized()
 @Getter(AccessLevel.NONE)
-public class InnerEnumVariations {
+@Builder(toBuilder = true)
+public class EnumVariations {
 
     @RequiredArgsConstructor()
     public enum EnumWithoutType {
 
         WITHOUT_TYPE("without type");
 
-        private static final java.util.Map<String, EnumWithoutType> BY_VALUE = java.util.stream.Stream.of(values()).collect(java.util.stream.Collectors.toUnmodifiableMap(EnumWithoutType::getValue, java.util.function.Function.identity()));
+        private static final Map<String, EnumWithoutType> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(EnumWithoutType::get, Function.identity()));
 
         private final String value;
 
@@ -34,7 +38,7 @@ public class InnerEnumVariations {
 
         @JsonCreator()
         public static EnumWithoutType get(String value) {
-            return java.util.Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No EnumWithoutType with value " + value));
+            return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No EnumWithoutType with value " + value));
         }
     }
 
@@ -47,39 +51,11 @@ public class InnerEnumVariations {
     }
 
     @RequiredArgsConstructor()
-    public enum MandatoryEnum {
-
-        MANDATORY("mandatory");
-
-        private static final java.util.Map<String, MandatoryEnum> BY_VALUE = java.util.stream.Stream.of(values()).collect(java.util.stream.Collectors.toUnmodifiableMap(MandatoryEnum::getValue, java.util.function.Function.identity()));
-
-        private final String value;
-
-        @JsonValue()
-        public String get() {
-            return value;
-        }
-
-        @JsonCreator()
-        public static MandatoryEnum get(String value) {
-            return java.util.Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No MandatoryEnum with value " + value));
-        }
-    }
-
-    @JsonProperty(value = "mandatory_enum", access = JsonProperty.Access.AUTO)
-    @NotNull()
-    MandatoryEnum mandatoryEnum;
-
-    public MandatoryEnum getMandatoryEnum() {
-        return mandatoryEnum;
-    }
-
-    @RequiredArgsConstructor()
     public enum OptionalEnum {
 
         OPTIONAL("optional");
 
-        private static final java.util.Map<String, OptionalEnum> BY_VALUE = java.util.stream.Stream.of(values()).collect(java.util.stream.Collectors.toUnmodifiableMap(OptionalEnum::getValue, java.util.function.Function.identity()));
+        private static final Map<String, OptionalEnum> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(OptionalEnum::get, Function.identity()));
 
         private final String value;
 
@@ -90,7 +66,7 @@ public class InnerEnumVariations {
 
         @JsonCreator()
         public static OptionalEnum get(String value) {
-            return java.util.Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No OptionalEnum with value " + value));
+            return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No OptionalEnum with value " + value));
         }
     }
 
@@ -106,7 +82,7 @@ public class InnerEnumVariations {
 
         NULLABLE("nullable");
 
-        private static final java.util.Map<String, NullableEnum> BY_VALUE = java.util.stream.Stream.of(values()).collect(java.util.stream.Collectors.toUnmodifiableMap(NullableEnum::getValue, java.util.function.Function.identity()));
+        private static final Map<String, NullableEnum> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(NullableEnum::get, Function.identity()));
 
         private final String value;
 
@@ -117,7 +93,7 @@ public class InnerEnumVariations {
 
         @JsonCreator()
         public static NullableEnum get(String value) {
-            return java.util.Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No NullableEnum with value " + value));
+            return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No NullableEnum with value " + value));
         }
     }
 
@@ -134,7 +110,7 @@ public class InnerEnumVariations {
 
         WITH_NULL("with null");
 
-        private static final java.util.Map<String, EnumWithNull> BY_VALUE = java.util.stream.Stream.of(values()).collect(java.util.stream.Collectors.toUnmodifiableMap(EnumWithNull::getValue, java.util.function.Function.identity()));
+        private static final Map<String, EnumWithNull> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(EnumWithNull::get, Function.identity()));
 
         private final String value;
 
@@ -145,7 +121,7 @@ public class InnerEnumVariations {
 
         @JsonCreator()
         public static EnumWithNull get(String value) {
-            return java.util.Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No EnumWithNull with value " + value));
+            return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No EnumWithNull with value " + value));
         }
     }
 
@@ -162,7 +138,7 @@ public class InnerEnumVariations {
 
         WITH_NULL("with null");
 
-        private static final java.util.Map<String, NullableEnumWithNull> BY_VALUE = java.util.stream.Stream.of(values()).collect(java.util.stream.Collectors.toUnmodifiableMap(NullableEnumWithNull::getValue, java.util.function.Function.identity()));
+        private static final Map<String, NullableEnumWithNull> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(NullableEnumWithNull::get, Function.identity()));
 
         private final String value;
 
@@ -173,7 +149,7 @@ public class InnerEnumVariations {
 
         @JsonCreator()
         public static NullableEnumWithNull get(String value) {
-            return java.util.Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No NullableEnumWithNull with value " + value));
+            return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No NullableEnumWithNull with value " + value));
         }
     }
 

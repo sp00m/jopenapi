@@ -22,12 +22,12 @@ final class OpenApiComponentReader {
         if (type == null) {
             return null;
         }
-        if (type.getDefinition() != null) {
+        if (type.getDefinition() != null && !type.isWrapped()) {
             return type.getDefinition();
         } else {
             var property = new OpenApiProperty("value", component.getSchema(), false);
             var fieldDefinition = new JavaFieldDefinition(property, "value", type);
-            return new JavaValueClassDefinition(packageName, Names.toClassName(component.getName()), fieldDefinition);
+            return new JavaValueClassDefinition(packageName, Names.toClassName(component.getName()), component.getSchema().getDescription(), fieldDefinition);
         }
     }
 

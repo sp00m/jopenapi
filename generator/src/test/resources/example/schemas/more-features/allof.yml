@@ -1,0 +1,97 @@
+openapi: 3.0.3
+components:
+  schemas:
+
+    LocalCommonObject:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+
+    AllOfWithOnlyRefs:
+      allOf:
+        - $ref: "#/components/schemas/LocalCommonObject"
+        - $ref: "../common.yml#/components/schemas/CommonObject"
+
+    AllOfWithOneCustomObject:
+      allOf:
+        - $ref: "#/components/schemas/LocalCommonObject"
+        - type: object
+          properties:
+            active:
+              type: boolean
+          required:
+            - active
+
+    AllOfWithOneCustomString:
+      allOf:
+        - $ref: "#/components/schemas/LocalCommonObject"
+        - type: string
+
+    AllOfWithOneCustomArray:
+      allOf:
+        - $ref: "#/components/schemas/LocalCommonObject"
+        - type: array
+          items:
+            type: object
+            properties:
+              active:
+                type: boolean
+
+    AllOfWithTwoCustomObjects:
+      allOf:
+        - $ref: "#/components/schemas/LocalCommonObject"
+        - type: object
+          properties:
+            active:
+              type: boolean
+        - type: object
+          properties:
+            live:
+              type: boolean
+
+    NestedAllOfs:
+      type: object
+      properties:
+        only_refs:
+          allOf:
+            - $ref: "#/components/schemas/LocalCommonObject"
+            - $ref: "../common.yml#/components/schemas/CommonObject"
+        one_custom_object:
+          allOf:
+            - $ref: "#/components/schemas/LocalCommonObject"
+            - type: object
+              properties:
+                active:
+                  type: boolean
+              required:
+                - active
+        two_custom_objects:
+          allOf:
+            - $ref: "#/components/schemas/LocalCommonObject"
+            - type: object
+              properties:
+                active:
+                  type: boolean
+            - type: object
+              properties:
+                live:
+                  type: boolean
+        one_custom_string:
+          allOf:
+            - $ref: "#/components/schemas/LocalCommonObject"
+            - type: string
+        one_custom_array:
+          allOf:
+            - $ref: "#/components/schemas/LocalCommonObject"
+            - type: array
+              items:
+                type: object
+                properties:
+                  active:
+                    type: boolean
+      required:
+        - only_refs
+        - one_custom_object

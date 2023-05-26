@@ -7,6 +7,7 @@ public class JavaValueClassDefinition implements JavaTypeDefinition {
 
     String packageName;
     String name;
+    String description;
     JavaFieldDefinition field;
 
 }

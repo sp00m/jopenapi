@@ -14,10 +14,12 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -37,11 +39,22 @@ final class OpenApiSchemaReader {
     @Nullable
     public JavaType read() {
         try {
-            return readOrThrow();
+            var type = readOrThrow()
+                    .description(schema.getDescription());
+            return Optional
+                    .ofNullable(schema.getDefault())
+                    .map(defaultValue -> type.defaultValue(prepareDefaultValue(defaultValue)))
+                    .orElse(type);
         } catch (Throwable t) {
             log.error("Unable to read schema {}", schemaName, t);
             return null;
         }
+    }
+
+    private String prepareDefaultValue(Object defaultValue) {
+        return defaultValue instanceof Date date
+                ? new SimpleDateFormat("yyyy-MM-dd").format(date)
+                : defaultValue.toString();
     }
 
     @Nullable
@@ -108,6 +121,9 @@ final class OpenApiSchemaReader {
     }
 
     private String findRefPackageName(String ref) {
+        if (!ref.contains("#")) {
+            return packageName;
+        }
         var filePath = ref.substring(0, ref.indexOf('#'));
         if (filePath.isEmpty()) {
             return packageName;
@@ -133,18 +149,24 @@ final class OpenApiSchemaReader {
                 .ofNullable(schema.getFormat())
                 .orElse("");
         return switch (format) {
-            case "date" -> new JavaType(LocalDate.class);
-            case "date-time" -> new JavaType(OffsetDateTime.class);
-            case "uuid" -> new JavaType(UUID.class);
-            case "uri" -> new JavaType(URI.class);
-            default -> new JavaType(String.class).string();
+            case "date" -> new JavaType(LocalDate.class)
+                    .defaultValueDecorator("java.time.LocalDate.parse(\"%s\")"::formatted);
+            case "date-time" -> new JavaType(OffsetDateTime.class)
+                    .defaultValueDecorator("java.time.OffsetDateTime.parse(\"%s\")"::formatted);
+            case "uuid" -> new JavaType(UUID.class)
+                    .defaultValueDecorator("java.util.UUID.fromString(\"%s\")"::formatted);
+            case "uri" -> new JavaType(URI.class)
+                    .defaultValueDecorator("java.net.URI.create(\"%s\")"::formatted);
+            default -> new JavaType(String.class)
+                    .string()
+                    .defaultValueDecorator("\"%s\""::formatted);
         };
     }
 
     private JavaType readEnum(List<String> enumValues) {
         var enumName = Names.toClassName(schemaName);
-        var enumDefinition = new JavaEnumDefinition(packageName, enumName, enumValues);
-        return new JavaType(enumName, enumDefinition);
+        var enumDefinition = new JavaEnumDefinition(packageName, enumName, schema.getDescription(), enumValues);
+        return new JavaType(enumName, enumDefinition).defaultValueDecorator(x -> "%s.%s".formatted(enumName, Names.toEnumValue(x)));
     }
 
     private JavaType readNumber() {
@@ -152,9 +174,9 @@ final class OpenApiSchemaReader {
                 .ofNullable(schema.getFormat())
                 .orElse("");
         var field = switch (format) {
-            case "float" -> new JavaType(Float.class);
-            case "double" -> new JavaType(Double.class);
-            default -> new JavaType(Number.class);
+            case "float" -> new JavaType(Float.class).defaultValueDecorator("%sF"::formatted);
+            case "double" -> new JavaType(Double.class).defaultValueDecorator("%sD"::formatted);
+            default -> new JavaType(Number.class).defaultValueDecorator("new java.math.BigDecimal(\"%s\")"::formatted);
         };
         return field.number();
     }
@@ -165,7 +187,7 @@ final class OpenApiSchemaReader {
                 .orElse("");
         var field = switch (format) {
             case "int32" -> new JavaType(Integer.class);
-            case "int64" -> new JavaType(Long.class);
+            case "int64" -> new JavaType(Long.class).defaultValueDecorator("%sL"::formatted);
             default -> new JavaType(Integer.class);
         };
         return field.number();
@@ -183,7 +205,7 @@ final class OpenApiSchemaReader {
             return null;
         }
         var type = new JavaType(itemsType.getFullName(), itemsType.getDefinition());
-        return Boolean.TRUE.equals(itemsSchema.getUniqueItems()) ? type.set() : type.list();
+        return Boolean.TRUE.equals(schema.getUniqueItems()) ? type.set() : type.list();
     }
 
     @Nullable
@@ -211,7 +233,8 @@ final class OpenApiSchemaReader {
                 .ofNullable(schema.getProperties())
                 .orElseGet(Collections::emptyMap);
         if (properties.isEmpty()) {
-            throw new IllegalStateException("'object' without 'properties'");
+            log.warn("'object' without 'properties'");
+            return new JavaType(Object.class);
         }
         var requiredProperties = Optional
                 .ofNullable(schema.getRequired())
@@ -223,7 +246,7 @@ final class OpenApiSchemaReader {
                 .filter(Objects::nonNull)
                 .toList();
         var className = Names.toClassName(schemaName);
-        var classDefinition = new JavaClassDefinition(packageName, className, fieldDefinitions);
+        var classDefinition = new JavaClassDefinition(packageName, className, schema.getDescription(), fieldDefinitions);
         return new JavaType(className, classDefinition);
     }
 
@@ -244,7 +267,9 @@ final class OpenApiSchemaReader {
                 .orElseGet(Collections::emptyList);
         var nullable = Boolean.TRUE.equals(propertySchema.getNullable()) && (enumValues.isEmpty() || enumValues.contains(null));
         var optional = !requiredProperties.contains(propertyName);
-        return nullable || optional;
+        var hasMin = propertySchema.getMinItems() != null && propertySchema.getMinItems() > 0
+                || propertySchema.getMinProperties() != null && propertySchema.getMinProperties() > 0;
+        return (nullable || optional) && !hasMin;
     }
 
     private JavaType readAllOf(List<Schema> allOf) {
@@ -271,11 +296,12 @@ final class OpenApiSchemaReader {
                 .toList();
         if (nonRefTypes.isEmpty()) {
             var className = Names.toClassName(schemaName);
-            var classDefinition = new JavaClassDefinition(packageName, className, refFieldDefinitions);
+            var classDefinition = new JavaClassDefinition(packageName, className, schema.getDescription(), refFieldDefinitions);
             return new JavaType(className, classDefinition);
         } else if (nonRefTypes.size() == 1) {
-            var nonRefInnerType = nonRefTypes.get(0).getDefinition();
-            if (nonRefInnerType instanceof JavaClassDefinition classDefinition) {
+            var nonRefInnerType = nonRefTypes.get(0);
+            var nonRefInnerTypeDefinition = nonRefInnerType.getDefinition();
+            if (nonRefInnerTypeDefinition instanceof JavaClassDefinition classDefinition && !nonRefInnerType.isWrapped()) {
                 return new JavaType(classDefinition.getName(), classDefinition.addFields(refFieldDefinitions));
             } else {
                 throw new IllegalStateException("Only a non-$ref schema of type 'object' is supported with 'allOf'");
@@ -295,7 +321,7 @@ final class OpenApiSchemaReader {
             throw new IllegalStateException("Only explicit mapping is supported with 'oneOf'");
         }
         var className = Names.toClassName(schemaName);
-        var interfaceDefinition = new JavaInterfaceDefinition(packageName, className, discriminator.getPropertyName(), mapping);
+        var interfaceDefinition = new JavaInterfaceDefinition(packageName, className, schema.getDescription(), discriminator.getPropertyName(), mapping);
         return new JavaType(className, interfaceDefinition);
     }
 

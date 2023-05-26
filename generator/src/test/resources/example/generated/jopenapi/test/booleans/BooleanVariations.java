@@ -1,4 +1,4 @@
-package jopenapi.test.example;
+package jopenapi.test.booleans;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
@@ -10,9 +10,9 @@ import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
 @Value()
-@Builder()
 @Jacksonized()
 @Getter(AccessLevel.NONE)
+@Builder(toBuilder = true)
 public class BooleanVariations {
 
     @JsonProperty(value = "mandatory_boolean", access = JsonProperty.Access.AUTO)

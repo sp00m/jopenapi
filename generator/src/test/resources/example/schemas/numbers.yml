@@ -1,0 +1,51 @@
+openapi: 3.0.3
+components:
+  schemas:
+
+    SimpleNumber:
+      type: number
+
+    NumberVariations:
+      type: object
+      properties:
+        number_with_min_inclusive:
+          type: number
+          minimum: 1
+          exclusiveMinimum: false
+        number_with_min_exclusive:
+          type: number
+          minimum: 1
+          exclusiveMinimum: true
+        number_with_max_inclusive:
+          type: number
+          maximum: 5
+          exclusiveMaximum: false
+        number_with_max_exclusive:
+          type: number
+          maximum: 5
+          exclusiveMaximum: true
+        number_with_min_max:
+          type: number
+          minimum: 1
+          maximum: 5
+          multipleOf: 10
+        mandatory_float:
+          type: number
+          format: float
+        optional_float:
+          type: number
+          format: float
+        mandatory_double:
+          type: number
+          format: double
+        optional_double:
+          type: number
+          format: double
+      required:
+        - number_with_min_inclusive
+        - number_with_min_exclusive
+        - number_with_max_inclusive
+        - number_with_max_exclusive
+        - number_with_min_max
+        - mandatory_float
+        - mandatory_double

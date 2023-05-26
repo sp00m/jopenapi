@@ -13,7 +13,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 
-class Example {
+class ExampleTest {
 
     @SneakyThrows
     @Test
@@ -26,7 +26,7 @@ class Example {
         Main.run(basePackageName, inputDir, actualOutputDir);
         var expectedOutputDir = new File("src/test/resources/example/generated");
 
-        compareDirs(actualOutputDir.toPath(), expectedOutputDir.toPath());
+        compareDirs(expectedOutputDir.toPath(), actualOutputDir.toPath());
     }
 
     @SneakyThrows
@@ -35,9 +35,25 @@ class Example {
 
             @Override
             public FileVisitResult visitFile(Path expectedPath, BasicFileAttributes attributes) throws IOException {
+                if (expectedPath.toFile().getName().startsWith(".")) {
+                    return FileVisitResult.CONTINUE;
+                }
                 var relativePath = expectedDir.relativize(expectedPath);
                 var actualPath = actualDir.resolve(relativePath);
                 compareFiles(expectedPath, actualPath, relativePath);
+                return FileVisitResult.CONTINUE;
+            }
+
+        });
+        Files.walkFileTree(actualDir, new SimpleFileVisitor<>() {
+
+            @Override
+            public FileVisitResult visitFile(Path actualPath, BasicFileAttributes attributes) throws IOException {
+                var relativePath = actualDir.relativize(actualPath);
+                var expectedPath = expectedDir.resolve(relativePath);
+                if (!expectedPath.toFile().exists()) {
+                    throw new AssertionFailedError("Unexpected file: " + relativePath);
+                }
                 return FileVisitResult.CONTINUE;
             }
 
@@ -51,14 +67,14 @@ class Example {
             byte[] expectedBytes = Files.readAllBytes(expectedFile);
             byte[] expectedBytesMismatch = Arrays.copyOfRange(
                     expectedBytes,
-                    Math.max(mismatchingByte - 20, 0),
-                    Math.min(mismatchingByte + 20, expectedBytes.length)
+                    Math.max(mismatchingByte - 100, 0),
+                    Math.min(mismatchingByte + 100, expectedBytes.length)
             );
             byte[] actualBytes = Files.readAllBytes(actualFile);
             byte[] actualBytesMismatch = Arrays.copyOfRange(
                     actualBytes,
-                    Math.max(mismatchingByte - 20, 0),
-                    Math.min(mismatchingByte + 20, actualBytes.length)
+                    Math.max(mismatchingByte - 100, 0),
+                    Math.min(mismatchingByte + 100, actualBytes.length)
             );
             throw new AssertionFailedError(
                     relativePath + " mismatches",

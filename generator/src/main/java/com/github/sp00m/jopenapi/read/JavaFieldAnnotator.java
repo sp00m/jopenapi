@@ -8,9 +8,11 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 
+@Slf4j
 public enum JavaFieldAnnotator {
 
     MIN {
@@ -40,6 +42,16 @@ public enum JavaFieldAnnotator {
                     .addAndGetAnnotation(DecimalMax.class)
                     .addPair("value", "\"%s\"".formatted(max))
                     .addPair("inclusive", "%b".formatted(!exclusive));
+        }
+    },
+
+    MULTIPLE_OF {
+        @Override
+        public void annotate(FieldDeclaration fieldDeclaration, OpenApiProperty property) {
+            if (property.getSchema().getMultipleOf() == null) {
+                return;
+            }
+            log.warn("'multipleOf' not supported");
         }
     },
 

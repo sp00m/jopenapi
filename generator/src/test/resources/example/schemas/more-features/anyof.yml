@@ -1,0 +1,24 @@
+openapi: 3.0.3
+components:
+  schemas:
+
+    LocalCommonObject:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+
+    AnyOf:
+      anyOf:
+        - $ref: "#/components/schemas/LocalCommonObject"
+        - $ref: "../common.yml#/components/schemas/CommonObject"
+
+    NestedAnyOf:
+      type: object
+      properties:
+        any_of:
+          anyOf:
+            - $ref: "#/components/schemas/LocalCommonObject"
+            - $ref: "../common.yml#/components/schemas/CommonObject"

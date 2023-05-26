@@ -1,0 +1,81 @@
+openapi: 3.0.3
+components:
+  schemas:
+
+    CommonAB:
+      type: object
+      properties:
+        category_ab:
+          type: string
+      required:
+        - category_ab
+
+    CommonBC:
+      type: object
+      properties:
+        category_bc:
+          type: string
+      required:
+        - category_bc
+
+    A:
+      allOf:
+        - $ref: "#/components/schemas/CommonAB"
+        - type: object
+          properties:
+            a:
+              type: boolean
+          required:
+            - a
+
+    B:
+      allOf:
+        - $ref: "#/components/schemas/CommonAB"
+        - $ref: "#/components/schemas/CommonBC"
+        - type: object
+          properties:
+            b:
+              type: boolean
+          required:
+            - b
+
+    C:
+      allOf:
+        - $ref: "#/components/schemas/CommonBC"
+        - type: object
+          properties:
+            c:
+              type: boolean
+          required:
+            - c
+
+    OneOfWithoutExplicitMapping:
+      discriminator:
+        propertyName: name
+
+    OneOfAB:
+      oneOf:
+      discriminator:
+        propertyName: category_ab
+        mapping:
+          category_a: "#/components/schemas/A"
+          category_b: "#/components/schemas/B"
+
+    OneOfBC:
+      discriminator:
+        propertyName: category_bc
+        mapping:
+          category_b: "#/components/schemas/B"
+          category_c: "#/components/schemas/C"
+
+    InnerOneOf:
+      type: object
+      properties:
+        one_of:
+          discriminator:
+            propertyName: category_ab
+            mapping:
+              category_a: "#/components/schemas/A"
+              category_b: "#/components/schemas/B"
+      required:
+        - one_of

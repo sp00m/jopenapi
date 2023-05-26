@@ -1,0 +1,91 @@
+openapi: 3.0.3
+components:
+  schemas:
+
+    SimpleMap:
+      type: object
+      additionalProperties:
+        type: integer
+
+    MapWithMinMax:
+      type: object
+      additionalProperties:
+        type: integer
+      minProperties: 1
+      maxProperties: 5
+
+#    CustomTypedMap:
+#      type: object
+#      additionalProperties:
+#        type: object
+#        properties:
+#          i:
+#            type: integer
+#        required:
+#          - i
+
+    MapVariations:
+      type: object
+      properties:
+        untyped_map:
+          type: object
+          additionalProperties: true
+        nested_map:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: integer
+        custom_typed_map:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              i:
+                type: integer
+            required:
+              - i
+        custom_typed_nested_map:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: object
+              properties:
+                i:
+                  type: integer
+              required:
+                - i
+        optional_map:
+          type: object
+          additionalProperties:
+            type: integer
+        map_with_min:
+          type: object
+          additionalProperties:
+            type: integer
+          minProperties: 1
+        optional_map_with_min:
+          type: object
+          additionalProperties:
+            type: integer
+          minProperties: 1
+        map_with_max:
+          type: object
+          additionalProperties:
+            type: integer
+          maxProperties: 5
+        map_with_min_max:
+          type: object
+          additionalProperties:
+            type: integer
+          minProperties: 1
+          maxProperties: 5
+      required:
+        - untyped_map
+        - nested_map
+        - custom_typed_map
+        - custom_typed_nested_map
+        - map_with_min
+        - map_with_max
+        - map_with_min_max
