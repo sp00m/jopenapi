@@ -9,15 +9,31 @@ import com.github.sp00m.jopenapi.read.vo.JavaTypeDefinition;
 import com.github.sp00m.jopenapi.read.vo.JavaValueClassDefinition;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.ToolFactory;
+import org.eclipse.jdt.core.formatter.CodeFormatter;
+import org.eclipse.jdt.core.formatter.DefaultCodeFormatterConstants;
+import org.eclipse.jface.text.Document;
 
 import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @RequiredArgsConstructor
 @Slf4j
 public final class JavaGenerator {
+
+    private static final CodeFormatter FORMATTER;
+
+    static {
+        Map<String, String> options = DefaultCodeFormatterConstants.getEclipseDefaultSettings();
+        options.put(JavaCore.COMPILER_SOURCE, "21");
+        options.put(JavaCore.COMPILER_COMPLIANCE, "21");
+        options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, "21");
+        FORMATTER = ToolFactory.createCodeFormatter(options);
+    }
 
     private final List<JavaTypeDefinition> typeDefinitions;
 
@@ -46,7 +62,26 @@ public final class JavaGenerator {
         compiler
                 .getImports()
                 .sort(Comparator.comparing(x -> x.getName().asString()));
-        return new JavaFile(typeDefinition.getPackageName(), typeDefinition.getName(), compiler.toString());
+        var content = formatSource(compiler.toString());
+        return new JavaFile(typeDefinition.getPackageName(), typeDefinition.getName(), content);
+    }
+
+    private static String formatSource(String source) {
+        try {
+            var edit = FORMATTER.format(
+                    CodeFormatter.K_COMPILATION_UNIT,
+                    source, 0, source.length(), 0, "\n");
+            if (edit == null) {
+                log.warn("Formatter returned null, returning as-is");
+                return source;
+            }
+            var document = new Document(source);
+            edit.apply(document);
+            return document.get();
+        } catch (Throwable e) {
+            log.warn("Unable to format source, returning as-is", e);
+            return source;
+        }
     }
 
     static CompilationUnit generateCompiler(JavaTypeDefinition typeDefinition) {
