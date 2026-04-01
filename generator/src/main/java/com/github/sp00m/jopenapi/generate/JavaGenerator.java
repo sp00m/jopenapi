@@ -14,7 +14,6 @@ import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -64,9 +63,27 @@ public final class JavaGenerator {
             throw new IllegalStateException();
         }
         var compiler = typeGenerator.generate();
-        Optional
-                .ofNullable(typeDefinition.getDescription())
-                .ifPresent(description -> compiler.getType(0).setJavadocComment(description));
+
+        // Build javadoc: class description + @param tags for record fields
+        var javadocBuilder = new StringBuilder();
+        if (typeDefinition.getDescription() != null) {
+            javadocBuilder.append(typeDefinition.getDescription());
+        }
+        if (typeDefinition instanceof JavaClassDefinition classDefinition) {
+            for (var field : classDefinition.getFields()) {
+                var desc = field.getType().getDescription();
+                if (desc != null) {
+                    if (!javadocBuilder.isEmpty()) {
+                        javadocBuilder.append("\n");
+                    }
+                    javadocBuilder.append("@param ").append(field.getName()).append(" ").append(desc);
+                }
+            }
+        }
+        if (!javadocBuilder.isEmpty()) {
+            compiler.getType(0).setJavadocComment(javadocBuilder.toString());
+        }
+
         return compiler;
     }
 
