@@ -2,29 +2,16 @@ package jopenapi.test.arrays;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import jakarta.validation.constraints.NotNull;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder.Default;
-import lombok.Getter;
-import lombok.Value;
+import java.util.Collections;
 
-@Value()
-@Getter(AccessLevel.NONE)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class SimpleArray {
+public record SimpleArray(@JsonValue() java.util.List<Integer> value) {
 
-    @Default()
-    @NotNull()
-    java.util.List<Integer> value = java.util.List.of();
+	public SimpleArray {
+		value = value == null ? java.util.List.of() : java.util.Collections.unmodifiableList(value);
+	}
 
-    @JsonValue()
-    public java.util.List<Integer> get() {
-        return value;
-    }
-
-    @JsonCreator()
-    public static SimpleArray of(java.util.List<Integer> value) {
-        return new SimpleArray(value);
-    }
+	@JsonCreator()
+	public static SimpleArray of(java.util.List<Integer> value) {
+		return new SimpleArray(value);
+	}
 }

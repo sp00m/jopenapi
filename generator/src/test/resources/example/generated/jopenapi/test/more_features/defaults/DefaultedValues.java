@@ -8,133 +8,61 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.Builder.Default;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
-@Value()
 @Jacksonized()
-@Getter(AccessLevel.NONE)
 @Builder(toBuilder = true)
-public class DefaultedValues {
+public record DefaultedValues(@JsonProperty(value = "defaulted_int") Integer defaultedInt,
+		@JsonProperty(value = "defaulted_long") Long defaultedLong,
+		@JsonProperty(value = "defaulted_float") Float defaultedFloat,
+		@JsonProperty(value = "defaulted_double") Double defaultedDouble,
+		@JsonProperty(value = "defaulted_number") Number defaultedNumber,
+		@JsonProperty(value = "defaulted_boolean") Boolean defaultedBoolean,
+		@JsonProperty(value = "defaulted_string") String defaultedString,
+		@JsonProperty(value = "defaulted_date") java.time.LocalDate defaultedDate,
+		@JsonProperty(value = "defaulted_datetime") java.time.OffsetDateTime defaultedDatetime,
+		@JsonProperty(value = "defaulted_uuid") java.util.UUID defaultedUuid,
+		@JsonProperty(value = "defaulted_uri") java.net.URI defaultedUri,
+		@JsonProperty(value = "defaulted_internal_enum") DefaultedInternalEnum defaultedInternalEnum) {
 
-    @Default()
-    @JsonProperty(value = "defaulted_int", access = JsonProperty.Access.AUTO)
-    Integer defaultedInt = 1;
+	@RequiredArgsConstructor()
+	public enum DefaultedInternalEnum {
 
-    public int getDefaultedInt() {
-        return defaultedInt == null ? 1 : defaultedInt;
-    }
+		FOO("foo"), BAR("bar");
 
-    @Default()
-    @JsonProperty(value = "defaulted_long", access = JsonProperty.Access.AUTO)
-    Long defaultedLong = 2L;
+		private static final Map<String, DefaultedInternalEnum> BY_VALUE = Stream.of(values())
+				.collect(Collectors.toUnmodifiableMap(DefaultedInternalEnum::get, Function.identity()));
 
-    public long getDefaultedLong() {
-        return defaultedLong == null ? 2L : defaultedLong;
-    }
+		private final String value;
 
-    @Default()
-    @JsonProperty(value = "defaulted_float", access = JsonProperty.Access.AUTO)
-    Float defaultedFloat = 3.3F;
+		@JsonValue()
+		public String get() {
+			return value;
+		}
 
-    public float getDefaultedFloat() {
-        return defaultedFloat == null ? 3.3F : defaultedFloat;
-    }
+		@JsonCreator()
+		public static DefaultedInternalEnum get(String value) {
+			return Optional.ofNullable(BY_VALUE.get(value))
+					.orElseThrow(() -> new IllegalArgumentException("No DefaultedInternalEnum with value " + value));
+		}
+	}
 
-    @Default()
-    @JsonProperty(value = "defaulted_double", access = JsonProperty.Access.AUTO)
-    Double defaultedDouble = 4.4D;
-
-    public double getDefaultedDouble() {
-        return defaultedDouble == null ? 4.4D : defaultedDouble;
-    }
-
-    @Default()
-    @JsonProperty(value = "defaulted_number", access = JsonProperty.Access.AUTO)
-    Number defaultedNumber = new java.math.BigDecimal("5.5");
-
-    public Number getDefaultedNumber() {
-        return defaultedNumber == null ? new java.math.BigDecimal("5.5") : defaultedNumber;
-    }
-
-    @Default()
-    @JsonProperty(value = "defaulted_boolean", access = JsonProperty.Access.AUTO)
-    Boolean defaultedBoolean = true;
-
-    public boolean isDefaultedBoolean() {
-        return defaultedBoolean == null ? true : defaultedBoolean;
-    }
-
-    @Default()
-    @JsonProperty(value = "defaulted_string", access = JsonProperty.Access.AUTO)
-    String defaultedString = "hello world";
-
-    public String getDefaultedString() {
-        return defaultedString == null ? "hello world" : defaultedString;
-    }
-
-    @Default()
-    @JsonProperty(value = "defaulted_date", access = JsonProperty.Access.AUTO)
-    java.time.LocalDate defaultedDate = java.time.LocalDate.parse("2020-06-30");
-
-    public java.time.LocalDate getDefaultedDate() {
-        return defaultedDate == null ? java.time.LocalDate.parse("2020-06-30") : defaultedDate;
-    }
-
-    @Default()
-    @JsonProperty(value = "defaulted_datetime", access = JsonProperty.Access.AUTO)
-    java.time.OffsetDateTime defaultedDatetime = java.time.OffsetDateTime.parse("2020-06-30T15:30:50.123+01:00");
-
-    public java.time.OffsetDateTime getDefaultedDatetime() {
-        return defaultedDatetime == null ? java.time.OffsetDateTime.parse("2020-06-30T15:30:50.123+01:00") : defaultedDatetime;
-    }
-
-    @Default()
-    @JsonProperty(value = "defaulted_uuid", access = JsonProperty.Access.AUTO)
-    java.util.UUID defaultedUuid = java.util.UUID.fromString("cb855a07-11d3-432f-936f-cd79590482df");
-
-    public java.util.UUID getDefaultedUuid() {
-        return defaultedUuid == null ? java.util.UUID.fromString("cb855a07-11d3-432f-936f-cd79590482df") : defaultedUuid;
-    }
-
-    @Default()
-    @JsonProperty(value = "defaulted_uri", access = JsonProperty.Access.AUTO)
-    java.net.URI defaultedUri = java.net.URI.create("https://github.com/sp00m/jopenapi");
-
-    public java.net.URI getDefaultedUri() {
-        return defaultedUri == null ? java.net.URI.create("https://github.com/sp00m/jopenapi") : defaultedUri;
-    }
-
-    @RequiredArgsConstructor()
-    public enum DefaultedInternalEnum {
-
-        FOO("foo"), BAR("bar");
-
-        private static final Map<String, DefaultedInternalEnum> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(DefaultedInternalEnum::get, Function.identity()));
-
-        private final String value;
-
-        @JsonValue()
-        public String get() {
-            return value;
-        }
-
-        @JsonCreator()
-        public static DefaultedInternalEnum get(String value) {
-            return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No DefaultedInternalEnum with value " + value));
-        }
-    }
-
-    @Default()
-    @JsonProperty(value = "defaulted_internal_enum", access = JsonProperty.Access.AUTO)
-    DefaultedInternalEnum defaultedInternalEnum = DefaultedInternalEnum.BAR;
-
-    public DefaultedInternalEnum getDefaultedInternalEnum() {
-        return defaultedInternalEnum == null ? DefaultedInternalEnum.BAR : defaultedInternalEnum;
-    }
+	public DefaultedValues {
+		defaultedInt = defaultedInt == null ? 1 : defaultedInt;
+		defaultedLong = defaultedLong == null ? 2L : defaultedLong;
+		defaultedFloat = defaultedFloat == null ? 3.3F : defaultedFloat;
+		defaultedDouble = defaultedDouble == null ? 4.4D : defaultedDouble;
+		defaultedNumber = defaultedNumber == null ? new java.math.BigDecimal("5.5") : defaultedNumber;
+		defaultedBoolean = defaultedBoolean == null ? true : defaultedBoolean;
+		defaultedString = defaultedString == null ? "hello world" : defaultedString;
+		defaultedDate = defaultedDate == null ? java.time.LocalDate.parse("2020-06-30") : defaultedDate;
+		defaultedDatetime = defaultedDatetime == null ? java.time.OffsetDateTime.parse("2020-06-30T15:30:50.123+01:00")
+				: defaultedDatetime;
+		defaultedUuid = defaultedUuid == null ? java.util.UUID.fromString("cb855a07-11d3-432f-936f-cd79590482df")
+				: defaultedUuid;
+		defaultedUri = defaultedUri == null ? java.net.URI.create("https://github.com/sp00m/jopenapi") : defaultedUri;
+		defaultedInternalEnum = defaultedInternalEnum == null ? DefaultedInternalEnum.BAR : defaultedInternalEnum;
+	}
 }

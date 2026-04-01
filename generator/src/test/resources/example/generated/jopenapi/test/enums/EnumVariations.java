@@ -3,160 +3,135 @@ package jopenapi.test.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
-import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
-@Value()
 @Jacksonized()
-@Getter(AccessLevel.NONE)
 @Builder(toBuilder = true)
-public class EnumVariations {
+public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWithoutType enumWithoutType,
+		@JsonProperty(value = "optional_enum") Optional<OptionalEnum> optionalEnum,
+		@JsonProperty(value = "nullable_enum") NullableEnum nullableEnum,
+		@JsonProperty(value = "enum_with_null") EnumWithNull enumWithNull,
+		@JsonProperty(value = "nullable_enum_with_null") Optional<NullableEnumWithNull> nullableEnumWithNull) {
 
-    @RequiredArgsConstructor()
-    public enum EnumWithoutType {
+	@RequiredArgsConstructor()
+	public enum EnumWithoutType {
 
-        WITHOUT_TYPE("without type");
+		WITHOUT_TYPE("without type");
 
-        private static final Map<String, EnumWithoutType> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(EnumWithoutType::get, Function.identity()));
+		private static final Map<String, EnumWithoutType> BY_VALUE = Stream.of(values())
+				.collect(Collectors.toUnmodifiableMap(EnumWithoutType::get, Function.identity()));
 
-        private final String value;
+		private final String value;
 
-        @JsonValue()
-        public String get() {
-            return value;
-        }
+		@JsonValue()
+		public String get() {
+			return value;
+		}
 
-        @JsonCreator()
-        public static EnumWithoutType get(String value) {
-            return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No EnumWithoutType with value " + value));
-        }
-    }
+		@JsonCreator()
+		public static EnumWithoutType get(String value) {
+			return Optional.ofNullable(BY_VALUE.get(value))
+					.orElseThrow(() -> new IllegalArgumentException("No EnumWithoutType with value " + value));
+		}
+	}
 
-    @JsonProperty(value = "enum_without_type", access = JsonProperty.Access.AUTO)
-    @NotNull()
-    EnumWithoutType enumWithoutType;
+	@RequiredArgsConstructor()
+	public enum OptionalEnum {
 
-    public EnumWithoutType getEnumWithoutType() {
-        return enumWithoutType;
-    }
+		OPTIONAL("optional");
 
-    @RequiredArgsConstructor()
-    public enum OptionalEnum {
+		private static final Map<String, OptionalEnum> BY_VALUE = Stream.of(values())
+				.collect(Collectors.toUnmodifiableMap(OptionalEnum::get, Function.identity()));
 
-        OPTIONAL("optional");
+		private final String value;
 
-        private static final Map<String, OptionalEnum> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(OptionalEnum::get, Function.identity()));
+		@JsonValue()
+		public String get() {
+			return value;
+		}
 
-        private final String value;
+		@JsonCreator()
+		public static OptionalEnum get(String value) {
+			return Optional.ofNullable(BY_VALUE.get(value))
+					.orElseThrow(() -> new IllegalArgumentException("No OptionalEnum with value " + value));
+		}
+	}
 
-        @JsonValue()
-        public String get() {
-            return value;
-        }
+	@RequiredArgsConstructor()
+	public enum NullableEnum {
 
-        @JsonCreator()
-        public static OptionalEnum get(String value) {
-            return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No OptionalEnum with value " + value));
-        }
-    }
+		NULLABLE("nullable");
 
-    @JsonProperty(value = "optional_enum", access = JsonProperty.Access.AUTO)
-    OptionalEnum optionalEnum;
+		private static final Map<String, NullableEnum> BY_VALUE = Stream.of(values())
+				.collect(Collectors.toUnmodifiableMap(NullableEnum::get, Function.identity()));
 
-    public Optional<OptionalEnum> getOptionalEnum() {
-        return Optional.ofNullable(optionalEnum);
-    }
+		private final String value;
 
-    @RequiredArgsConstructor()
-    public enum NullableEnum {
+		@JsonValue()
+		public String get() {
+			return value;
+		}
 
-        NULLABLE("nullable");
+		@JsonCreator()
+		public static NullableEnum get(String value) {
+			return Optional.ofNullable(BY_VALUE.get(value))
+					.orElseThrow(() -> new IllegalArgumentException("No NullableEnum with value " + value));
+		}
+	}
 
-        private static final Map<String, NullableEnum> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(NullableEnum::get, Function.identity()));
+	@RequiredArgsConstructor()
+	public enum EnumWithNull {
 
-        private final String value;
+		WITH_NULL("with null");
 
-        @JsonValue()
-        public String get() {
-            return value;
-        }
+		private static final Map<String, EnumWithNull> BY_VALUE = Stream.of(values())
+				.collect(Collectors.toUnmodifiableMap(EnumWithNull::get, Function.identity()));
 
-        @JsonCreator()
-        public static NullableEnum get(String value) {
-            return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No NullableEnum with value " + value));
-        }
-    }
+		private final String value;
 
-    @JsonProperty(value = "nullable_enum", access = JsonProperty.Access.AUTO)
-    @NotNull()
-    NullableEnum nullableEnum;
+		@JsonValue()
+		public String get() {
+			return value;
+		}
 
-    public NullableEnum getNullableEnum() {
-        return nullableEnum;
-    }
+		@JsonCreator()
+		public static EnumWithNull get(String value) {
+			return Optional.ofNullable(BY_VALUE.get(value))
+					.orElseThrow(() -> new IllegalArgumentException("No EnumWithNull with value " + value));
+		}
+	}
 
-    @RequiredArgsConstructor()
-    public enum EnumWithNull {
+	@RequiredArgsConstructor()
+	public enum NullableEnumWithNull {
 
-        WITH_NULL("with null");
+		WITH_NULL("with null");
 
-        private static final Map<String, EnumWithNull> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(EnumWithNull::get, Function.identity()));
+		private static final Map<String, NullableEnumWithNull> BY_VALUE = Stream.of(values())
+				.collect(Collectors.toUnmodifiableMap(NullableEnumWithNull::get, Function.identity()));
 
-        private final String value;
+		private final String value;
 
-        @JsonValue()
-        public String get() {
-            return value;
-        }
+		@JsonValue()
+		public String get() {
+			return value;
+		}
 
-        @JsonCreator()
-        public static EnumWithNull get(String value) {
-            return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No EnumWithNull with value " + value));
-        }
-    }
+		@JsonCreator()
+		public static NullableEnumWithNull get(String value) {
+			return Optional.ofNullable(BY_VALUE.get(value))
+					.orElseThrow(() -> new IllegalArgumentException("No NullableEnumWithNull with value " + value));
+		}
+	}
 
-    @JsonProperty(value = "enum_with_null", access = JsonProperty.Access.AUTO)
-    @NotNull()
-    EnumWithNull enumWithNull;
-
-    public EnumWithNull getEnumWithNull() {
-        return enumWithNull;
-    }
-
-    @RequiredArgsConstructor()
-    public enum NullableEnumWithNull {
-
-        WITH_NULL("with null");
-
-        private static final Map<String, NullableEnumWithNull> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(NullableEnumWithNull::get, Function.identity()));
-
-        private final String value;
-
-        @JsonValue()
-        public String get() {
-            return value;
-        }
-
-        @JsonCreator()
-        public static NullableEnumWithNull get(String value) {
-            return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No NullableEnumWithNull with value " + value));
-        }
-    }
-
-    @JsonProperty(value = "nullable_enum_with_null", access = JsonProperty.Access.AUTO)
-    NullableEnumWithNull nullableEnumWithNull;
-
-    public Optional<NullableEnumWithNull> getNullableEnumWithNull() {
-        return Optional.ofNullable(nullableEnumWithNull);
-    }
+	public EnumVariations {
+		optionalEnum = optionalEnum == null ? Optional.empty() : optionalEnum;
+		nullableEnumWithNull = nullableEnumWithNull == null ? Optional.empty() : nullableEnumWithNull;
+	}
 }

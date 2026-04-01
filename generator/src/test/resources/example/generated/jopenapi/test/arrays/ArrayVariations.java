@@ -1,149 +1,55 @@
 package jopenapi.test.arrays;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.AccessLevel;
+import java.util.Collections;
 import lombok.Builder;
-import lombok.Builder.Default;
-import lombok.Getter;
-import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
-@Value()
 @Jacksonized()
-@Getter(AccessLevel.NONE)
 @Builder(toBuilder = true)
-public class ArrayVariations {
+public record ArrayVariations(@JsonProperty(value = "untyped_array") java.util.List<Object> untypedArray,
+		@JsonProperty(value = "nested_array") java.util.List<java.util.List<Integer>> nestedArray,
+		@JsonProperty(value = "custom_typed_array") java.util.List<CustomTypedArray> customTypedArray,
+		@JsonProperty(value = "custom_typed_nested_array") java.util.List<java.util.List<CustomTypedNestedArray>> customTypedNestedArray,
+		@JsonProperty(value = "optional_array") java.util.List<Integer> optionalArray,
+		@JsonProperty(value = "unique_items_array") java.util.Set<Integer> uniqueItemsArray,
+		@JsonProperty(value = "unique_items_optional_array") java.util.Set<Integer> uniqueItemsOptionalArray,
+		@JsonProperty(value = "array_with_min") java.util.List<Integer> arrayWithMin,
+		@JsonProperty(value = "optional_array_with_min") java.util.List<Integer> optionalArrayWithMin,
+		@JsonProperty(value = "array_with_max") java.util.List<Integer> arrayWithMax,
+		@JsonProperty(value = "unique_items_array_with_min_max") java.util.Set<Integer> uniqueItemsArrayWithMinMax) {
 
-    @Default()
-    @JsonProperty(value = "untyped_array", access = JsonProperty.Access.AUTO)
-    @NotNull()
-    java.util.List<Object> untypedArray = java.util.List.of();
+	@Jacksonized()
+	@Builder(toBuilder = true)
+	public record CustomTypedArray(@JsonProperty(value = "i") int i) {
+	}
 
-    public java.util.List<Object> getUntypedArray() {
-        return untypedArray;
-    }
+	@Jacksonized()
+	@Builder(toBuilder = true)
+	public record CustomTypedNestedArray(@JsonProperty(value = "i") int i) {
+	}
 
-    @Default()
-    @JsonProperty(value = "nested_array", access = JsonProperty.Access.AUTO)
-    @NotNull()
-    java.util.List<java.util.List<Integer>> nestedArray = java.util.List.of();
-
-    public java.util.List<java.util.List<Integer>> getNestedArray() {
-        return nestedArray;
-    }
-
-    @Value()
-    @Jacksonized()
-    @Getter(AccessLevel.NONE)
-    @Builder(toBuilder = true)
-    public static class CustomTypedArray {
-
-        @JsonProperty(value = "i", access = JsonProperty.Access.AUTO)
-        @NotNull()
-        Integer i;
-
-        public int getI() {
-            return i;
-        }
-    }
-
-    @Default()
-    @JsonProperty(value = "custom_typed_array", access = JsonProperty.Access.AUTO)
-    @NotNull()
-    java.util.List<CustomTypedArray> customTypedArray = java.util.List.of();
-
-    public java.util.List<CustomTypedArray> getCustomTypedArray() {
-        return customTypedArray;
-    }
-
-    @Value()
-    @Jacksonized()
-    @Getter(AccessLevel.NONE)
-    @Builder(toBuilder = true)
-    public static class CustomTypedNestedArray {
-
-        @JsonProperty(value = "i", access = JsonProperty.Access.AUTO)
-        @NotNull()
-        Integer i;
-
-        public int getI() {
-            return i;
-        }
-    }
-
-    @Default()
-    @JsonProperty(value = "custom_typed_nested_array", access = JsonProperty.Access.AUTO)
-    @NotNull()
-    java.util.List<java.util.List<CustomTypedNestedArray>> customTypedNestedArray = java.util.List.of();
-
-    public java.util.List<java.util.List<CustomTypedNestedArray>> getCustomTypedNestedArray() {
-        return customTypedNestedArray;
-    }
-
-    @Default()
-    @JsonProperty(value = "optional_array", access = JsonProperty.Access.AUTO)
-    java.util.List<Integer> optionalArray = java.util.List.of();
-
-    public java.util.List<Integer> getOptionalArray() {
-        return optionalArray == null ? java.util.List.of() : optionalArray;
-    }
-
-    @Default()
-    @JsonProperty(value = "unique_items_array", access = JsonProperty.Access.AUTO)
-    @NotNull()
-    java.util.Set<Integer> uniqueItemsArray = java.util.Set.of();
-
-    public java.util.Set<Integer> getUniqueItemsArray() {
-        return uniqueItemsArray;
-    }
-
-    @Default()
-    @JsonProperty(value = "unique_items_optional_array", access = JsonProperty.Access.AUTO)
-    java.util.Set<Integer> uniqueItemsOptionalArray = java.util.Set.of();
-
-    public java.util.Set<Integer> getUniqueItemsOptionalArray() {
-        return uniqueItemsOptionalArray == null ? java.util.Set.of() : uniqueItemsOptionalArray;
-    }
-
-    @Default()
-    @Size(min = 1, max = 2147483647)
-    @JsonProperty(value = "array_with_min", access = JsonProperty.Access.AUTO)
-    @NotNull()
-    java.util.List<Integer> arrayWithMin = java.util.List.of();
-
-    public java.util.List<Integer> getArrayWithMin() {
-        return arrayWithMin;
-    }
-
-    @Default()
-    @Size(min = 1, max = 2147483647)
-    @JsonProperty(value = "optional_array_with_min", access = JsonProperty.Access.AUTO)
-    @NotNull()
-    java.util.List<Integer> optionalArrayWithMin = java.util.List.of();
-
-    public java.util.List<Integer> getOptionalArrayWithMin() {
-        return optionalArrayWithMin;
-    }
-
-    @Default()
-    @Size(min = 0, max = 5)
-    @JsonProperty(value = "array_with_max", access = JsonProperty.Access.AUTO)
-    @NotNull()
-    java.util.List<Integer> arrayWithMax = java.util.List.of();
-
-    public java.util.List<Integer> getArrayWithMax() {
-        return arrayWithMax;
-    }
-
-    @Default()
-    @Size(min = 1, max = 5)
-    @JsonProperty(value = "unique_items_array_with_min_max", access = JsonProperty.Access.AUTO)
-    @NotNull()
-    java.util.Set<Integer> uniqueItemsArrayWithMinMax = java.util.Set.of();
-
-    public java.util.Set<Integer> getUniqueItemsArrayWithMinMax() {
-        return uniqueItemsArrayWithMinMax;
-    }
+	public ArrayVariations {
+		untypedArray = untypedArray == null ? java.util.List.of()
+				: java.util.Collections.unmodifiableList(untypedArray);
+		nestedArray = nestedArray == null ? java.util.List.of() : java.util.Collections.unmodifiableList(nestedArray);
+		customTypedArray = customTypedArray == null ? java.util.List.of()
+				: java.util.Collections.unmodifiableList(customTypedArray);
+		customTypedNestedArray = customTypedNestedArray == null ? java.util.List.of()
+				: java.util.Collections.unmodifiableList(customTypedNestedArray);
+		optionalArray = optionalArray == null ? java.util.List.of()
+				: java.util.Collections.unmodifiableList(optionalArray);
+		uniqueItemsArray = uniqueItemsArray == null ? java.util.Set.of()
+				: java.util.Collections.unmodifiableSet(uniqueItemsArray);
+		uniqueItemsOptionalArray = uniqueItemsOptionalArray == null ? java.util.Set.of()
+				: java.util.Collections.unmodifiableSet(uniqueItemsOptionalArray);
+		arrayWithMin = arrayWithMin == null ? java.util.List.of()
+				: java.util.Collections.unmodifiableList(arrayWithMin);
+		optionalArrayWithMin = optionalArrayWithMin == null ? java.util.List.of()
+				: java.util.Collections.unmodifiableList(optionalArrayWithMin);
+		arrayWithMax = arrayWithMax == null ? java.util.List.of()
+				: java.util.Collections.unmodifiableList(arrayWithMax);
+		uniqueItemsArrayWithMinMax = uniqueItemsArrayWithMinMax == null ? java.util.Set.of()
+				: java.util.Collections.unmodifiableSet(uniqueItemsArrayWithMinMax);
+	}
 }
