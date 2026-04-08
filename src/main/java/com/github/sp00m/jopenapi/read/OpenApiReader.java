@@ -44,11 +44,15 @@ public final class OpenApiReader {
                     .of(Objects.requireNonNull(input.listFiles()))
                     .flatMap(file -> scan(updatedBasePackageName, file).stream())
                     .toList();
-        } else if (input.getName().endsWith(".yml")) {
+        } else if (isSchemaFile(input.getName())) {
             return parse(updatedBasePackageName, input);
         } else {
             return List.of();
         }
+    }
+
+    private static boolean isSchemaFile(String name) {
+        return name.endsWith(".yml") || name.endsWith(".yaml") || name.endsWith(".json");
     }
 
     private List<JavaTypeDefinition> parse(String packageName, File input) {

@@ -30,7 +30,7 @@ public class Main implements Callable<Integer> {
     @Option(
             names = {"-i", "--input"},
             required = true,
-            description = "Input directory containing OpenAPI schema files (.yml)."
+            description = "Input directory containing OpenAPI schema files (.yml, .yaml, .json)."
     )
     private File inputDir;
 
@@ -48,8 +48,13 @@ public class Main implements Callable<Integer> {
             return 1;
         }
         try {
-            run(packageName, inputDir, outputDir);
-            log.info("Code generation completed successfully.");
+            int count = run(packageName, inputDir, outputDir);
+            if (count == 0) {
+                log.warn("No schema files found in {}", inputDir.getAbsolutePath());
+                log.warn("Supported extensions: .yml, .yaml, .json");
+                return 1;
+            }
+            log.info("Code generation completed successfully ({} file(s) written).", count);
             return 0;
         } catch (Exception e) {
             log.error("Code generation failed: {}", e.getMessage(), e);
@@ -62,10 +67,11 @@ public class Main implements Callable<Integer> {
         System.exit(exitCode);
     }
 
-    static void run(String basePackageName, File inputDir, File outputDir) {
+    static int run(String basePackageName, File inputDir, File outputDir) {
         var typeDefinitions = new OpenApiReader(basePackageName, inputDir).read();
         var javaFiles = new JavaGenerator(typeDefinitions).generate();
         new JavaFileWriter(outputDir, javaFiles).write();
+        return javaFiles.size();
     }
 
 }

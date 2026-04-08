@@ -29,7 +29,7 @@ Usage: jopenapi [-hV] -i=<inputDir> -o=<outputDir> -p=<packageName>
 Generate Java DTOs from OpenAPI schemas.
 
   -p, --package=<packageName>   Base Java package name for generated classes (e.g. com.example.api).
-  -i, --input=<inputDir>        Input directory containing OpenAPI schema files (.yml).
+  -i, --input=<inputDir>        Input directory containing OpenAPI schema files (.yml, .yaml, .json).
   -o, --output=<outputDir>      Output directory for generated Java source files.
   -h, --help                    Show this help message and exit.
   -V, --version                 Print version information and exit.
@@ -67,11 +67,12 @@ java -jar jopenapi.jar \
 
 ### Maven
 
-Use `maven-dependency-plugin` to download the fat JAR, then `exec-maven-plugin` to run it during `generate-sources`:
+Use `maven-antrun-plugin` to download the fat JAR from the GitHub Release, then `exec-maven-plugin` to run it during `generate-sources`:
 
 ```xml
 <properties>
     <jopenapi.version>0.1.0</jopenapi.version>
+    <jopenapi.url>https://github.com/sp00m/jopenapi/releases/download/v${jopenapi.version}/jopenapi.jar</jopenapi.url>
     <jopenapi.jar>${project.build.directory}/jopenapi/jopenapi.jar</jopenapi.jar>
     <jopenapi.package>com.example.api</jopenapi.package>
     <jopenapi.input>${project.basedir}/src/main/openapi</jopenapi.input>
@@ -84,25 +85,22 @@ Use `maven-dependency-plugin` to download the fat JAR, then `exec-maven-plugin` 
         <!-- 1. Download jopenapi.jar from the GitHub Release -->
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-dependency-plugin</artifactId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>3.1.0</version>
             <executions>
                 <execution>
                     <id>download-jopenapi</id>
                     <phase>initialize</phase>
                     <goals>
-                        <goal>copy</goal>
+                        <goal>run</goal>
                     </goals>
                     <configuration>
-                        <artifactItems>
-                            <artifactItem>
-                                <groupId>com.github.sp00m</groupId>
-                                <artifactId>jopenapi</artifactId>
-                                <version>${jopenapi.version}</version>
-                                <type>jar</type>
-                                <outputDirectory>${project.build.directory}/jopenapi</outputDirectory>
-                                <destFileName>jopenapi.jar</destFileName>
-                            </artifactItem>
-                        </artifactItems>
+                        <target>
+                            <mkdir dir="${project.build.directory}/jopenapi"/>
+                            <get src="${jopenapi.url}"
+                                 dest="${jopenapi.jar}"
+                                 skipexisting="true"/>
+                        </target>
                     </configuration>
                 </execution>
             </executions>
@@ -162,16 +160,6 @@ Use `maven-dependency-plugin` to download the fat JAR, then `exec-maven-plugin` 
 </build>
 ```
 
-> **Note:** If jopenapi is not published to a Maven repository, you can install it to your local repository manually:
->
-> ```bash
-> mvn install:install-file \
->   -Dfile=jopenapi.jar \
->   -DgroupId=com.github.sp00m \
->   -DartifactId=jopenapi \
->   -Dversion=0.1.0 \
->   -Dpackaging=jar
-> ```
 
 ### Gradle (Kotlin DSL)
 
