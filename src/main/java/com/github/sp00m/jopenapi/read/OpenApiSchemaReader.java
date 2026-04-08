@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static java.util.stream.Collectors.toMap;
@@ -91,11 +92,13 @@ final class OpenApiSchemaReader {
             return readOneOf(schema.getDiscriminator());
         } else if (schema.get$ref() != null) {
             return readRef();
-        } else if (schema.getType() == null) {
+        }
+        var resolvedType = resolveType();
+        if (resolvedType == null) {
             log.warn("null type, defaulting to 'object'");
             return readObject();
         }
-        return switch (schema.getType()) {
+        return switch (resolvedType) {
             case "string" -> readString();
             case "number" -> readNumber();
             case "integer" -> readInteger();
@@ -103,10 +106,25 @@ final class OpenApiSchemaReader {
             case "array" -> readArray();
             case "object" -> readObject();
             default -> {
-                log.warn("Unknown type '{}', defaulting to 'object'", schema.getType());
+                log.warn("Unknown type '{}', defaulting to 'object'", resolvedType);
                 yield readObject();
             }
         };
+    }
+
+    @Nullable
+    private String resolveType() {
+        if (schema.getType() != null) {
+            return schema.getType();
+        }
+        var types = schema.getTypes();
+        if (types == null || types.isEmpty()) {
+            return null;
+        }
+        return types.stream()
+                .filter(t -> !"null".equals(t))
+                .findFirst()
+                .orElse(null);
     }
 
     private JavaType readRef() {
@@ -265,7 +283,8 @@ final class OpenApiSchemaReader {
         var enumValues = Optional
                 .ofNullable(propertySchema.getEnum())
                 .orElseGet(Collections::emptyList);
-        var nullable = Boolean.TRUE.equals(propertySchema.getNullable()) && (enumValues.isEmpty() || enumValues.contains(null));
+        var oas31Nullable = Optional.ofNullable(propertySchema.getTypes()).orElseGet(Set::of).contains("null");
+        var nullable = (Boolean.TRUE.equals(propertySchema.getNullable()) || oas31Nullable) && (enumValues.isEmpty() || enumValues.contains(null));
         var optional = !requiredProperties.contains(propertyName);
         var hasMin = propertySchema.getMinItems() != null && propertySchema.getMinItems() > 0
                 || propertySchema.getMinProperties() != null && propertySchema.getMinProperties() > 0;
