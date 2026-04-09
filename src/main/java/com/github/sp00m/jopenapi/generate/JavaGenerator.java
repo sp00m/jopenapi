@@ -32,59 +32,55 @@ public final class JavaGenerator {
     @Nullable
     private JavaFile generate(JavaTypeDefinition typeDefinition) {
         try {
-            log.info("Generating {}.{}...", typeDefinition.getPackageName(), typeDefinition.getName());
+            log.info("Generating {}.{}...", typeDefinition.packageName(), typeDefinition.name());
             return generateOrThrow(typeDefinition);
         } catch (Throwable t) {
-            log.error("Unable to generate {}.{}", typeDefinition.getPackageName(), typeDefinition.getName(), t);
+            log.error("Unable to generate {}.{}", typeDefinition.packageName(), typeDefinition.name(), t);
             return null;
         }
     }
 
     private JavaFile generateOrThrow(JavaTypeDefinition typeDefinition) {
         var compiler = generateCompiler(typeDefinition)
-                .setPackageDeclaration(typeDefinition.getPackageName());
+                .setPackageDeclaration(typeDefinition.packageName());
         compiler
                 .getImports()
                 .sort(Comparator.comparing(x -> x.getName().asString()));
-        return new JavaFile(typeDefinition.getPackageName(), typeDefinition.getName(), compiler.toString());
+        return new JavaFile(typeDefinition.packageName(), typeDefinition.name(), compiler.toString());
     }
 
     static CompilationUnit generateCompiler(JavaTypeDefinition typeDefinition) {
-        final JavaTypeGenerator typeGenerator;
-        if (typeDefinition instanceof JavaClassDefinition classDefinition) {
-            typeGenerator = new JavaClassGenerator(classDefinition);
-        } else if (typeDefinition instanceof JavaEnumDefinition enumDefinition) {
-            typeGenerator = new JavaEnumGenerator(enumDefinition);
-        } else if (typeDefinition instanceof JavaValueClassDefinition valueClassDefinition) {
-            typeGenerator = new JavaValueClassGenerator(valueClassDefinition);
-        } else if (typeDefinition instanceof JavaInterfaceDefinition interfaceDefinition) {
-            typeGenerator = new JavaInterfaceGenerator(interfaceDefinition);
-        } else {
-            throw new IllegalStateException();
-        }
+        var typeGenerator = switch (typeDefinition) {
+            case JavaClassDefinition classDefinition -> new JavaClassGenerator(classDefinition);
+            case JavaEnumDefinition enumDefinition -> new JavaEnumGenerator(enumDefinition);
+            case JavaValueClassDefinition valueClassDefinition -> new JavaValueClassGenerator(valueClassDefinition);
+            case JavaInterfaceDefinition interfaceDefinition -> new JavaInterfaceGenerator(interfaceDefinition);
+            case null, default -> throw new IllegalStateException();
+        };
         var compiler = typeGenerator.generate();
+        addJavaDoc(typeDefinition, compiler);
+        return compiler;
+    }
 
-        // Build javadoc: class description + @param tags for record fields
+    private static void addJavaDoc(JavaTypeDefinition typeDefinition, CompilationUnit compiler) {
         var javadocBuilder = new StringBuilder();
-        if (typeDefinition.getDescription() != null) {
-            javadocBuilder.append(typeDefinition.getDescription());
+        if (typeDefinition.description() != null) {
+            javadocBuilder.append(typeDefinition.description());
         }
         if (typeDefinition instanceof JavaClassDefinition classDefinition) {
-            for (var field : classDefinition.getFields()) {
-                var desc = field.getType().getDescription();
+            for (var field : classDefinition.fields()) {
+                var desc = field.type().getDescription();
                 if (desc != null) {
                     if (!javadocBuilder.isEmpty()) {
                         javadocBuilder.append("\n");
                     }
-                    javadocBuilder.append("@param ").append(field.getName()).append(" ").append(desc);
+                    javadocBuilder.append("@param ").append(field.name()).append(" ").append(desc);
                 }
             }
         }
         if (!javadocBuilder.isEmpty()) {
             compiler.getType(0).setJavadocComment(javadocBuilder.toString());
         }
-
-        return compiler;
     }
 
 }

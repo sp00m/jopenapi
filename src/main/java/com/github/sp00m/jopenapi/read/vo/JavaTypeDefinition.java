@@ -2,14 +2,14 @@ package com.github.sp00m.jopenapi.read.vo;
 
 public interface JavaTypeDefinition {
 
-    String getPackageName();
+    String packageName();
 
-    String getName();
+    String name();
 
-    String getDescription();
+    String description();
 
-    default String getFullName() {
-        return "%s.%s".formatted(getPackageName(), getName());
+    default String fullName() {
+        return "%s.%s".formatted(packageName(), name());
     }
 
 }

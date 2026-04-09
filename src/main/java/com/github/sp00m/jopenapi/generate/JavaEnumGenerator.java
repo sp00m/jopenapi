@@ -32,7 +32,7 @@ final class JavaEnumGenerator implements JavaTypeGenerator {
     public CompilationUnit generate() {
 
         EnumDeclaration enumDeclaration = compiler
-                .addEnum(enumDefinition.getName())
+                .addEnum(enumDefinition.name())
                 .addAnnotation(RequiredArgsConstructor.class);
 
         compiler
@@ -43,9 +43,9 @@ final class JavaEnumGenerator implements JavaTypeGenerator {
                 .addImport(Optional.class);
 
         enumDeclaration.addFieldWithInitializer(
-                "Map<String, %s>".formatted(enumDefinition.getName()),
+                "Map<String, %s>".formatted(enumDefinition.name()),
                 "BY_VALUE",
-                parseExpression("Stream.of(values()).collect(Collectors.toUnmodifiableMap(%s::get, Function.identity()))".formatted(enumDefinition.getName())),
+                parseExpression("Stream.of(values()).collect(Collectors.toUnmodifiableMap(%s::get, Function.identity()))".formatted(enumDefinition.name())),
                 PRIVATE, STATIC, FINAL
         );
 
@@ -57,12 +57,12 @@ final class JavaEnumGenerator implements JavaTypeGenerator {
                 .addAnnotation(JsonValue.class);
 
         enumDeclaration.addMethod("get", PUBLIC, STATIC)
-                .setType(enumDefinition.getName())
+                .setType(enumDefinition.name())
                 .addParameter(String.class, "value")
-                .setBody(parseBlock("{return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException(\"No %s with value \" + value));}".formatted(enumDefinition.getName())))
+                .setBody(parseBlock("{return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException(\"No %s with value \" + value));}".formatted(enumDefinition.name())))
                 .addAnnotation(JsonCreator.class);
 
-        enumDefinition.getValues().forEach(value -> {
+        enumDefinition.values().forEach(value -> {
             var valueDeclaration = new EnumConstantDeclaration(Names.toEnumValue(value));
             valueDeclaration.addArgument("\"" + value + "\"");
             enumDeclaration.addEntry(valueDeclaration);

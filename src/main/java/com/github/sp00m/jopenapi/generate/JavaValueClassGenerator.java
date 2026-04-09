@@ -28,12 +28,12 @@ final class JavaValueClassGenerator implements JavaTypeGenerator {
     public CompilationUnit generate() {
         var recordDeclaration = new RecordDeclaration(
                 NodeList.nodeList(Modifier.publicModifier()),
-                valueClassDefinition.getName()
+                valueClassDefinition.name()
         );
         compiler.addType(recordDeclaration);
 
-        var fieldDefinition = valueClassDefinition.getField();
-        var fieldType = fieldDefinition.getType();
+        var fieldDefinition = valueClassDefinition.field();
+        var fieldType = fieldDefinition.type();
 
         // Determine parameter type
         String paramType;
@@ -47,7 +47,7 @@ final class JavaValueClassGenerator implements JavaTypeGenerator {
         }
 
         // Create parameter with @JsonValue
-        var param = new Parameter(parseType(paramType), fieldDefinition.getName());
+        var param = new Parameter(parseType(paramType), fieldDefinition.name());
         recordDeclaration.getParameters().add(param);
         param.addAnnotation(JsonValue.class);
 
@@ -57,11 +57,11 @@ final class JavaValueClassGenerator implements JavaTypeGenerator {
             var emptyValue = fieldType.getDefaultValue();
             var unmodifiable = JavaClassGenerator.getUnmodifiableWrapper(fieldType.getFullName());
             var statement = "%s = %s == null ? %s : %s(%s);".formatted(
-                    fieldDefinition.getName(), fieldDefinition.getName(),
-                    emptyValue, unmodifiable, fieldDefinition.getName());
+                fieldDefinition.name(), fieldDefinition.name(),
+                emptyValue, unmodifiable, fieldDefinition.name());
             var compactConstructor = new CompactConstructorDeclaration(
                     NodeList.nodeList(Modifier.publicModifier()),
-                    valueClassDefinition.getName()
+                    valueClassDefinition.name()
             );
             compactConstructor.setBody(parseBlock("{" + statement + "}"));
             recordDeclaration.addMember(compactConstructor);
@@ -70,9 +70,9 @@ final class JavaValueClassGenerator implements JavaTypeGenerator {
         // Static factory method
         recordDeclaration
                 .addMethod("of", PUBLIC, STATIC)
-                .addParameter(paramType, fieldDefinition.getName())
-                .setType(valueClassDefinition.getName())
-                .setBody(parseBlock("{return new %s(%s);}".formatted(valueClassDefinition.getName(), fieldDefinition.getName())))
+                .addParameter(paramType, fieldDefinition.name())
+                .setType(valueClassDefinition.name())
+                .setBody(parseBlock("{return new %s(%s);}".formatted(valueClassDefinition.name(), fieldDefinition.name())))
                 .addAnnotation(JsonCreator.class);
 
         return compiler;

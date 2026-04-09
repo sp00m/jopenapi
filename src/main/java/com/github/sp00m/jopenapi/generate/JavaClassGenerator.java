@@ -35,7 +35,7 @@ final class JavaClassGenerator implements JavaTypeGenerator {
     public CompilationUnit generate() {
         var recordDeclaration = new RecordDeclaration(
                 NodeList.nodeList(Modifier.publicModifier()),
-                classDefinition.getName()
+                classDefinition.name()
         );
         compiler.addType(recordDeclaration);
 
@@ -43,13 +43,13 @@ final class JavaClassGenerator implements JavaTypeGenerator {
         recordDeclaration.addAndGetAnnotation(Builder.class).addPair("toBuilder", "true");
 
         classDefinition
-                .getImplementedTypes()
+                .implementedTypes()
                 .forEach(recordDeclaration::addImplementedType);
 
         List<String> compactConstructorStatements = new ArrayList<>();
 
-        for (var field : classDefinition.getFields()) {
-            var fieldType = field.getType();
+        for (var field : classDefinition.fields()) {
+            var fieldType = field.type();
 
             // Add inner type definition as member if present
             Optional
@@ -60,13 +60,13 @@ final class JavaClassGenerator implements JavaTypeGenerator {
             String paramType = getRecordParamType(field);
 
             // Create parameter and add to record
-            var param = new Parameter(parseType(paramType), field.getName());
+            var param = new Parameter(parseType(paramType), field.name());
             recordDeclaration.getParameters().add(param);
 
             // Add annotations from field annotators
             fieldType
                     .getFieldAnnotators()
-                    .forEach(annotator -> annotator.annotate(param, field.getProperty()));
+                    .forEach(annotator -> annotator.annotate(param, field.property()));
 
             // Build compact constructor statement if needed
             var statement = getCompactConstructorStatement(field);
@@ -83,14 +83,14 @@ final class JavaClassGenerator implements JavaTypeGenerator {
     }
 
     private static String getRecordParamType(JavaFieldDefinition fieldDefinition) {
-        var fieldType = fieldDefinition.getType();
+        var fieldType = fieldDefinition.type();
 
         if (fieldType.isWrapped()) {
             // Collection types: always use the collection type directly
             return fieldType.getFullName();
         }
 
-        if (!fieldDefinition.getProperty().isOptional()) {
+        if (!fieldDefinition.property().optional()) {
             // Required: use primitive if possible
             return toPrimitiveType(fieldType.getFullName())
                     .map(Class::getName)
@@ -107,8 +107,8 @@ final class JavaClassGenerator implements JavaTypeGenerator {
     }
 
     private static String getCompactConstructorStatement(JavaFieldDefinition fieldDefinition) {
-        var fieldType = fieldDefinition.getType();
-        var fieldName = fieldDefinition.getName();
+        var fieldType = fieldDefinition.type();
+        var fieldName = fieldDefinition.name();
 
         if (fieldType.isWrapped()) {
             // Collection: default null to empty, wrap in unmodifiable
@@ -118,7 +118,7 @@ final class JavaClassGenerator implements JavaTypeGenerator {
                     fieldName, fieldName, emptyValue, unmodifiable, fieldName);
         }
 
-        if (!fieldDefinition.getProperty().isOptional()) {
+        if (!fieldDefinition.property().optional()) {
             // Required non-collection: no null handling
             return null;
         }
@@ -143,7 +143,7 @@ final class JavaClassGenerator implements JavaTypeGenerator {
         }
         var compactConstructor = new CompactConstructorDeclaration(
                 NodeList.nodeList(Modifier.publicModifier()),
-                classDefinition.getName()
+                classDefinition.name()
         );
         var body = "{\n" + String.join("\n", statements) + "\n}";
         compactConstructor.setBody(parseBlock(body));

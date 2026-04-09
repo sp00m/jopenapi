@@ -19,11 +19,11 @@ public enum JavaFieldAnnotator {
     MIN {
         @Override
         public void annotate(NodeWithAnnotations<?> node, OpenApiProperty property) {
-            if (property.getSchema().getMinimum() == null) {
+            if (property.schema().getMinimum() == null) {
                 return;
             }
-            var min = property.getSchema().getMinimum().toString();
-            var exclusive = Boolean.TRUE.equals(property.getSchema().getExclusiveMinimum());
+            var min = property.schema().getMinimum().toString();
+            var exclusive = Boolean.TRUE.equals(property.schema().getExclusiveMinimum());
             node
                 .addAndGetAnnotation(DecimalMin.class)
                 .addPair("value", "\"%s\"".formatted(min))
@@ -34,11 +34,11 @@ public enum JavaFieldAnnotator {
     MAX {
         @Override
         public void annotate(NodeWithAnnotations<?> node, OpenApiProperty property) {
-            if (property.getSchema().getMaximum() == null) {
+            if (property.schema().getMaximum() == null) {
                 return;
             }
-            var max = property.getSchema().getMaximum().toString();
-            var exclusive = Boolean.TRUE.equals(property.getSchema().getExclusiveMaximum());
+            var max = property.schema().getMaximum().toString();
+            var exclusive = Boolean.TRUE.equals(property.schema().getExclusiveMaximum());
             node
                 .addAndGetAnnotation(DecimalMax.class)
                 .addPair("value", "\"%s\"".formatted(max))
@@ -49,7 +49,7 @@ public enum JavaFieldAnnotator {
     MULTIPLE_OF {
         @Override
         public void annotate(NodeWithAnnotations<?> node, OpenApiProperty property) {
-            if (property.getSchema().getMultipleOf() == null) {
+            if (property.schema().getMultipleOf() == null) {
                 return;
             }
             log.warn("'multipleOf' not supported");
@@ -59,18 +59,18 @@ public enum JavaFieldAnnotator {
     SIZE {
         @Override
         public void annotate(NodeWithAnnotations<?> node, OpenApiProperty property) {
-            if (property.getSchema().getMinLength() == null && property.getSchema().getMaxLength() == null
-                && property.getSchema().getMinItems() == null && property.getSchema().getMaxItems() == null
-                && property.getSchema().getMinProperties() == null && property.getSchema().getMaxProperties() == null) {
+            if (property.schema().getMinLength() == null && property.schema().getMaxLength() == null
+                && property.schema().getMinItems() == null && property.schema().getMaxItems() == null
+                && property.schema().getMinProperties() == null && property.schema().getMaxProperties() == null) {
                 return;
             }
-            var min = Optional.ofNullable(property.getSchema().getMinLength())
-                              .or(() -> Optional.ofNullable(property.getSchema().getMinItems()))
-                              .or(() -> Optional.ofNullable(property.getSchema().getMinProperties()))
+            var min = Optional.ofNullable(property.schema().getMinLength())
+                              .or(() -> Optional.ofNullable(property.schema().getMinItems()))
+                              .or(() -> Optional.ofNullable(property.schema().getMinProperties()))
                               .orElse(0);
-            var max = Optional.ofNullable(property.getSchema().getMaxLength())
-                              .or(() -> Optional.ofNullable(property.getSchema().getMaxItems()))
-                              .or(() -> Optional.ofNullable(property.getSchema().getMaxProperties()))
+            var max = Optional.ofNullable(property.schema().getMaxLength())
+                              .or(() -> Optional.ofNullable(property.schema().getMaxItems()))
+                              .or(() -> Optional.ofNullable(property.schema().getMaxProperties()))
                               .orElse(Integer.MAX_VALUE);
             node
                 .addAndGetAnnotation(Size.class)
@@ -82,10 +82,10 @@ public enum JavaFieldAnnotator {
     PATTERN {
         @Override
         public void annotate(NodeWithAnnotations<?> node, OpenApiProperty property) {
-            if (property.getSchema().getPattern() == null) {
+            if (property.schema().getPattern() == null) {
                 return;
             }
-            var pattern = property.getSchema().getPattern().replace("\\", "\\\\");
+            var pattern = property.schema().getPattern().replace("\\", "\\\\");
             node
                 .addAndGetAnnotation(Pattern.class)
                 .addPair("regexp", "\"%s\"".formatted(pattern));
@@ -102,7 +102,7 @@ public enum JavaFieldAnnotator {
     JSON_PROPERTY {
         @Override
         public void annotate(NodeWithAnnotations<?> node, OpenApiProperty property) {
-            var value = "\"%s\"".formatted(property.getName());
+            var value = "\"%s\"".formatted(property.name());
             var annotation = node
                 .addAndGetAnnotation(JsonProperty.class)
                 .addPair("value", value);
@@ -117,9 +117,9 @@ public enum JavaFieldAnnotator {
         }
 
         private JsonProperty.Access getAccess(OpenApiProperty property) {
-            if (Boolean.TRUE.equals(property.getSchema().getReadOnly())) {
+            if (Boolean.TRUE.equals(property.schema().getReadOnly())) {
                 return JsonProperty.Access.READ_ONLY;
-            } else if (Boolean.TRUE.equals(property.getSchema().getWriteOnly())) {
+            } else if (Boolean.TRUE.equals(property.schema().getWriteOnly())) {
                 return JsonProperty.Access.WRITE_ONLY;
             } else {
                 return JsonProperty.Access.AUTO;

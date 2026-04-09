@@ -93,10 +93,10 @@ public final class OpenApiReader {
     @Nullable
     private JavaTypeDefinition readComponent(String packageName, OpenApiComponent component) {
         try {
-            log.info("Reading {}.{}...", packageName, component.getName());
+            log.info("Reading {}.{}...", packageName, component.name());
             return new OpenApiComponentReader(packageName, component).read();
         } catch (Throwable t) {
-            log.error("Unable to read {}.{}", packageName, component.getName(), t);
+            log.error("Unable to read {}.{}", packageName, component.name(), t);
             return null;
         }
     }
@@ -105,21 +105,21 @@ public final class OpenApiReader {
         Map<String, JavaTypeDefinition> typeDefinitionsByType = typeDefinitions
                 .stream()
                 .filter(typeDefinition -> !(typeDefinition instanceof JavaInterfaceDefinition))
-                .collect(toMap(JavaTypeDefinition::getFullName, Function.identity()));
+                .collect(toMap(JavaTypeDefinition::fullName, Function.identity()));
         typeDefinitions
                 .stream()
                 .filter(typeDefinition -> typeDefinition instanceof JavaInterfaceDefinition)
                 .forEach(typeDefinition -> {
                     var interfaceDefinition = (JavaInterfaceDefinition) typeDefinition;
                     interfaceDefinition
-                            .getMapping()
+                            .mapping()
                             .values()
                             .forEach(implementingType -> link(implementingType, typeDefinitionsByType.get(implementingType), interfaceDefinition));
                 });
     }
 
     private void link(String implementingType, JavaTypeDefinition implementingTypeDefinition, JavaInterfaceDefinition interfaceDefinition) {
-        var interfaceType = interfaceDefinition.getFullName();
+        var interfaceType = interfaceDefinition.fullName();
         if (implementingTypeDefinition == null) {
             log.warn("{} not found, cannot implement {}", implementingType, interfaceType);
             return;

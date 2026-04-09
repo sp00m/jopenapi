@@ -147,10 +147,10 @@ final class OpenApiSchemaReader {
             return packageName;
         }
         List<String> packageNames = new ArrayList<>(List.of(packageName.split("\\.", -1)));
-        packageNames.remove(packageNames.size() - 1);
+        packageNames.removeLast();
         for (String dirName : filePath.split("/", -1)) {
             if (dirName.equals("..")) {
-                packageNames.remove(packageNames.size() - 1);
+                packageNames.removeLast();
             } else if (!dirName.equals(".")) {
                 packageNames.add(Names.toPackageName(dirName));
             }
@@ -318,10 +318,10 @@ final class OpenApiSchemaReader {
             var classDefinition = new JavaClassDefinition(packageName, className, schema.getDescription(), refFieldDefinitions);
             return new JavaType(className, classDefinition);
         } else if (nonRefTypes.size() == 1) {
-            var nonRefInnerType = nonRefTypes.get(0);
+            var nonRefInnerType = nonRefTypes.getFirst();
             var nonRefInnerTypeDefinition = nonRefInnerType.getDefinition();
             if (nonRefInnerTypeDefinition instanceof JavaClassDefinition classDefinition && !nonRefInnerType.isWrapped()) {
-                return new JavaType(classDefinition.getName(), classDefinition.addFields(refFieldDefinitions));
+                return new JavaType(classDefinition.name(), classDefinition.addFields(refFieldDefinitions));
             } else {
                 throw new IllegalStateException("Only a non-$ref schema of type 'object' is supported with 'allOf'");
             }

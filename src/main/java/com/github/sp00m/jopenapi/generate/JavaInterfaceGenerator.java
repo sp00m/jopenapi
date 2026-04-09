@@ -22,7 +22,7 @@ final class JavaInterfaceGenerator implements JavaTypeGenerator {
     @Override
     public CompilationUnit generate() {
         var jsonSubTypeExpressions = interfaceDefinition
-                .getMapping()
+                .mapping()
                 .entrySet()
                 .stream()
                 .sorted(Comparator.comparing(Map.Entry::getKey))
@@ -31,13 +31,13 @@ final class JavaInterfaceGenerator implements JavaTypeGenerator {
                 .map(Expression.class::cast)
                 .toList();
         var interfaceDeclaration = compiler
-                .addInterface(interfaceDefinition.getName())
+                .addInterface(interfaceDefinition.name())
                 .addSingleMemberAnnotation(JsonSubTypes.class, new ArrayInitializerExpr(new NodeList<>(jsonSubTypeExpressions)));
         interfaceDeclaration
                 .addAndGetAnnotation(JsonTypeInfo.class)
                 .addPair("use", "JsonTypeInfo.Id.NAME")
                 .addPair("include", "JsonTypeInfo.As.EXISTING_PROPERTY")
-                .addPair("property", "\"%s\"".formatted(interfaceDefinition.getPropertyName()))
+                .addPair("property", "\"%s\"".formatted(interfaceDefinition.propertyName()))
                 .addPair("visible", "true");
         return compiler;
     }
