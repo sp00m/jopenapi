@@ -23,7 +23,7 @@ class ExampleTest {
         var inputDir = new File("src/test/resources/example/schemas");
         var actualOutputDir = Files.createTempDirectory("jopenapi-").toFile();
 
-        Main.run(basePackageName, inputDir, actualOutputDir);
+        Main.run(basePackageName, inputDir, actualOutputDir, false);
         var expectedOutputDir = new File("src/test/resources/example/generated");
 
         compareDirs(expectedOutputDir.toPath(), actualOutputDir.toPath());

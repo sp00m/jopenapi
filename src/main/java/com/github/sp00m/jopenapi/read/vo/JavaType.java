@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Value;
 
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.UnaryOperator;
 
 @Value
@@ -47,34 +48,51 @@ public class JavaType {
     }
 
     public JavaType number() {
-        return new JavaType(fullName, definition, fieldAnnotators, defaultValue, defaultValueDecorator, wrapped, description);
+        var updatedFieldAnnotators = new TreeSet<>(fieldAnnotators);
+        updatedFieldAnnotators.add(JavaFieldAnnotator.MIN);
+        updatedFieldAnnotators.add(JavaFieldAnnotator.MAX);
+        updatedFieldAnnotators.add(JavaFieldAnnotator.MULTIPLE_OF);
+        return new JavaType(fullName, definition, updatedFieldAnnotators, defaultValue, defaultValueDecorator, wrapped, description);
     }
 
     public JavaType string() {
-        return new JavaType(fullName, definition, fieldAnnotators, defaultValue, defaultValueDecorator, wrapped, description);
+        var updatedFieldAnnotators = new TreeSet<>(fieldAnnotators);
+        updatedFieldAnnotators.add(JavaFieldAnnotator.PATTERN);
+        updatedFieldAnnotators.add(JavaFieldAnnotator.SIZE);
+        return new JavaType(fullName, definition, updatedFieldAnnotators, defaultValue, defaultValueDecorator, wrapped, description);
     }
 
     public JavaType set() {
         var updatedFullName = "java.util.Set<%s>".formatted(fullName);
-        return new JavaType(updatedFullName, definition, fieldAnnotators, "java.util.Set.of()", UnaryOperator.identity(), true, description);
+        var updatedFieldAnnotators = new TreeSet<>(fieldAnnotators);
+        updatedFieldAnnotators.add(JavaFieldAnnotator.SIZE);
+        return new JavaType(updatedFullName, definition, updatedFieldAnnotators, "java.util.Set.of()", UnaryOperator.identity(), true, description);
     }
 
     public JavaType list() {
         var updatedFullName = "java.util.List<%s>".formatted(fullName);
-        return new JavaType(updatedFullName, definition, fieldAnnotators, "java.util.List.of()", UnaryOperator.identity(), true, description);
+        var updatedFieldAnnotators = new TreeSet<>(fieldAnnotators);
+        updatedFieldAnnotators.add(JavaFieldAnnotator.SIZE);
+        return new JavaType(updatedFullName, definition, updatedFieldAnnotators, "java.util.List.of()", UnaryOperator.identity(), true, description);
     }
 
     public JavaType map() {
         var updatedFullName = "java.util.Map<String, %s>".formatted(fullName);
-        return new JavaType(updatedFullName, definition, fieldAnnotators, "java.util.Map.of()", UnaryOperator.identity(), true, description);
+        var updatedFieldAnnotators = new TreeSet<>(fieldAnnotators);
+        updatedFieldAnnotators.add(JavaFieldAnnotator.SIZE);
+        return new JavaType(updatedFullName, definition, updatedFieldAnnotators, "java.util.Map.of()", UnaryOperator.identity(), true, description);
     }
 
     public JavaType jsonProperty() {
-        return new JavaType(fullName, definition, Set.of(JavaFieldAnnotator.JSON_PROPERTY), defaultValue, defaultValueDecorator, wrapped, description);
+        var updatedFieldAnnotators = new TreeSet<>(fieldAnnotators);
+        updatedFieldAnnotators.add(JavaFieldAnnotator.JSON_PROPERTY);
+        return new JavaType(fullName, definition, updatedFieldAnnotators, defaultValue, defaultValueDecorator, wrapped, description);
     }
 
     public JavaType jsonUnwrapped() {
-        return new JavaType(fullName, definition, Set.of(JavaFieldAnnotator.JSON_UNWRAPPED), defaultValue, defaultValueDecorator, wrapped, description);
+        var updatedFieldAnnotators = new TreeSet<>(fieldAnnotators);
+        updatedFieldAnnotators.add(JavaFieldAnnotator.JSON_UNWRAPPED);
+        return new JavaType(fullName, definition, updatedFieldAnnotators, defaultValue, defaultValueDecorator, wrapped, description);
     }
 
     public JavaType description(String description) {

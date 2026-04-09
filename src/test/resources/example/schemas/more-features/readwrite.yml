@@ -1,0 +1,15 @@
+openapi: 3.0.3
+components:
+  schemas:
+
+    ReadWrite:
+      type: object
+      properties:
+        readonly:
+          type: string
+          readOnly: true
+        writeonly:
+          type: string
+          writeOnly: true
+        readwrite:
+          type: string
