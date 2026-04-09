@@ -27,7 +27,12 @@ final class OpenApiComponentReader {
         } else {
             var property = new OpenApiProperty("value", component.schema(), false);
             var fieldDefinition = new JavaFieldDefinition(property, "value", type);
-            return new JavaValueClassDefinition(packageName, Names.toClassName(component.name()), component.schema().getDescription(), fieldDefinition);
+            return new JavaValueClassDefinition(
+                packageName,
+                Names.toClassName(component.name()),
+                component.schema().getDescription(),
+                fieldDefinition
+            );
         }
     }
 

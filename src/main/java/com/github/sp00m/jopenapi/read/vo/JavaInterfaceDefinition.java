@@ -7,7 +7,7 @@ public record JavaInterfaceDefinition(
     String name,
     String description,
     String propertyName,
-                                      Map<String, String> mapping
+    Map<String, String> mapping
 ) implements JavaTypeDefinition {
 
 }

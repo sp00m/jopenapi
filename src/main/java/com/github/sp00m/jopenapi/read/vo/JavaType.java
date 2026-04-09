@@ -25,7 +25,15 @@ public class JavaType {
         return defaultValue == null ? null : defaultValueDecorator.apply(defaultValue);
     }
 
-    private JavaType(String fullName, JavaTypeDefinition definition, Set<JavaFieldAnnotator> fieldAnnotators, String defaultValue, UnaryOperator<String> defaultValueDecorator, boolean wrapped, String description) {
+    private JavaType(
+        String fullName,
+        JavaTypeDefinition definition,
+        Set<JavaFieldAnnotator> fieldAnnotators,
+        String defaultValue,
+        UnaryOperator<String> defaultValueDecorator,
+        boolean wrapped,
+        String description
+    ) {
         this.fullName = fullName.replaceFirst("^java\\.lang\\.([^.]+)$", "$1");
         this.definition = definition;
         this.fieldAnnotators = fieldAnnotators;
