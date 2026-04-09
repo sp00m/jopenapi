@@ -18,17 +18,25 @@ import java.util.List;
 @Slf4j
 public final class JavaFileWriter {
 
-    private final File baseOutputDir;
+    private final File finalBaseOutputDir;
     private final List<JavaFile> javaFiles;
+    private final boolean delombok;
 
+    @SneakyThrows
     public void write() {
-        baseOutputDir.mkdirs();
-        emptyDirectory(baseOutputDir);
-        javaFiles.forEach(this::write);
+        finalBaseOutputDir.mkdirs();
+        emptyDirectory(finalBaseOutputDir);
+        if (delombok) {
+            var tempOutputDir = Files.createTempDirectory("jopenapi-").toFile();
+            javaFiles.forEach(javaFile -> write(tempOutputDir, javaFile));
+            new Delomboker(tempOutputDir, finalBaseOutputDir).delombok();
+        } else {
+            javaFiles.forEach(javaFile -> write(finalBaseOutputDir, javaFile));
+        }
     }
 
     @SneakyThrows
-    private void write(JavaFile javaFile) {
+    private void write(File baseOutputDir, JavaFile javaFile) {
         var outputDir = new File(baseOutputDir, javaFile.getPackageName().replaceAll("\\.", "/"));
         outputDir.mkdirs();
         var outputFile = new File(outputDir, javaFile.getName() + ".java").toPath();

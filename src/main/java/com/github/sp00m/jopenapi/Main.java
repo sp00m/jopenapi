@@ -48,7 +48,7 @@ public class Main implements Callable<Integer> {
             return 1;
         }
         try {
-            int count = run(packageName, inputDir, outputDir);
+            int count = run(packageName, inputDir, outputDir, true);
             if (count == 0) {
                 log.warn("No schema files found in {}", inputDir.getAbsolutePath());
                 log.warn("Supported extensions: .yml, .yaml, .json");
@@ -67,10 +67,10 @@ public class Main implements Callable<Integer> {
         System.exit(exitCode);
     }
 
-    static int run(String basePackageName, File inputDir, File outputDir) {
+    static int run(String basePackageName, File inputDir, File outputDir, boolean delombok) {
         var typeDefinitions = new OpenApiReader(basePackageName, inputDir).read();
         var javaFiles = new JavaGenerator(typeDefinitions).generate();
-        new JavaFileWriter(outputDir, javaFiles).write();
+        new JavaFileWriter(outputDir, javaFiles, delombok).write();
         return javaFiles.size();
     }
 
