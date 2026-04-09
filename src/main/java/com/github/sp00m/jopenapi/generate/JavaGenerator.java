@@ -2,11 +2,7 @@ package com.github.sp00m.jopenapi.generate;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.sp00m.jopenapi.generate.vo.JavaFile;
-import com.github.sp00m.jopenapi.read.vo.JavaClassDefinition;
-import com.github.sp00m.jopenapi.read.vo.JavaEnumDefinition;
-import com.github.sp00m.jopenapi.read.vo.JavaInterfaceDefinition;
-import com.github.sp00m.jopenapi.read.vo.JavaTypeDefinition;
-import com.github.sp00m.jopenapi.read.vo.JavaValueClassDefinition;
+import com.github.sp00m.jopenapi.read.vo.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -68,7 +64,7 @@ public final class JavaGenerator {
             javadocBuilder.append(typeDefinition.description());
         }
         if (typeDefinition instanceof JavaClassDefinition classDefinition) {
-            for (var field : classDefinition.fields()) {
+            classDefinition.fields().forEach(field -> {
                 var desc = field.type().getDescription();
                 if (desc != null) {
                     if (!javadocBuilder.isEmpty()) {
@@ -76,7 +72,7 @@ public final class JavaGenerator {
                     }
                     javadocBuilder.append("@param ").append(field.name()).append(" ").append(desc);
                 }
-            }
+            });
         }
         if (!javadocBuilder.isEmpty()) {
             compiler.getType(0).setJavadocComment(javadocBuilder.toString());

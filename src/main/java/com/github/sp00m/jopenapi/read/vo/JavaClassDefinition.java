@@ -6,11 +6,11 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public record JavaClassDefinition(
-    String packageName,
-    String name,
-    String description,
-    List<JavaFieldDefinition> fields,
-    Set<String> implementedTypes
+        String packageName,
+        String name,
+        String description,
+        List<JavaFieldDefinition> fields,
+        Set<String> implementedTypes
 ) implements JavaTypeDefinition {
 
     public JavaClassDefinition(String packageName, String name, String description, List<JavaFieldDefinition> fields) {

@@ -1,11 +1,7 @@
 package com.github.sp00m.jopenapi.read;
 
 import com.github.sp00m.jopenapi.Names;
-import com.github.sp00m.jopenapi.read.vo.JavaFieldDefinition;
-import com.github.sp00m.jopenapi.read.vo.JavaTypeDefinition;
-import com.github.sp00m.jopenapi.read.vo.JavaValueClassDefinition;
-import com.github.sp00m.jopenapi.read.vo.OpenApiComponent;
-import com.github.sp00m.jopenapi.read.vo.OpenApiProperty;
+import com.github.sp00m.jopenapi.read.vo.*;
 import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nullable;
@@ -28,10 +24,10 @@ final class OpenApiComponentReader {
             var property = new OpenApiProperty("value", component.schema(), false);
             var fieldDefinition = new JavaFieldDefinition(property, "value", type);
             return new JavaValueClassDefinition(
-                packageName,
-                Names.toClassName(component.name()),
-                component.schema().getDescription(),
-                fieldDefinition
+                    packageName,
+                    Names.toClassName(component.name()),
+                    component.schema().getDescription(),
+                    fieldDefinition
             );
         }
     }

@@ -3,11 +3,7 @@ package com.github.sp00m.jopenapi.generate;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.CompactConstructorDeclaration;
-import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.body.RecordDeclaration;
-import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.body.*;
 import com.github.sp00m.jopenapi.read.vo.JavaClassDefinition;
 import com.github.sp00m.jopenapi.read.vo.JavaFieldDefinition;
 import com.github.sp00m.jopenapi.read.vo.JavaTypeDefinition;
@@ -16,9 +12,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 import org.apache.commons.lang3.ClassUtils;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.github.javaparser.StaticJavaParser.parseBlock;
@@ -33,6 +29,7 @@ final class JavaClassGenerator implements JavaTypeGenerator {
 
     @Override
     public CompilationUnit generate() {
+
         var recordDeclaration = new RecordDeclaration(
                 NodeList.nodeList(Modifier.publicModifier()),
                 classDefinition.name()
@@ -46,34 +43,12 @@ final class JavaClassGenerator implements JavaTypeGenerator {
                 .implementedTypes()
                 .forEach(recordDeclaration::addImplementedType);
 
-        List<String> compactConstructorStatements = new ArrayList<>();
-
-        for (var field : classDefinition.fields()) {
-            var fieldType = field.type();
-
-            // Add inner type definition as member if present
-            Optional
-                    .ofNullable(fieldType.getDefinition())
-                    .ifPresent(typeDefinition -> addMember(compiler, recordDeclaration, typeDefinition));
-
-            // Determine record parameter type
-            String paramType = getRecordParamType(field);
-
-            // Create parameter and add to record
-            var param = new Parameter(parseType(paramType), field.name());
-            recordDeclaration.getParameters().add(param);
-
-            // Add annotations from field annotators
-            fieldType
-                    .getFieldAnnotators()
-                    .forEach(annotator -> annotator.annotate(param, field.property()));
-
-            // Build compact constructor statement if needed
-            var statement = getCompactConstructorStatement(field);
-            if (statement != null) {
-                compactConstructorStatements.add(statement);
-            }
-        }
+        var compactConstructorStatements = classDefinition
+                .fields()
+                .stream()
+                .map(field -> addField(compiler, recordDeclaration, field))
+                .filter(Objects::nonNull)
+                .toList();
 
         if (!compactConstructorStatements.isEmpty()) {
             addCompactConstructor(recordDeclaration, compactConstructorStatements);
@@ -82,54 +57,51 @@ final class JavaClassGenerator implements JavaTypeGenerator {
         return compiler;
     }
 
+    private static String addField(CompilationUnit compiler, RecordDeclaration recordDeclaration, JavaFieldDefinition field) {
+        var fieldType = field.type();
+        Optional
+                .ofNullable(fieldType.getDefinition())
+                .ifPresent(typeDefinition -> addMember(compiler, recordDeclaration, typeDefinition));
+        var param = new Parameter(parseType(getRecordParamType(field)), field.name());
+        recordDeclaration.getParameters().add(param);
+        fieldType
+                .getFieldAnnotators()
+                .forEach(annotator -> annotator.annotate(param, field.property()));
+        return getCompactConstructorStatement(field);
+    }
+
     private static String getRecordParamType(JavaFieldDefinition fieldDefinition) {
         var fieldType = fieldDefinition.type();
-
         if (fieldType.isWrapped()) {
-            // Collection types: always use the collection type directly
             return fieldType.getFullName();
         }
-
         if (!fieldDefinition.property().optional()) {
-            // Required: use primitive if possible
             return toPrimitiveType(fieldType.getFullName())
                     .map(Class::getName)
                     .orElse(fieldType.getFullName());
         }
-
         if (fieldType.getDefaultValue() != null) {
-            // Optional with default: use the type, default in compact constructor
             return fieldType.getFullName();
         }
-
-        // Optional without default: wrap in Optional
         return "Optional<%s>".formatted(fieldType.getFullName());
     }
 
     private static String getCompactConstructorStatement(JavaFieldDefinition fieldDefinition) {
         var fieldType = fieldDefinition.type();
         var fieldName = fieldDefinition.name();
-
         if (fieldType.isWrapped()) {
-            // Collection: default null to empty, wrap in unmodifiable
             var emptyValue = fieldType.getDefaultValue();
             var unmodifiable = getUnmodifiableWrapper(fieldType.getFullName());
             return "%s = %s == null ? %s : %s(%s);".formatted(
                     fieldName, fieldName, emptyValue, unmodifiable, fieldName);
         }
-
         if (!fieldDefinition.property().optional()) {
-            // Required non-collection: no null handling
             return null;
         }
-
         if (fieldType.getDefaultValue() != null) {
-            // Optional with default
             return "%s = %s == null ? %s : %s;".formatted(
                     fieldName, fieldName, fieldType.getDefaultValue(), fieldName);
         }
-
-        // Optional without default: wrap in Optional
         return "%s = %s == null ? Optional.empty() : %s;".formatted(
                 fieldName, fieldName, fieldName);
     }
@@ -151,9 +123,15 @@ final class JavaClassGenerator implements JavaTypeGenerator {
     }
 
     static String getUnmodifiableWrapper(String fullName) {
-        if (fullName.startsWith("java.util.List<")) return "java.util.Collections.unmodifiableList";
-        if (fullName.startsWith("java.util.Set<")) return "java.util.Collections.unmodifiableSet";
-        if (fullName.startsWith("java.util.Map<")) return "java.util.Collections.unmodifiableMap";
+        if (fullName.startsWith("java.util.List<")) {
+            return "java.util.Collections.unmodifiableList";
+        }
+        if (fullName.startsWith("java.util.Set<")) {
+            return "java.util.Collections.unmodifiableSet";
+        }
+        if (fullName.startsWith("java.util.Map<")) {
+            return "java.util.Collections.unmodifiableMap";
+        }
         throw new IllegalStateException("Unknown collection type: " + fullName);
     }
 

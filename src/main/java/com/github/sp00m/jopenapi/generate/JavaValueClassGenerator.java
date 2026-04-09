@@ -26,6 +26,7 @@ final class JavaValueClassGenerator implements JavaTypeGenerator {
 
     @Override
     public CompilationUnit generate() {
+
         var recordDeclaration = new RecordDeclaration(
                 NodeList.nodeList(Modifier.publicModifier()),
                 valueClassDefinition.name()
@@ -35,30 +36,28 @@ final class JavaValueClassGenerator implements JavaTypeGenerator {
         var fieldDefinition = valueClassDefinition.field();
         var fieldType = fieldDefinition.type();
 
-        // Determine parameter type
         String paramType;
         boolean isCollection = fieldType.isWrapped();
         if (isCollection) {
             paramType = fieldType.getFullName();
         } else {
-            paramType = JavaClassGenerator.toPrimitiveType(fieldType.getFullName())
+            paramType = JavaClassGenerator
+                    .toPrimitiveType(fieldType.getFullName())
                     .map(Class::getName)
                     .orElse(fieldType.getFullName());
         }
 
-        // Create parameter with @JsonValue
         var param = new Parameter(parseType(paramType), fieldDefinition.name());
         recordDeclaration.getParameters().add(param);
         param.addAnnotation(JsonValue.class);
 
-        // Compact constructor for collections
         if (isCollection) {
             compiler.addImport(Collections.class);
             var emptyValue = fieldType.getDefaultValue();
             var unmodifiable = JavaClassGenerator.getUnmodifiableWrapper(fieldType.getFullName());
             var statement = "%s = %s == null ? %s : %s(%s);".formatted(
-                fieldDefinition.name(), fieldDefinition.name(),
-                emptyValue, unmodifiable, fieldDefinition.name());
+                    fieldDefinition.name(), fieldDefinition.name(),
+                    emptyValue, unmodifiable, fieldDefinition.name());
             var compactConstructor = new CompactConstructorDeclaration(
                     NodeList.nodeList(Modifier.publicModifier()),
                     valueClassDefinition.name()
@@ -67,7 +66,6 @@ final class JavaValueClassGenerator implements JavaTypeGenerator {
             recordDeclaration.addMember(compactConstructor);
         }
 
-        // Static factory method
         recordDeclaration
                 .addMethod("of", PUBLIC, STATIC)
                 .addParameter(paramType, fieldDefinition.name())

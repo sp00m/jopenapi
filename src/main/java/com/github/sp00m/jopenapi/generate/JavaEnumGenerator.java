@@ -17,10 +17,7 @@ import java.util.stream.Stream;
 
 import static com.github.javaparser.StaticJavaParser.parseBlock;
 import static com.github.javaparser.StaticJavaParser.parseExpression;
-import static com.github.javaparser.ast.Modifier.Keyword.FINAL;
-import static com.github.javaparser.ast.Modifier.Keyword.PRIVATE;
-import static com.github.javaparser.ast.Modifier.Keyword.PUBLIC;
-import static com.github.javaparser.ast.Modifier.Keyword.STATIC;
+import static com.github.javaparser.ast.Modifier.Keyword.*;
 
 @RequiredArgsConstructor
 final class JavaEnumGenerator implements JavaTypeGenerator {

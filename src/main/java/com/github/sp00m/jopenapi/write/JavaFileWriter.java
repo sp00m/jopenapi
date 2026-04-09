@@ -37,11 +37,11 @@ public final class JavaFileWriter {
 
     @SneakyThrows
     private void write(File baseOutputDir, JavaFile javaFile) {
-        var outputDir = new File(baseOutputDir, javaFile.getPackageName().replaceAll("\\.", "/"));
+        var outputDir = new File(baseOutputDir, javaFile.packageName().replaceAll("\\.", "/"));
         outputDir.mkdirs();
-        var outputFile = new File(outputDir, javaFile.getName() + ".java").toPath();
+        var outputFile = new File(outputDir, javaFile.name() + ".java").toPath();
         log.info("Writing into {}...", outputFile);
-        Files.writeString(outputFile, javaFile.getContent());
+        Files.writeString(outputFile, javaFile.content());
     }
 
     @SneakyThrows

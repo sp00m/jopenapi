@@ -1,12 +1,7 @@
 package com.github.sp00m.jopenapi.read;
 
 import com.github.sp00m.jopenapi.Names;
-import com.github.sp00m.jopenapi.read.vo.JavaClassDefinition;
-import com.github.sp00m.jopenapi.read.vo.JavaEnumDefinition;
-import com.github.sp00m.jopenapi.read.vo.JavaFieldDefinition;
-import com.github.sp00m.jopenapi.read.vo.JavaInterfaceDefinition;
-import com.github.sp00m.jopenapi.read.vo.JavaType;
-import com.github.sp00m.jopenapi.read.vo.OpenApiProperty;
+import com.github.sp00m.jopenapi.read.vo.*;
 import io.swagger.v3.oas.models.media.Discriminator;
 import io.swagger.v3.oas.models.media.Schema;
 import lombok.RequiredArgsConstructor;
@@ -17,15 +12,7 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static java.util.stream.Collectors.toMap;
 
