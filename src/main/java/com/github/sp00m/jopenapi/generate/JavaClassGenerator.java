@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.github.javaparser.StaticJavaParser.parseBlock;
+import static com.github.javaparser.StaticJavaParser.parseExpression;
 import static com.github.javaparser.StaticJavaParser.parseType;
 import static com.github.javaparser.ast.Modifier.Keyword.STATIC;
 
@@ -54,6 +55,8 @@ final class JavaClassGenerator implements JavaTypeGenerator {
             addCompactConstructor(recordDeclaration, compactConstructorStatements);
         }
 
+        addBuilderDefaults(recordDeclaration);
+
         return compiler;
     }
 
@@ -75,13 +78,10 @@ final class JavaClassGenerator implements JavaTypeGenerator {
         if (fieldType.isWrapped()) {
             return fieldType.getFullName();
         }
-        if (!fieldDefinition.property().optional()) {
+        if (!fieldDefinition.property().optional() || fieldType.getDefaultValue() != null) {
             return toPrimitiveType(fieldType.getFullName())
                     .map(Class::getName)
                     .orElse(fieldType.getFullName());
-        }
-        if (fieldType.getDefaultValue() != null) {
-            return fieldType.getFullName();
         }
         return "Optional<%s>".formatted(fieldType.getFullName());
     }
@@ -98,12 +98,15 @@ final class JavaClassGenerator implements JavaTypeGenerator {
         if (!fieldDefinition.property().optional()) {
             return null;
         }
-        if (fieldType.getDefaultValue() != null) {
-            return "%s = %s == null ? %s : %s;".formatted(
-                    fieldName, fieldName, fieldType.getDefaultValue(), fieldName);
+        if (fieldType.getDefaultValue() == null) {
+            return "%s = %s == null ? Optional.empty() : %s;".formatted(
+                    fieldName, fieldName, fieldName);
         }
-        return "%s = %s == null ? Optional.empty() : %s;".formatted(
-                fieldName, fieldName, fieldName);
+        if (toPrimitiveType(fieldType.getFullName()).isPresent()) {
+            return null;
+        }
+        return "%s = %s == null ? %s : %s;".formatted(
+                fieldName, fieldName, fieldType.getDefaultValue(), fieldName);
     }
 
     private void addCompactConstructor(RecordDeclaration recordDeclaration, List<String> statements) {
@@ -120,6 +123,30 @@ final class JavaClassGenerator implements JavaTypeGenerator {
         var body = "{\n" + String.join("\n", statements) + "\n}";
         compactConstructor.setBody(parseBlock(body));
         recordDeclaration.addMember(compactConstructor);
+    }
+
+    private void addBuilderDefaults(RecordDeclaration recordDeclaration) {
+        var defaultedPrimitiveFields = classDefinition.fields().stream()
+                .filter(f -> f.property().optional() && f.type().getDefaultValue() != null)
+                .filter(f -> toPrimitiveType(f.type().getFullName()).isPresent())
+                .toList();
+        if (defaultedPrimitiveFields.isEmpty()) {
+            return;
+        }
+        var builderClass = new ClassOrInterfaceDeclaration(
+                NodeList.nodeList(Modifier.publicModifier(), Modifier.staticModifier()),
+                false,
+                classDefinition.name() + "Builder"
+        );
+        for (var field : defaultedPrimitiveFields) {
+            var fieldType = field.type();
+            var typeName = toPrimitiveType(fieldType.getFullName())
+                    .map(Class::getName)
+                    .orElseThrow();
+            var decl = builderClass.addField(parseType(typeName), field.name(), Modifier.Keyword.PRIVATE);
+            decl.getVariable(0).setInitializer(parseExpression(fieldType.getDefaultValue()));
+        }
+        recordDeclaration.addMember(builderClass);
     }
 
     static String getUnmodifiableWrapper(String fullName) {

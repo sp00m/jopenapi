@@ -14,7 +14,7 @@ import lombok.extern.jackson.Jacksonized;
 
 @Jacksonized()
 @Builder(toBuilder = true)
-public record DefaultedValues(@JsonProperty(value = "defaulted_int") Integer defaultedInt, @JsonProperty(value = "defaulted_long") Long defaultedLong, @JsonProperty(value = "defaulted_float") Float defaultedFloat, @JsonProperty(value = "defaulted_double") Double defaultedDouble, @JsonProperty(value = "defaulted_number") Number defaultedNumber, @JsonProperty(value = "defaulted_boolean") Boolean defaultedBoolean, @JsonProperty(value = "defaulted_string") String defaultedString, @JsonProperty(value = "defaulted_date") java.time.LocalDate defaultedDate, @JsonProperty(value = "defaulted_datetime") java.time.OffsetDateTime defaultedDatetime, @JsonProperty(value = "defaulted_uuid") java.util.UUID defaultedUuid, @JsonProperty(value = "defaulted_uri") java.net.URI defaultedUri, @JsonProperty(value = "defaulted_internal_enum") DefaultedInternalEnum defaultedInternalEnum) {
+public record DefaultedValues(@JsonProperty(value = "defaulted_int") int defaultedInt, @JsonProperty(value = "defaulted_long") long defaultedLong, @JsonProperty(value = "defaulted_float") float defaultedFloat, @JsonProperty(value = "defaulted_double") double defaultedDouble, @JsonProperty(value = "defaulted_number") Number defaultedNumber, @JsonProperty(value = "defaulted_boolean") boolean defaultedBoolean, @JsonProperty(value = "defaulted_string") String defaultedString, @JsonProperty(value = "defaulted_date") java.time.LocalDate defaultedDate, @JsonProperty(value = "defaulted_datetime") java.time.OffsetDateTime defaultedDatetime, @JsonProperty(value = "defaulted_uuid") java.util.UUID defaultedUuid, @JsonProperty(value = "defaulted_uri") java.net.URI defaultedUri, @JsonProperty(value = "defaulted_internal_enum") DefaultedInternalEnum defaultedInternalEnum) {
 
     @RequiredArgsConstructor()
     public enum DefaultedInternalEnum {
@@ -37,17 +37,25 @@ public record DefaultedValues(@JsonProperty(value = "defaulted_int") Integer def
     }
 
     public DefaultedValues {
-        defaultedInt = defaultedInt == null ? 1 : defaultedInt;
-        defaultedLong = defaultedLong == null ? 2L : defaultedLong;
-        defaultedFloat = defaultedFloat == null ? 3.3F : defaultedFloat;
-        defaultedDouble = defaultedDouble == null ? 4.4D : defaultedDouble;
         defaultedNumber = defaultedNumber == null ? new java.math.BigDecimal("5.5") : defaultedNumber;
-        defaultedBoolean = defaultedBoolean == null ? true : defaultedBoolean;
         defaultedString = defaultedString == null ? "hello world" : defaultedString;
         defaultedDate = defaultedDate == null ? java.time.LocalDate.parse("2020-06-30") : defaultedDate;
         defaultedDatetime = defaultedDatetime == null ? java.time.OffsetDateTime.parse("2020-06-30T15:30:50.123+01:00") : defaultedDatetime;
         defaultedUuid = defaultedUuid == null ? java.util.UUID.fromString("cb855a07-11d3-432f-936f-cd79590482df") : defaultedUuid;
         defaultedUri = defaultedUri == null ? java.net.URI.create("https://github.com/sp00m/jopenapi") : defaultedUri;
         defaultedInternalEnum = defaultedInternalEnum == null ? DefaultedInternalEnum.BAR : defaultedInternalEnum;
+    }
+
+    public static class DefaultedValuesBuilder {
+
+        private int defaultedInt = 1;
+
+        private long defaultedLong = 2L;
+
+        private float defaultedFloat = 3.3F;
+
+        private double defaultedDouble = 4.4D;
+
+        private boolean defaultedBoolean = true;
     }
 }
