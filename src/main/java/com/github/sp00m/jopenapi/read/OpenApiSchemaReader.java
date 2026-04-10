@@ -67,7 +67,7 @@ final class OpenApiSchemaReader {
                 .map(Object::toString)
                 .toList();
         if (!enumValues.isEmpty()) {
-            return readEnum(enumValues);
+            return readEnum(enumValues, (String) schema.getDefault());
         } else if (oneOf.isEmpty() && schema.getDiscriminator() != null) {
             log.warn("'discriminator' without 'oneOf', defaulting to 'oneOf'");
             return readOneOf(schema.getDiscriminator());
@@ -168,10 +168,10 @@ final class OpenApiSchemaReader {
         };
     }
 
-    private JavaType readEnum(List<String> enumValues) {
+    private JavaType readEnum(List<String> enumValues, String defaultValue) {
         var enumName = Names.toClassName(schemaName);
-        var enumDefinition = new JavaEnumDefinition(packageName, enumName, schema.getDescription(), enumValues);
-        return new JavaType(enumName, enumDefinition).defaultValueDecorator(x -> "%s.%s".formatted(enumName, Names.toEnumValue(x)));
+        var enumDefinition = new JavaEnumDefinition(packageName, enumName, schema.getDescription(), enumValues, defaultValue);
+        return new JavaType(enumName, enumDefinition).defaultValueDecorator(enumDefinition::decorateDefaultValue);
     }
 
     private JavaType readNumber() {

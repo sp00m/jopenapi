@@ -1,6 +1,19 @@
-openapi: 3.0.3
+openapi: 3.1.1
 components:
   schemas:
+    
+    LocalEnumWithoutDefault:
+      type: string
+      enum:
+        - foo
+        - bar
+    
+    LocalEnumWithDefault:
+      type: string
+      enum:
+        - foo
+        - bar
+      default: foo
 
     LocalCommonObject:
       type: object
@@ -31,6 +44,16 @@ components:
           type: object
           additionalProperties:
             $ref: "#/components/schemas/LocalCommonObject"
+        local_enum_without_default:
+          $ref: "#/components/schemas/LocalEnumWithoutDefault"
+        local_enum_without_default_defaulted_locally:
+          $ref: "#/components/schemas/LocalEnumWithoutDefault"
+          default: bar
+        local_enum_with_default:
+          $ref: "#/components/schemas/LocalEnumWithDefault"
+        local_enum_with_default_defaulted_locally:
+          $ref: "#/components/schemas/LocalEnumWithDefault"
+          default: bar
       required:
         - mandatory_ref
         - ref_array

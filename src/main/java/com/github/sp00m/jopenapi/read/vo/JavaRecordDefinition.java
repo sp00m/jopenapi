@@ -13,6 +13,10 @@ public record JavaRecordDefinition(
         Set<String> implementedTypes
 ) implements JavaTypeDefinition {
 
+    public JavaRecordDefinition {
+        fields = new ArrayList<>(fields);
+    }
+
     public JavaRecordDefinition(String packageName, String name, String description, List<JavaFieldDefinition> fields) {
         this(packageName, name, description, fields, new TreeSet<>());
     }
@@ -21,6 +25,11 @@ public record JavaRecordDefinition(
         List<JavaFieldDefinition> updatedFields = new ArrayList<>(fields);
         updatedFields.addAll(newFields);
         return new JavaRecordDefinition(packageName, name, description, updatedFields);
+    }
+
+    public void replaceFields(List<JavaFieldDefinition> newFields) {
+        fields.clear();
+        fields.addAll(newFields);
     }
 
     public void addImplementedType(String newImplementedType) {

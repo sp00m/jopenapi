@@ -12,6 +12,7 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.With;
 import lombok.extern.jackson.Jacksonized;
+import lombok.extern.slf4j.Slf4j;
 
 @Jacksonized()
 @With()
@@ -19,6 +20,7 @@ import lombok.extern.jackson.Jacksonized;
 public record DefaultedValues(@JsonProperty(value = "defaulted_int") int defaultedInt, @JsonProperty(value = "defaulted_long") long defaultedLong, @JsonProperty(value = "defaulted_float") float defaultedFloat, @JsonProperty(value = "defaulted_double") double defaultedDouble, @JsonProperty(value = "defaulted_number") Number defaultedNumber, @JsonProperty(value = "defaulted_boolean") boolean defaultedBoolean, @JsonProperty(value = "defaulted_string") String defaultedString, @JsonProperty(value = "defaulted_date") java.time.LocalDate defaultedDate, @JsonProperty(value = "defaulted_datetime") java.time.OffsetDateTime defaultedDatetime, @JsonProperty(value = "defaulted_uuid") java.util.UUID defaultedUuid, @JsonProperty(value = "defaulted_uri") java.net.URI defaultedUri, @JsonProperty(value = "defaulted_internal_enum") DefaultedInternalEnum defaultedInternalEnum) {
 
     @RequiredArgsConstructor()
+    @Slf4j()
     public enum DefaultedInternalEnum {
 
         FOO("foo"), BAR("bar");
@@ -34,7 +36,10 @@ public record DefaultedValues(@JsonProperty(value = "defaulted_int") int default
 
         @JsonCreator()
         public static DefaultedInternalEnum findByValue(String value) {
-            return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No DefaultedInternalEnum with value " + value));
+            return Optional.ofNullable(value).map(BY_VALUE::get).orElseGet(() -> {
+                log.warn("No DefaultedInternalEnum with value {}", value);
+                return DefaultedInternalEnum.BAR;
+            });
         }
     }
 

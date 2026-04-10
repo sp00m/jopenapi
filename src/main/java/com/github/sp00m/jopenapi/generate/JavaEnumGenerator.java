@@ -8,6 +8,7 @@ import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.sp00m.jopenapi.Names;
 import com.github.sp00m.jopenapi.read.vo.JavaEnumDefinition;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.Optional;
@@ -53,10 +54,18 @@ final class JavaEnumGenerator implements JavaTypeGenerator {
                 .setBody(parseBlock("{return value;}"))
                 .addAnnotation(JsonValue.class);
 
+        final String onValueNotFound;
+        if (enumDefinition.defaultValue() == null) {
+            onValueNotFound = ".orElseThrow(() -> new IllegalArgumentException(\"No %s with value \" + value))".formatted(enumDefinition.name());
+        } else {
+            onValueNotFound = ".orElseGet(() -> {log.warn(\"No %s with value {}\", value);return %s;})".formatted(enumDefinition.name(), enumDefinition.decorateDefaultValue());
+            enumDeclaration.addAnnotation(Slf4j.class);
+        }
+
         enumDeclaration.addMethod("findByValue", PUBLIC, STATIC)
                 .setType(enumDefinition.name())
                 .addParameter(String.class, "value")
-                .setBody(parseBlock("{return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException(\"No %s with value \" + value));}".formatted(enumDefinition.name())))
+                .setBody(parseBlock("{return Optional.ofNullable(value).map(BY_VALUE::get)%s;}".formatted(onValueNotFound)))
                 .addAnnotation(JsonCreator.class);
 
         enumDefinition.values().forEach(value -> {

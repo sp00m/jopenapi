@@ -1,10 +1,7 @@
 package com.github.sp00m.jopenapi.read;
 
 import com.github.sp00m.jopenapi.Names;
-import com.github.sp00m.jopenapi.read.vo.JavaInterfaceDefinition;
-import com.github.sp00m.jopenapi.read.vo.JavaRecordDefinition;
-import com.github.sp00m.jopenapi.read.vo.JavaTypeDefinition;
-import com.github.sp00m.jopenapi.read.vo.OpenApiComponent;
+import com.github.sp00m.jopenapi.read.vo.*;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import lombok.RequiredArgsConstructor;
@@ -104,7 +101,6 @@ public final class OpenApiReader {
     private void link(List<JavaTypeDefinition> typeDefinitions) {
         Map<String, JavaTypeDefinition> typeDefinitionsByType = typeDefinitions
                 .stream()
-                .filter(typeDefinition -> !(typeDefinition instanceof JavaInterfaceDefinition))
                 .collect(toMap(JavaTypeDefinition::fullName, Function.identity()));
         typeDefinitions
                 .stream()
@@ -114,11 +110,23 @@ public final class OpenApiReader {
                     interfaceDefinition
                             .mapping()
                             .values()
-                            .forEach(implementingType -> link(implementingType, typeDefinitionsByType.get(implementingType), interfaceDefinition));
+                            .forEach(implementingType -> linkInterface(implementingType, typeDefinitionsByType.get(implementingType), interfaceDefinition));
+                });
+        typeDefinitions
+                .stream()
+                .filter(typeDefinition -> typeDefinition instanceof JavaRecordDefinition)
+                .forEach(typeDefinition -> {
+                    var recordDefinition = (JavaRecordDefinition) typeDefinition;
+                    var updatedFields = recordDefinition
+                            .fields()
+                            .stream()
+                            .map(field -> linkEnum(field, typeDefinitionsByType))
+                            .toList();
+                    recordDefinition.replaceFields(updatedFields);
                 });
     }
 
-    private void link(String implementingType, JavaTypeDefinition implementingTypeDefinition, JavaInterfaceDefinition interfaceDefinition) {
+    private void linkInterface(String implementingType, JavaTypeDefinition implementingTypeDefinition, JavaInterfaceDefinition interfaceDefinition) {
         var interfaceType = interfaceDefinition.fullName();
         if (implementingTypeDefinition == null) {
             log.warn("{} not found, cannot implement {}", implementingType, interfaceType);
@@ -129,6 +137,18 @@ public final class OpenApiReader {
         } else {
             throw new IllegalStateException("Only 'object' schemas can be referenced by 'oneOf'");
         }
+    }
+
+    private JavaFieldDefinition linkEnum(JavaFieldDefinition field, Map<String, JavaTypeDefinition> typeDefinitionsByType) {
+        var fieldTypeDefinition = typeDefinitionsByType.get(field.type().getFullName());
+        if (!(fieldTypeDefinition instanceof JavaEnumDefinition enumDefinition)) {
+            return field;
+        }
+        var enumField = field.withType(field.type().defaultValueDecorator(enumDefinition::decorateDefaultValue));
+        if (enumField.property().optional() && enumField.type().getDefaultValue() == null && enumDefinition.defaultValue() != null) {
+            enumField = enumField.withType(enumField.type().defaultValue(enumDefinition.defaultValue()));
+        }
+        return enumField;
     }
 
 }
