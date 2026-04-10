@@ -1,8 +1,8 @@
 package com.github.sp00m.jopenapi.read;
 
 import com.github.sp00m.jopenapi.Names;
-import com.github.sp00m.jopenapi.read.vo.JavaClassDefinition;
 import com.github.sp00m.jopenapi.read.vo.JavaInterfaceDefinition;
+import com.github.sp00m.jopenapi.read.vo.JavaRecordDefinition;
 import com.github.sp00m.jopenapi.read.vo.JavaTypeDefinition;
 import com.github.sp00m.jopenapi.read.vo.OpenApiComponent;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -124,8 +124,8 @@ public final class OpenApiReader {
             log.warn("{} not found, cannot implement {}", implementingType, interfaceType);
             return;
         }
-        if (implementingTypeDefinition instanceof JavaClassDefinition classDefinition) {
-            classDefinition.addImplementedType(interfaceType);
+        if (implementingTypeDefinition instanceof JavaRecordDefinition recordDefinition) {
+            recordDefinition.addImplementedType(interfaceType);
         } else {
             throw new IllegalStateException("Only 'object' schemas can be referenced by 'oneOf'");
         }

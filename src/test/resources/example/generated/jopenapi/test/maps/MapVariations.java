@@ -4,18 +4,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Size;
 import java.util.Collections;
 import lombok.Builder;
+import lombok.With;
 import lombok.extern.jackson.Jacksonized;
 
 @Jacksonized()
+@With()
 @Builder(toBuilder = true)
 public record MapVariations(@JsonProperty(value = "untyped_map") java.util.Map<String, Object> untypedMap, @JsonProperty(value = "nested_map") java.util.Map<String, java.util.Map<String, Integer>> nestedMap, @JsonProperty(value = "custom_typed_map") java.util.Map<String, CustomTypedMap> customTypedMap, @JsonProperty(value = "custom_typed_nested_map") java.util.Map<String, java.util.Map<String, CustomTypedNestedMap>> customTypedNestedMap, @JsonProperty(value = "optional_map") java.util.Map<String, Integer> optionalMap, @Size(min = 1, max = 2147483647) @JsonProperty(value = "map_with_min") java.util.Map<String, Integer> mapWithMin, @Size(min = 1, max = 2147483647) @JsonProperty(value = "optional_map_with_min") java.util.Map<String, Integer> optionalMapWithMin, @Size(min = 0, max = 5) @JsonProperty(value = "map_with_max") java.util.Map<String, Integer> mapWithMax, @Size(min = 1, max = 5) @JsonProperty(value = "map_with_min_max") java.util.Map<String, Integer> mapWithMinMax) {
 
     @Jacksonized()
+    @With()
     @Builder(toBuilder = true)
     public record CustomTypedMap(@JsonProperty(value = "i") int i) {
     }
 
     @Jacksonized()
+    @With()
     @Builder(toBuilder = true)
     public record CustomTypedNestedMap(@JsonProperty(value = "i") int i) {
     }

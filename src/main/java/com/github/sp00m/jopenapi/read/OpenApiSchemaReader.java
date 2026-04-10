@@ -251,8 +251,8 @@ final class OpenApiSchemaReader {
                 .filter(Objects::nonNull)
                 .toList();
         var className = Names.toClassName(schemaName);
-        var classDefinition = new JavaClassDefinition(packageName, className, schema.getDescription(), fieldDefinitions);
-        return new JavaType(className, classDefinition);
+        var recordDefinition = new JavaRecordDefinition(packageName, className, schema.getDescription(), fieldDefinitions);
+        return new JavaType(className, recordDefinition);
     }
 
     private JavaFieldDefinition toFieldDefinition(String propertyName, Schema<?> propertySchema, List<String> requiredProperties) {
@@ -302,13 +302,13 @@ final class OpenApiSchemaReader {
                 .toList();
         if (nonRefTypes.isEmpty()) {
             var className = Names.toClassName(schemaName);
-            var classDefinition = new JavaClassDefinition(packageName, className, schema.getDescription(), refFieldDefinitions);
-            return new JavaType(className, classDefinition);
+            var recordDefinition = new JavaRecordDefinition(packageName, className, schema.getDescription(), refFieldDefinitions);
+            return new JavaType(className, recordDefinition);
         } else if (nonRefTypes.size() == 1) {
             var nonRefInnerType = nonRefTypes.getFirst();
             var nonRefInnerTypeDefinition = nonRefInnerType.getDefinition();
-            if (nonRefInnerTypeDefinition instanceof JavaClassDefinition classDefinition && !nonRefInnerType.isWrapped()) {
-                return new JavaType(classDefinition.name(), classDefinition.addFields(refFieldDefinitions));
+            if (nonRefInnerTypeDefinition instanceof JavaRecordDefinition recordDefinition && !nonRefInnerType.isCollection()) {
+                return new JavaType(recordDefinition.name(), recordDefinition.addFields(refFieldDefinitions));
             } else {
                 throw new IllegalStateException("Only a non-$ref schema of type 'object' is supported with 'allOf'");
             }

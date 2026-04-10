@@ -3,6 +3,7 @@ package jopenapi.test.more_features.javadoc;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Optional;
 import lombok.Builder;
+import lombok.With;
 import lombok.extern.jackson.Jacksonized;
 
 /**
@@ -11,6 +12,7 @@ import lombok.extern.jackson.Jacksonized;
  * @param documentedInnerType Javadoc on the inner type.
  */
 @Jacksonized()
+@With()
 @Builder(toBuilder = true)
 public record DocumentedClass(@JsonProperty(value = "documented_field") Optional<Integer> documentedField, @JsonProperty(value = "documented_inner_type") Optional<DocumentedInnerType> documentedInnerType) {
 
@@ -18,6 +20,7 @@ public record DocumentedClass(@JsonProperty(value = "documented_field") Optional
      * Javadoc on the inner type.
      */
     @Jacksonized()
+    @With()
     @Builder(toBuilder = true)
     public record DocumentedInnerType(@JsonProperty(value = "i") Optional<Integer> i) {
 

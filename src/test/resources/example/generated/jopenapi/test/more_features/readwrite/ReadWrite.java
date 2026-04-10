@@ -3,9 +3,11 @@ package jopenapi.test.more_features.readwrite;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Optional;
 import lombok.Builder;
+import lombok.With;
 import lombok.extern.jackson.Jacksonized;
 
 @Jacksonized()
+@With()
 @Builder(toBuilder = true)
 public record ReadWrite(@JsonProperty(value = "readonly", access = JsonProperty.Access.READ_ONLY) Optional<String> readonly, @JsonProperty(value = "writeonly", access = JsonProperty.Access.WRITE_ONLY) Optional<String> writeonly, @JsonProperty(value = "readwrite") Optional<String> readwrite) {
 

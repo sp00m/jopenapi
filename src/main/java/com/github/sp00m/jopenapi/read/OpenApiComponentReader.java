@@ -18,12 +18,12 @@ final class OpenApiComponentReader {
         if (type == null) {
             return null;
         }
-        if (type.getDefinition() != null && !type.isWrapped()) {
+        if (type.getDefinition() != null && !type.isCollection()) {
             return type.getDefinition();
         } else {
             var property = new OpenApiProperty("value", component.schema(), false);
             var fieldDefinition = new JavaFieldDefinition(property, "value", type);
-            return new JavaValueClassDefinition(
+            return new JavaValueRecordDefinition(
                     packageName,
                     Names.toClassName(component.name()),
                     component.schema().getDescription(),

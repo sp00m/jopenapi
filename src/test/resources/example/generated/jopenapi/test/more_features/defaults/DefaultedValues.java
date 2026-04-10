@@ -10,9 +10,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import lombok.With;
 import lombok.extern.jackson.Jacksonized;
 
 @Jacksonized()
+@With()
 @Builder(toBuilder = true)
 public record DefaultedValues(@JsonProperty(value = "defaulted_int") int defaultedInt, @JsonProperty(value = "defaulted_long") long defaultedLong, @JsonProperty(value = "defaulted_float") float defaultedFloat, @JsonProperty(value = "defaulted_double") double defaultedDouble, @JsonProperty(value = "defaulted_number") Number defaultedNumber, @JsonProperty(value = "defaulted_boolean") boolean defaultedBoolean, @JsonProperty(value = "defaulted_string") String defaultedString, @JsonProperty(value = "defaulted_date") java.time.LocalDate defaultedDate, @JsonProperty(value = "defaulted_datetime") java.time.OffsetDateTime defaultedDatetime, @JsonProperty(value = "defaulted_uuid") java.util.UUID defaultedUuid, @JsonProperty(value = "defaulted_uri") java.net.URI defaultedUri, @JsonProperty(value = "defaulted_internal_enum") DefaultedInternalEnum defaultedInternalEnum) {
 

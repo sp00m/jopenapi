@@ -10,9 +10,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import lombok.With;
 import lombok.extern.jackson.Jacksonized;
 
 @Jacksonized()
+@With()
 @Builder(toBuilder = true)
 public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWithoutType enumWithoutType, @JsonProperty(value = "optional_enum") Optional<OptionalEnum> optionalEnum, @JsonProperty(value = "nullable_enum") NullableEnum nullableEnum, @JsonProperty(value = "enum_with_null") EnumWithNull enumWithNull, @JsonProperty(value = "nullable_enum_with_null") Optional<NullableEnumWithNull> nullableEnumWithNull) {
 

@@ -47,9 +47,9 @@ public final class JavaGenerator {
 
     static CompilationUnit generateCompiler(JavaTypeDefinition typeDefinition) {
         var typeGenerator = switch (typeDefinition) {
-            case JavaClassDefinition classDefinition -> new JavaClassGenerator(classDefinition);
+            case JavaRecordDefinition recordDefinition -> new JavaRecordGenerator(recordDefinition);
             case JavaEnumDefinition enumDefinition -> new JavaEnumGenerator(enumDefinition);
-            case JavaValueClassDefinition valueClassDefinition -> new JavaValueClassGenerator(valueClassDefinition);
+            case JavaValueRecordDefinition valueRecordDefinition -> new JavaValueRecordGenerator(valueRecordDefinition);
             case JavaInterfaceDefinition interfaceDefinition -> new JavaInterfaceGenerator(interfaceDefinition);
             case null, default -> throw new IllegalStateException();
         };
@@ -63,8 +63,8 @@ public final class JavaGenerator {
         if (typeDefinition.description() != null) {
             javadocBuilder.append(typeDefinition.description());
         }
-        if (typeDefinition instanceof JavaClassDefinition classDefinition) {
-            classDefinition.fields().forEach(field -> {
+        if (typeDefinition instanceof JavaRecordDefinition recordDefinition) {
+            recordDefinition.fields().forEach(field -> {
                 var desc = field.type().getDescription();
                 if (desc != null) {
                     if (!javadocBuilder.isEmpty()) {

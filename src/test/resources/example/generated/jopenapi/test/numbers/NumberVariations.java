@@ -5,9 +5,11 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import java.util.Optional;
 import lombok.Builder;
+import lombok.With;
 import lombok.extern.jackson.Jacksonized;
 
 @Jacksonized()
+@With()
 @Builder(toBuilder = true)
 public record NumberVariations(@DecimalMin(value = "1", inclusive = true) @JsonProperty(value = "number_with_min_inclusive") Number numberWithMinInclusive, @DecimalMin(value = "1", inclusive = false) @JsonProperty(value = "number_with_min_exclusive") Number numberWithMinExclusive, @DecimalMax(value = "5", inclusive = true) @JsonProperty(value = "number_with_max_inclusive") Number numberWithMaxInclusive, @DecimalMax(value = "5", inclusive = false) @JsonProperty(value = "number_with_max_exclusive") Number numberWithMaxExclusive, @DecimalMin(value = "1", inclusive = true) @DecimalMax(value = "5", inclusive = true) @JsonProperty(value = "number_with_min_max") Number numberWithMinMax, @JsonProperty(value = "mandatory_float") float mandatoryFloat, @JsonProperty(value = "optional_float") Optional<Float> optionalFloat, @JsonProperty(value = "mandatory_double") double mandatoryDouble, @JsonProperty(value = "optional_double") Optional<Double> optionalDouble) {
 

@@ -4,11 +4,12 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
-import com.github.sp00m.jopenapi.read.vo.JavaClassDefinition;
 import com.github.sp00m.jopenapi.read.vo.JavaFieldDefinition;
+import com.github.sp00m.jopenapi.read.vo.JavaRecordDefinition;
 import com.github.sp00m.jopenapi.read.vo.JavaTypeDefinition;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import lombok.With;
 import lombok.extern.jackson.Jacksonized;
 import org.apache.commons.lang3.ClassUtils;
 
@@ -17,15 +18,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.github.javaparser.StaticJavaParser.parseBlock;
-import static com.github.javaparser.StaticJavaParser.parseExpression;
-import static com.github.javaparser.StaticJavaParser.parseType;
+import static com.github.javaparser.StaticJavaParser.*;
 import static com.github.javaparser.ast.Modifier.Keyword.STATIC;
 
 @RequiredArgsConstructor
-final class JavaClassGenerator implements JavaTypeGenerator {
+final class JavaRecordGenerator implements JavaTypeGenerator {
 
-    private final JavaClassDefinition classDefinition;
+    private final JavaRecordDefinition recordDefinition;
     private final CompilationUnit compiler = new CompilationUnit();
 
     @Override
@@ -33,18 +32,19 @@ final class JavaClassGenerator implements JavaTypeGenerator {
 
         var recordDeclaration = new RecordDeclaration(
                 NodeList.nodeList(Modifier.publicModifier()),
-                classDefinition.name()
+                recordDefinition.name()
         );
         compiler.addType(recordDeclaration);
 
         recordDeclaration.addAnnotation(Jacksonized.class);
+        recordDeclaration.addAnnotation(With.class);
         recordDeclaration.addAndGetAnnotation(Builder.class).addPair("toBuilder", "true");
 
-        classDefinition
+        recordDefinition
                 .implementedTypes()
                 .forEach(recordDeclaration::addImplementedType);
 
-        var compactConstructorStatements = classDefinition
+        var compactConstructorStatements = recordDefinition
                 .fields()
                 .stream()
                 .map(field -> addField(compiler, recordDeclaration, field))
@@ -75,7 +75,7 @@ final class JavaClassGenerator implements JavaTypeGenerator {
 
     private static String getRecordParamType(JavaFieldDefinition fieldDefinition) {
         var fieldType = fieldDefinition.type();
-        if (fieldType.isWrapped()) {
+        if (fieldType.isCollection()) {
             return fieldType.getFullName();
         }
         if (!fieldDefinition.property().optional() || fieldType.getDefaultValue() != null) {
@@ -89,7 +89,7 @@ final class JavaClassGenerator implements JavaTypeGenerator {
     private static String getCompactConstructorStatement(JavaFieldDefinition fieldDefinition) {
         var fieldType = fieldDefinition.type();
         var fieldName = fieldDefinition.name();
-        if (fieldType.isWrapped()) {
+        if (fieldType.isCollection()) {
             var emptyValue = fieldType.getDefaultValue();
             var unmodifiable = getUnmodifiableWrapper(fieldType.getFullName());
             return "%s = %s == null ? %s : %s(%s);".formatted(
@@ -118,7 +118,7 @@ final class JavaClassGenerator implements JavaTypeGenerator {
         }
         var compactConstructor = new CompactConstructorDeclaration(
                 NodeList.nodeList(Modifier.publicModifier()),
-                classDefinition.name()
+                recordDefinition.name()
         );
         var body = "{\n" + String.join("\n", statements) + "\n}";
         compactConstructor.setBody(parseBlock(body));
@@ -126,7 +126,7 @@ final class JavaClassGenerator implements JavaTypeGenerator {
     }
 
     private void addBuilderDefaults(RecordDeclaration recordDeclaration) {
-        var defaultedPrimitiveFields = classDefinition.fields().stream()
+        var defaultedPrimitiveFields = recordDefinition.fields().stream()
                 .filter(f -> f.property().optional() && f.type().getDefaultValue() != null)
                 .filter(f -> toPrimitiveType(f.type().getFullName()).isPresent())
                 .toList();
@@ -136,7 +136,7 @@ final class JavaClassGenerator implements JavaTypeGenerator {
         var builderClass = new ClassOrInterfaceDeclaration(
                 NodeList.nodeList(Modifier.publicModifier(), Modifier.staticModifier()),
                 false,
-                classDefinition.name() + "Builder"
+                recordDefinition.name() + "Builder"
         );
         for (var field : defaultedPrimitiveFields) {
             var fieldType = field.type();
