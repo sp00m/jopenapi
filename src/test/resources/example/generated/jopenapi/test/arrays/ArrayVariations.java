@@ -25,16 +25,16 @@ public record ArrayVariations(@JsonProperty(value = "untyped_array") java.util.L
     }
 
     public ArrayVariations {
-        untypedArray = untypedArray == null ? java.util.List.of() : java.util.Collections.unmodifiableList(untypedArray);
-        nestedArray = nestedArray == null ? java.util.List.of() : java.util.Collections.unmodifiableList(nestedArray);
-        customTypedArray = customTypedArray == null ? java.util.List.of() : java.util.Collections.unmodifiableList(customTypedArray);
-        customTypedNestedArray = customTypedNestedArray == null ? java.util.List.of() : java.util.Collections.unmodifiableList(customTypedNestedArray);
-        optionalArray = optionalArray == null ? java.util.List.of() : java.util.Collections.unmodifiableList(optionalArray);
-        uniqueItemsArray = uniqueItemsArray == null ? java.util.Set.of() : java.util.Collections.unmodifiableSet(uniqueItemsArray);
-        uniqueItemsOptionalArray = uniqueItemsOptionalArray == null ? java.util.Set.of() : java.util.Collections.unmodifiableSet(uniqueItemsOptionalArray);
-        arrayWithMin = arrayWithMin == null ? java.util.List.of() : java.util.Collections.unmodifiableList(arrayWithMin);
-        optionalArrayWithMin = optionalArrayWithMin == null ? java.util.List.of() : java.util.Collections.unmodifiableList(optionalArrayWithMin);
-        arrayWithMax = arrayWithMax == null ? java.util.List.of() : java.util.Collections.unmodifiableList(arrayWithMax);
-        uniqueItemsArrayWithMinMax = uniqueItemsArrayWithMinMax == null ? java.util.Set.of() : java.util.Collections.unmodifiableSet(uniqueItemsArrayWithMinMax);
+        untypedArray = untypedArray == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(untypedArray);
+        nestedArray = nestedArray == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(nestedArray);
+        customTypedArray = customTypedArray == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(customTypedArray);
+        customTypedNestedArray = customTypedNestedArray == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(customTypedNestedArray);
+        optionalArray = optionalArray == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(optionalArray);
+        uniqueItemsArray = uniqueItemsArray == null ? java.util.Collections.emptySet() : java.util.Collections.unmodifiableSet(uniqueItemsArray);
+        uniqueItemsOptionalArray = uniqueItemsOptionalArray == null ? java.util.Collections.emptySet() : java.util.Collections.unmodifiableSet(uniqueItemsOptionalArray);
+        arrayWithMin = arrayWithMin == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(arrayWithMin);
+        optionalArrayWithMin = optionalArrayWithMin == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(optionalArrayWithMin);
+        arrayWithMax = arrayWithMax == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(arrayWithMax);
+        uniqueItemsArrayWithMinMax = uniqueItemsArrayWithMinMax == null ? java.util.Collections.emptySet() : java.util.Collections.unmodifiableSet(uniqueItemsArrayWithMinMax);
     }
 }

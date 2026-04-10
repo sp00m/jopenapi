@@ -25,14 +25,14 @@ public record MapVariations(@JsonProperty(value = "untyped_map") java.util.Map<S
     }
 
     public MapVariations {
-        untypedMap = untypedMap == null ? java.util.Map.of() : java.util.Collections.unmodifiableMap(untypedMap);
-        nestedMap = nestedMap == null ? java.util.Map.of() : java.util.Collections.unmodifiableMap(nestedMap);
-        customTypedMap = customTypedMap == null ? java.util.Map.of() : java.util.Collections.unmodifiableMap(customTypedMap);
-        customTypedNestedMap = customTypedNestedMap == null ? java.util.Map.of() : java.util.Collections.unmodifiableMap(customTypedNestedMap);
-        optionalMap = optionalMap == null ? java.util.Map.of() : java.util.Collections.unmodifiableMap(optionalMap);
-        mapWithMin = mapWithMin == null ? java.util.Map.of() : java.util.Collections.unmodifiableMap(mapWithMin);
-        optionalMapWithMin = optionalMapWithMin == null ? java.util.Map.of() : java.util.Collections.unmodifiableMap(optionalMapWithMin);
-        mapWithMax = mapWithMax == null ? java.util.Map.of() : java.util.Collections.unmodifiableMap(mapWithMax);
-        mapWithMinMax = mapWithMinMax == null ? java.util.Map.of() : java.util.Collections.unmodifiableMap(mapWithMinMax);
+        untypedMap = untypedMap == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(untypedMap);
+        nestedMap = nestedMap == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(nestedMap);
+        customTypedMap = customTypedMap == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(customTypedMap);
+        customTypedNestedMap = customTypedNestedMap == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(customTypedNestedMap);
+        optionalMap = optionalMap == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(optionalMap);
+        mapWithMin = mapWithMin == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(mapWithMin);
+        optionalMapWithMin = optionalMapWithMin == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(optionalMapWithMin);
+        mapWithMax = mapWithMax == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(mapWithMax);
+        mapWithMinMax = mapWithMinMax == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(mapWithMinMax);
     }
 }

@@ -14,8 +14,8 @@ public record RefVariations(@JsonProperty(value = "mandatory_ref") jopenapi.test
 
     public RefVariations {
         optionalRef = optionalRef == null ? Optional.empty() : optionalRef;
-        refArray = refArray == null ? java.util.List.of() : java.util.Collections.unmodifiableList(refArray);
-        refMap = refMap == null ? java.util.Map.of() : java.util.Collections.unmodifiableMap(refMap);
+        refArray = refArray == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(refArray);
+        refMap = refMap == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(refMap);
         localEnumWithoutDefault = localEnumWithoutDefault == null ? Optional.empty() : localEnumWithoutDefault;
         localEnumWithoutDefaultDefaultedLocally = localEnumWithoutDefaultDefaultedLocally == null ? LocalEnumWithoutDefault.BAR : localEnumWithoutDefaultDefaultedLocally;
         localEnumWithDefault = localEnumWithDefault == null ? LocalEnumWithDefault.FOO : localEnumWithDefault;

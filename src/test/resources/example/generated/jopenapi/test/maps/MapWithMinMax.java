@@ -8,6 +8,6 @@ public record MapWithMinMax(@JsonValue() java.util.Map<String, Integer> value) {
 
     @JsonCreator()
     public MapWithMinMax {
-        value = value == null ? java.util.Map.of() : java.util.Collections.unmodifiableMap(value);
+        value = value == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(value);
     }
 }

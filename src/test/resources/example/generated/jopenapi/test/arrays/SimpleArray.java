@@ -8,6 +8,6 @@ public record SimpleArray(@JsonValue() java.util.List<Integer> value) {
 
     @JsonCreator()
     public SimpleArray {
-        value = value == null ? java.util.List.of() : java.util.Collections.unmodifiableList(value);
+        value = value == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(value);
     }
 }

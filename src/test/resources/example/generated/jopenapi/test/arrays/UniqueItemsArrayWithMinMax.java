@@ -8,6 +8,6 @@ public record UniqueItemsArrayWithMinMax(@JsonValue() java.util.Set<Integer> val
 
     @JsonCreator()
     public UniqueItemsArrayWithMinMax {
-        value = value == null ? java.util.Set.of() : java.util.Collections.unmodifiableSet(value);
+        value = value == null ? java.util.Collections.emptySet() : java.util.Collections.unmodifiableSet(value);
     }
 }

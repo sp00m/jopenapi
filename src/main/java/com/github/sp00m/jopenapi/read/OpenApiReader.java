@@ -10,12 +10,13 @@ import lombok.extern.slf4j.Slf4j;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Files;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
 @RequiredArgsConstructor
@@ -30,8 +31,7 @@ public final class OpenApiReader {
                 .of(Objects.requireNonNull(inputDir.listFiles()))
                 .flatMap(file -> scan(basePackageName, file).stream())
                 .toList();
-        link(typeDefinitions);
-        return typeDefinitions;
+        return link(typeDefinitions);
     }
 
     private List<JavaTypeDefinition> scan(String basePackageName, File input) {
@@ -44,7 +44,7 @@ public final class OpenApiReader {
         } else if (isSchemaFile(input.getName())) {
             return parse(updatedBasePackageName, input);
         } else {
-            return List.of();
+            return Collections.emptyList();
         }
     }
 
@@ -58,7 +58,7 @@ public final class OpenApiReader {
             return parse(packageName, Files.readString(input.toPath()));
         } catch (Throwable t) {
             log.error("Unable to parse {}", input, t);
-            return List.of();
+            return Collections.emptyList();
         }
     }
 
@@ -98,49 +98,58 @@ public final class OpenApiReader {
         }
     }
 
-    private void link(List<JavaTypeDefinition> typeDefinitions) {
-        Map<String, JavaTypeDefinition> typeDefinitionsByType = typeDefinitions
-                .stream()
-                .collect(toMap(JavaTypeDefinition::fullName, Function.identity()));
+    private List<JavaTypeDefinition> link(List<JavaTypeDefinition> typeDefinitions) {
+
+        var typeDefinitionsByName = typeDefinitions.stream().collect(toMap(JavaTypeDefinition::fullName, identity()));
+
         typeDefinitions
                 .stream()
-                .filter(typeDefinition -> typeDefinition instanceof JavaInterfaceDefinition)
+                .filter(JavaInterfaceDefinition.class::isInstance)
                 .forEach(typeDefinition -> {
                     var interfaceDefinition = (JavaInterfaceDefinition) typeDefinition;
                     interfaceDefinition
                             .mapping()
                             .values()
-                            .forEach(implementingType -> linkInterface(implementingType, typeDefinitionsByType.get(implementingType), interfaceDefinition));
+                            .forEach(implementingType -> {
+                                var updatedRecordDefinition = linkInterface(interfaceDefinition, implementingType, typeDefinitionsByName);
+                                if (updatedRecordDefinition != null) {
+                                    typeDefinitionsByName.put(implementingType, updatedRecordDefinition);
+                                }
+                            });
                 });
-        typeDefinitions
+
+        typeDefinitionsByName
+                .entrySet()
                 .stream()
-                .filter(typeDefinition -> typeDefinition instanceof JavaRecordDefinition)
-                .forEach(typeDefinition -> {
-                    var recordDefinition = (JavaRecordDefinition) typeDefinition;
+                .filter(entry -> entry.getValue() instanceof JavaRecordDefinition)
+                .forEach(entry -> {
+                    var recordDefinition = (JavaRecordDefinition) entry.getValue();
                     var updatedFields = recordDefinition
                             .fields()
                             .stream()
-                            .map(field -> linkEnum(field, typeDefinitionsByType))
+                            .map(field -> linkEnum(field, typeDefinitionsByName))
                             .toList();
-                    recordDefinition.replaceFields(updatedFields);
+                    var updatedRecordDefinition = recordDefinition.withFields(updatedFields);
+                    entry.setValue(updatedRecordDefinition);
                 });
+
+        return typeDefinitionsByName.values().stream().sorted().toList();
     }
 
-    private void linkInterface(String implementingType, JavaTypeDefinition implementingTypeDefinition, JavaInterfaceDefinition interfaceDefinition) {
-        var interfaceType = interfaceDefinition.fullName();
-        if (implementingTypeDefinition == null) {
-            log.warn("{} not found, cannot implement {}", implementingType, interfaceType);
-            return;
-        }
-        if (implementingTypeDefinition instanceof JavaRecordDefinition recordDefinition) {
-            recordDefinition.addImplementedType(interfaceType);
+    private JavaRecordDefinition linkInterface(JavaInterfaceDefinition interfaceDefinition, String implementingType, Map<String, JavaTypeDefinition> typeDefinitionsByName) {
+        var existing = typeDefinitionsByName.get(implementingType);
+        if (existing == null) {
+            log.warn("{} not found, cannot implement {}", implementingType, interfaceDefinition.fullName());
+            return null;
+        } else if (existing instanceof JavaRecordDefinition recordDefinition) {
+            return recordDefinition.withImplementedType(interfaceDefinition.fullName());
         } else {
             throw new IllegalStateException("Only 'object' schemas can be referenced by 'oneOf'");
         }
     }
 
-    private JavaFieldDefinition linkEnum(JavaFieldDefinition field, Map<String, JavaTypeDefinition> typeDefinitionsByType) {
-        var fieldTypeDefinition = typeDefinitionsByType.get(field.type().getFullName());
+    private JavaFieldDefinition linkEnum(JavaFieldDefinition field, Map<String, JavaTypeDefinition> typeDefinitionsByName) {
+        var fieldTypeDefinition = typeDefinitionsByName.get(field.type().getFullName());
         if (!(fieldTypeDefinition instanceof JavaEnumDefinition enumDefinition)) {
             return field;
         }

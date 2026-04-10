@@ -2,6 +2,7 @@ package com.github.sp00m.jopenapi.read.vo;
 
 import com.github.sp00m.jopenapi.Names;
 
+import java.util.Collections;
 import java.util.List;
 
 public record JavaEnumDefinition(
@@ -11,6 +12,10 @@ public record JavaEnumDefinition(
         List<String> values,
         String defaultValue
 ) implements JavaTypeDefinition {
+
+    public JavaEnumDefinition {
+        values = Collections.unmodifiableList(values);
+    }
 
     public String decorateDefaultValue(String defaultValue) {
         return "%s.%s".formatted(name, Names.toEnumValue(defaultValue));

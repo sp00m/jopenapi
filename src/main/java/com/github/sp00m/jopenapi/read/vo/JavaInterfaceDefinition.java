@@ -1,5 +1,6 @@
 package com.github.sp00m.jopenapi.read.vo;
 
+import java.util.Collections;
 import java.util.Map;
 
 public record JavaInterfaceDefinition(
@@ -9,5 +10,9 @@ public record JavaInterfaceDefinition(
         String propertyName,
         Map<String, String> mapping
 ) implements JavaTypeDefinition {
+
+    public JavaInterfaceDefinition {
+        mapping = Collections.unmodifiableMap(mapping);
+    }
 
 }
