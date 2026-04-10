@@ -6,12 +6,8 @@ import java.util.Collections;
 
 public record SimpleMap(@JsonValue() java.util.Map<String, Integer> value) {
 
+    @JsonCreator()
     public SimpleMap {
         value = value == null ? java.util.Map.of() : java.util.Collections.unmodifiableMap(value);
-    }
-
-    @JsonCreator()
-    public static SimpleMap of(java.util.Map<String, Integer> value) {
-        return new SimpleMap(value);
     }
 }

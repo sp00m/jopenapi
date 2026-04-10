@@ -48,12 +48,12 @@ final class JavaEnumGenerator implements JavaTypeGenerator {
 
         enumDeclaration.addField(String.class, "value", PRIVATE, FINAL);
 
-        enumDeclaration.addMethod("get", PUBLIC)
+        enumDeclaration.addMethod("value", PUBLIC)
                 .setType(String.class)
                 .setBody(parseBlock("{return value;}"))
                 .addAnnotation(JsonValue.class);
 
-        enumDeclaration.addMethod("get", PUBLIC, STATIC)
+        enumDeclaration.addMethod("findByValue", PUBLIC, STATIC)
                 .setType(enumDefinition.name())
                 .addParameter(String.class, "value")
                 .setBody(parseBlock("{return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException(\"No %s with value \" + value));}".formatted(enumDefinition.name())))

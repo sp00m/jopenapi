@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public record SimpleNumber(@JsonValue() Number value) {
 
     @JsonCreator()
-    public static SimpleNumber of(Number value) {
-        return new SimpleNumber(value);
+    public SimpleNumber {
     }
 }

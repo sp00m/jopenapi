@@ -26,12 +26,12 @@ public record DefaultedValues(@JsonProperty(value = "defaulted_int") int default
         private final String value;
 
         @JsonValue()
-        public String get() {
+        public String value() {
             return value;
         }
 
         @JsonCreator()
-        public static DefaultedInternalEnum get(String value) {
+        public static DefaultedInternalEnum findByValue(String value) {
             return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No DefaultedInternalEnum with value " + value));
         }
     }

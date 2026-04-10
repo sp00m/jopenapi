@@ -15,8 +15,6 @@ import java.util.Collections;
 
 import static com.github.javaparser.StaticJavaParser.parseBlock;
 import static com.github.javaparser.StaticJavaParser.parseType;
-import static com.github.javaparser.ast.Modifier.Keyword.PUBLIC;
-import static com.github.javaparser.ast.Modifier.Keyword.STATIC;
 
 @RequiredArgsConstructor
 final class JavaValueClassGenerator implements JavaTypeGenerator {
@@ -51,6 +49,13 @@ final class JavaValueClassGenerator implements JavaTypeGenerator {
         recordDeclaration.getParameters().add(param);
         param.addAnnotation(JsonValue.class);
 
+        var compactConstructor = new CompactConstructorDeclaration(
+                NodeList.nodeList(Modifier.publicModifier()),
+                valueClassDefinition.name()
+        );
+        compiler.addImport(JsonCreator.class);
+        compactConstructor.addAnnotation(JsonCreator.class);
+
         if (isCollection) {
             compiler.addImport(Collections.class);
             var emptyValue = fieldType.getDefaultValue();
@@ -58,20 +63,10 @@ final class JavaValueClassGenerator implements JavaTypeGenerator {
             var statement = "%s = %s == null ? %s : %s(%s);".formatted(
                     fieldDefinition.name(), fieldDefinition.name(),
                     emptyValue, unmodifiable, fieldDefinition.name());
-            var compactConstructor = new CompactConstructorDeclaration(
-                    NodeList.nodeList(Modifier.publicModifier()),
-                    valueClassDefinition.name()
-            );
             compactConstructor.setBody(parseBlock("{" + statement + "}"));
-            recordDeclaration.addMember(compactConstructor);
         }
 
-        recordDeclaration
-                .addMethod("of", PUBLIC, STATIC)
-                .addParameter(paramType, fieldDefinition.name())
-                .setType(valueClassDefinition.name())
-                .setBody(parseBlock("{return new %s(%s);}".formatted(valueClassDefinition.name(), fieldDefinition.name())))
-                .addAnnotation(JsonCreator.class);
+        recordDeclaration.addMember(compactConstructor);
 
         return compiler;
     }

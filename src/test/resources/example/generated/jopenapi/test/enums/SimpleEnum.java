@@ -19,12 +19,12 @@ public enum SimpleEnum {
     private final String value;
 
     @JsonValue()
-    public String get() {
+    public String value() {
         return value;
     }
 
     @JsonCreator()
-    public static SimpleEnum get(String value) {
+    public static SimpleEnum findByValue(String value) {
         return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No SimpleEnum with value " + value));
     }
 }

@@ -6,12 +6,8 @@ import java.util.Collections;
 
 public record SimpleArray(@JsonValue() java.util.List<Integer> value) {
 
+    @JsonCreator()
     public SimpleArray {
         value = value == null ? java.util.List.of() : java.util.Collections.unmodifiableList(value);
-    }
-
-    @JsonCreator()
-    public static SimpleArray of(java.util.List<Integer> value) {
-        return new SimpleArray(value);
     }
 }

@@ -26,12 +26,12 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
         private final String value;
 
         @JsonValue()
-        public String get() {
+        public String value() {
             return value;
         }
 
         @JsonCreator()
-        public static EnumWithoutType get(String value) {
+        public static EnumWithoutType findByValue(String value) {
             return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No EnumWithoutType with value " + value));
         }
     }
@@ -46,12 +46,12 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
         private final String value;
 
         @JsonValue()
-        public String get() {
+        public String value() {
             return value;
         }
 
         @JsonCreator()
-        public static OptionalEnum get(String value) {
+        public static OptionalEnum findByValue(String value) {
             return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No OptionalEnum with value " + value));
         }
     }
@@ -66,12 +66,12 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
         private final String value;
 
         @JsonValue()
-        public String get() {
+        public String value() {
             return value;
         }
 
         @JsonCreator()
-        public static NullableEnum get(String value) {
+        public static NullableEnum findByValue(String value) {
             return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No NullableEnum with value " + value));
         }
     }
@@ -86,12 +86,12 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
         private final String value;
 
         @JsonValue()
-        public String get() {
+        public String value() {
             return value;
         }
 
         @JsonCreator()
-        public static EnumWithNull get(String value) {
+        public static EnumWithNull findByValue(String value) {
             return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No EnumWithNull with value " + value));
         }
     }
@@ -106,12 +106,12 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
         private final String value;
 
         @JsonValue()
-        public String get() {
+        public String value() {
             return value;
         }
 
         @JsonCreator()
-        public static NullableEnumWithNull get(String value) {
+        public static NullableEnumWithNull findByValue(String value) {
             return Optional.ofNullable(BY_VALUE.get(value)).orElseThrow(() -> new IllegalArgumentException("No NullableEnumWithNull with value " + value));
         }
     }
