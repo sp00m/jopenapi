@@ -4,11 +4,14 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.expr.ArrayInitializerExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.sp00m.jopenapi.read.vo.JavaInterfaceDefinition;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Map;
 
 import static java.util.Map.Entry.comparingByKey;
 
@@ -29,8 +32,18 @@ final class JavaInterfaceGenerator implements JavaTypeGenerator {
                 .map(StaticJavaParser::parseAnnotation)
                 .map(Expression.class::cast)
                 .toList();
+        var permittedTypes = interfaceDefinition
+                .mapping()
+                .entrySet()
+                .stream()
+                .sorted(comparingByKey())
+                .map(Map.Entry::getValue)
+                .map(StaticJavaParser::parseClassOrInterfaceType)
+                .toList();
         var interfaceDeclaration = compiler
                 .addInterface(interfaceDefinition.name())
+                .addModifier(Modifier.Keyword.SEALED)
+                .setPermittedTypes(new NodeList<>(permittedTypes))
                 .addSingleMemberAnnotation(JsonSubTypes.class, new ArrayInitializerExpr(new NodeList<>(jsonSubTypeExpressions)));
         interfaceDeclaration
                 .addAndGetAnnotation(JsonTypeInfo.class)
