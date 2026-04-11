@@ -1,11 +1,15 @@
 package jopenapi.test.more_features.not;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Builder;
 import lombok.With;
-import lombok.extern.jackson.Jacksonized;
 
-@Jacksonized()
 @With()
 @Builder(toBuilder = true)
 public record NestedNotString() {
+
+    @JsonCreator()
+    public static NestedNotString create() {
+        return new NestedNotString();
+    }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -11,9 +12,7 @@ import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.With;
-import lombok.extern.jackson.Jacksonized;
 
-@Jacksonized()
 @With()
 @Builder(toBuilder = true)
 public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWithoutType enumWithoutType, @JsonProperty(value = "optional_enum") Optional<OptionalEnum> optionalEnum, @JsonProperty(value = "nullable_enum") NullableEnum nullableEnum, @JsonProperty(value = "enum_with_null") EnumWithNull enumWithNull, @JsonProperty(value = "nullable_enum_with_null") Optional<NullableEnumWithNull> nullableEnumWithNull) {
@@ -119,7 +118,21 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
     }
 
     public EnumVariations {
-        optionalEnum = optionalEnum == null ? Optional.empty() : optionalEnum;
-        nullableEnumWithNull = nullableEnumWithNull == null ? Optional.empty() : nullableEnumWithNull;
+        optionalEnum = Objects.requireNonNullElse(optionalEnum, Optional.empty());
+        nullableEnumWithNull = Objects.requireNonNullElse(nullableEnumWithNull, Optional.empty());
+    }
+
+    @JsonCreator()
+    public static EnumVariations create(@JsonProperty(value = "enum_without_type") EnumWithoutType enumWithoutType, @JsonProperty(value = "optional_enum") OptionalEnum optionalEnum, @JsonProperty(value = "nullable_enum") NullableEnum nullableEnum, @JsonProperty(value = "enum_with_null") EnumWithNull enumWithNull, @JsonProperty(value = "nullable_enum_with_null") NullableEnumWithNull nullableEnumWithNull) {
+        if (enumWithoutType == null) {
+            throw new IllegalArgumentException("Property 'enum_without_type' is required");
+        }
+        if (nullableEnum == null) {
+            throw new IllegalArgumentException("Property 'nullable_enum' is required");
+        }
+        if (enumWithNull == null) {
+            throw new IllegalArgumentException("Property 'enum_with_null' is required");
+        }
+        return new EnumVariations(enumWithoutType, Optional.ofNullable(optionalEnum), nullableEnum, enumWithNull, Optional.ofNullable(nullableEnumWithNull));
     }
 }

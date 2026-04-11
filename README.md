@@ -1,25 +1,48 @@
 # jopenapi
 
-Generate immutable, null-safe, Jackson-ready, validation-ready Java DTOs from OpenAPI schemas.
+Generate immutable, null-safe Java records from OpenAPI schemas — ready for Jackson 3 and Jakarta Validation.
 
-Inspired by [OpenAPI Generator](https://github.com/OpenAPITools/openapi-generator), but focused on:
+## Design
 
-- Java only
-- Immutability
-- Null-safe
-- Jackson-ready
-- Validation-ready
+jopenapi produces Java `record` types that enforce a few strict rules at the type level:
 
-Relies on:
+| Concern | Approach |
+|---|---|
+| **Immutability** | Records are used throughout. Collection fields (`List`, `Set`, `Map`) are wrapped into `Collections.unmodifiableX` in the compact constructor. |
+| **No nulls** | Optional properties without a default become `Optional<T>`. Null collections/optionals are replaced by their empty equivalents. |
+| **Use primitives** | Required fields (or optional-with-default) that map to a Java primitive (`int`, `long`, `boolean`, …) use the primitive type for a better developer experience. |
+| **Explicit null == no value** | An explicit `null` in JSON is treated identically to an absent value. |
 
-- `io.swagger.parser.v3:swagger-parser` to parse the OpenAPI specification
-- `com.github.javaparser:javaparser-symbol-solver-core` to generate Java source files
+### Deserialization via `@JsonCreator`
+
+Every generated record includes a `@JsonCreator` static factory method. The factory:
+
+- Accepts **boxed types** for all parameters (e.g. `Integer` instead of `int`) so Jackson can distinguish missing values from zero/false.
+- **Validates required fields** — throws `IllegalArgumentException` when a required property is `null`.
+- **Applies defaults** — uses `Objects.requireNonNullElse(value, default)` for optional properties with a schema-level default.
+- **Wraps optionals** — uses `Optional.ofNullable(value)` for optional properties without a default.
+- **Excludes read-only fields** — read-only properties are not part of the factory signature; they receive a safe default (`Optional.empty()`, empty collection, …).
+
+The compact constructor remains a safety net: it ensures collection immutability and converts null `Optional` references to `Optional.empty()`.
+
+### Enum defaults
+
+When an enum schema has a `default`, that value is used as a fallback for invalid inputs. If an optional property references such an enum without a local default, the enum's default is inherited automatically.
+
+## Prerequisites
+
+- **Generated code** targets **Java 17+**.
+- **OpenAPI 3.x** schemas (YAML or JSON).
+- **Jackson 3** annotations (`@JsonCreator`, `@JsonProperty`, `@JsonUnwrapped`, …).
+- **Jakarta Validation** annotations (`@DecimalMin`, `@DecimalMax`, `@Size`, `@Pattern`).
+
+The generated records also carry Lombok's `@Builder` and `@With` annotations. jopenapi runs a delombok pass before writing the final sources, so the output is **Lombok-agnostic** — your project does not need Lombok at runtime.
 
 ## Getting started
 
 Download the latest `jopenapi.jar` from the [Releases](https://github.com/sp00m/jopenapi/releases) page.
 
-Requires **Java 21+**.
+Requires **Java 21+** to run the tool itself.
 
 ## CLI usage
 
@@ -36,6 +59,59 @@ Generate Java DTOs from OpenAPI schemas.
 ```
 
 ### Example
+
+Given the following schema:
+
+```yaml
+MyObject:
+  type: object
+  required:
+    - my_required_int
+  properties:
+    my_required_int:
+      type: integer
+    my_optional_int_without_default:
+      type: integer
+    my_optional_int_with_default:
+      type: integer
+      default: 42
+```
+
+jopenapi generates:
+
+```java
+@Builder(toBuilder = true)
+@With
+public record MyObject(
+    @JsonProperty("my_required_int") int myRequiredInt,
+    @JsonProperty("my_optional_int_without_default") Optional<Integer> myOptionalIntWithoutDefault,
+    @JsonProperty("my_optional_int_with_default") int myOptionalIntWithDefault
+) {
+
+    public MyObject {
+        myOptionalIntWithoutDefault =
+            Objects.requireNonNullElse(myOptionalIntWithoutDefault, Optional.empty());
+    }
+
+    @JsonCreator
+    public static MyObject create(
+        @JsonProperty("my_required_int") Integer myRequiredInt,
+        @JsonProperty("my_optional_int_without_default") Integer myOptionalIntWithoutDefault,
+        @JsonProperty("my_optional_int_with_default") Integer myOptionalIntWithDefault
+    ) {
+        if (myRequiredInt == null) {
+            throw new IllegalArgumentException("Property 'my_required_int' is required");
+        }
+        return new MyObject(
+            myRequiredInt,
+            Optional.ofNullable(myOptionalIntWithoutDefault),
+            Objects.requireNonNullElse(myOptionalIntWithDefault, 42)
+        );
+    }
+}
+```
+
+Run the tool:
 
 ```bash
 java -jar jopenapi.jar \
@@ -159,7 +235,6 @@ Use `maven-antrun-plugin` to download the fat JAR from the GitHub Release, then 
     </plugins>
 </build>
 ```
-
 
 ### Gradle (Kotlin DSL)
 

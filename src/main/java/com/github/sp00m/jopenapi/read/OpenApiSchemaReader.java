@@ -272,10 +272,11 @@ final class OpenApiSchemaReader {
                 .orElseGet(Collections::emptyList);
         var oas31Nullable = Optional.ofNullable(propertySchema.getTypes()).orElseGet(Set::of).contains("null");
         var nullable = (Boolean.TRUE.equals(propertySchema.getNullable()) || oas31Nullable) && (enumValues.isEmpty() || enumValues.contains(null));
+        var readOnly = Boolean.TRUE.equals(propertySchema.getReadOnly());
         var optional = !requiredProperties.contains(propertyName);
         var hasMin = propertySchema.getMinItems() != null && propertySchema.getMinItems() > 0
                 || propertySchema.getMinProperties() != null && propertySchema.getMinProperties() > 0;
-        return (nullable || optional) && !hasMin;
+        return (nullable || optional || readOnly) && !hasMin;
     }
 
     private JavaType readAllOf(List<Schema> allOf) {
