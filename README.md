@@ -42,7 +42,7 @@ The generated records also carry Lombok's `@Builder` and `@With` annotations. jo
 
 Download the latest `jopenapi.jar` from the [Releases](https://github.com/sp00m/jopenapi/releases) page.
 
-Requires **Java 21+** to run the tool itself.
+Requires **Java 17+** to run the tool itself.
 
 ## CLI usage
 

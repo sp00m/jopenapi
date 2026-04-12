@@ -46,13 +46,20 @@ public final class JavaGenerator {
     }
 
     static CompilationUnit generateCompiler(JavaTypeDefinition typeDefinition) {
-        var typeGenerator = switch (typeDefinition) {
-            case JavaRecordDefinition recordDefinition -> new JavaRecordGenerator(recordDefinition);
-            case JavaEnumDefinition enumDefinition -> new JavaEnumGenerator(enumDefinition);
-            case JavaValueRecordDefinition valueRecordDefinition -> new JavaValueRecordGenerator(valueRecordDefinition);
-            case JavaInterfaceDefinition interfaceDefinition -> new JavaInterfaceGenerator(interfaceDefinition);
-            case null, default -> throw new IllegalStateException();
-        };
+        final JavaTypeGenerator typeGenerator;
+        if (typeDefinition == null) {
+            throw new IllegalStateException();
+        } else if (typeDefinition instanceof JavaRecordDefinition recordDefinition) {
+            typeGenerator = new JavaRecordGenerator(recordDefinition);
+        } else if (typeDefinition instanceof JavaEnumDefinition enumDefinition) {
+            typeGenerator = new JavaEnumGenerator(enumDefinition);
+        } else if (typeDefinition instanceof JavaValueRecordDefinition valueRecordDefinition) {
+            typeGenerator = new JavaValueRecordGenerator(valueRecordDefinition);
+        } else if (typeDefinition instanceof JavaInterfaceDefinition interfaceDefinition) {
+            typeGenerator = new JavaInterfaceGenerator(interfaceDefinition);
+        } else {
+            throw new IllegalStateException();
+        }
         var compiler = typeGenerator.generate();
         addJavaDoc(typeDefinition, compiler);
         return compiler;

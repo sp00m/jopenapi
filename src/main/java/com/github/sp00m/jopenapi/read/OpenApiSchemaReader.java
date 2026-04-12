@@ -134,10 +134,10 @@ final class OpenApiSchemaReader {
             return packageName;
         }
         List<String> packageNames = new ArrayList<>(List.of(packageName.split("\\.", -1)));
-        packageNames.removeLast();
+        packageNames.remove(packageNames.size() - 1);
         for (String dirName : filePath.split("/", -1)) {
             if (dirName.equals("..")) {
-                packageNames.removeLast();
+                packageNames.remove(packageNames.size() - 1);
             } else if (!dirName.equals(".")) {
                 packageNames.add(Names.toPackageName(dirName));
             }
@@ -306,7 +306,7 @@ final class OpenApiSchemaReader {
             var recordDefinition = new JavaRecordDefinition(packageName, className, schema.getDescription(), refFieldDefinitions);
             return new JavaType(className, recordDefinition);
         } else if (nonRefTypes.size() == 1) {
-            var nonRefInnerType = nonRefTypes.getFirst();
+            var nonRefInnerType = nonRefTypes.get(0);
             var nonRefInnerTypeDefinition = nonRefInnerType.getDefinition();
             if (nonRefInnerTypeDefinition instanceof JavaRecordDefinition recordDefinition && !nonRefInnerType.isCollection()) {
                 return new JavaType(recordDefinition.name(), recordDefinition.addFields(refFieldDefinitions));
