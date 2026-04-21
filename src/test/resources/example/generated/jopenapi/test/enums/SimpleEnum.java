@@ -24,6 +24,6 @@ public enum SimpleEnum {
 
     @JsonCreator()
     public static SimpleEnum findByValue(String value) {
-        return Optional.ofNullable(value).map(BY_VALUE::get).orElseThrow(() -> new IllegalArgumentException("No SimpleEnum with value " + value));
+        return Optional.ofNullable(value).map(BY_VALUE::get).orElseThrow(() -> new InvalidPropertyException("SimpleEnum", value));
     }
 }

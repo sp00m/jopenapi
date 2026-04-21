@@ -43,7 +43,7 @@ final class JavaEnumGenerator implements JavaTypeGenerator {
 
         final String onValueNotFound;
         if (enumDefinition.defaultValue() == null) {
-            onValueNotFound = ".orElseThrow(() -> new IllegalArgumentException(\"No %s with value \" + value))".formatted(enumDefinition.name());
+            onValueNotFound = ".orElseThrow(() -> new InvalidPropertyException(\"%s\", value))".formatted(enumDefinition.name());
         } else {
             onValueNotFound = ".orElseGet(() -> {log.warn(\"No %s with value {}\", value);return %s;})".formatted(enumDefinition.name(), enumDefinition.decorateDefaultValue());
             enumDeclaration.addAnnotation(Slf4j.class);

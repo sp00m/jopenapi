@@ -24,6 +24,6 @@ public enum LocalEnumWithoutDefault {
 
     @JsonCreator()
     public static LocalEnumWithoutDefault findByValue(String value) {
-        return Optional.ofNullable(value).map(BY_VALUE::get).orElseThrow(() -> new IllegalArgumentException("No LocalEnumWithoutDefault with value " + value));
+        return Optional.ofNullable(value).map(BY_VALUE::get).orElseThrow(() -> new InvalidPropertyException("LocalEnumWithoutDefault", value));
     }
 }

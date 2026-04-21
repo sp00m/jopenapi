@@ -10,6 +10,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.concurrent.Callable;
 
 @Slf4j
@@ -72,21 +73,28 @@ public class Main implements Callable<Integer> {
         var typeDefinitions = new OpenApiReader(basePackageName, inputDir).read();
         var javaFiles = new JavaGenerator(typeDefinitions).generate();
         new JavaFileWriter(outputDir, javaFiles, delombok).write();
-        writeSupportClass(outputDir);
+        writeSupportClasses(outputDir);
         return javaFiles.size();
     }
 
     @SneakyThrows
-    private static void writeSupportClass(File outputDir) {
+    private static void writeSupportClasses(File outputDir) {
         var supportPackage = "com.github.jopenapi.support";
         var supportDir = new File(outputDir, supportPackage.replace('.', '/'));
         supportDir.mkdirs();
-        var dest = new File(supportDir, "MissingPropertyException.java");
-        try (var in = Main.class.getResourceAsStream("/support/MissingPropertyException.java")) {
+        writeSupportClass(supportDir, "MissingPropertyException.java");
+        writeSupportClass(supportDir, "InvalidPropertyException.java");
+    }
+
+    @SneakyThrows
+    private static void writeSupportClass(File supportDir, String fileName) {
+        var resourcePath = "/support/" + fileName;
+        var dest = new File(supportDir, fileName);
+        try (var in = Main.class.getResourceAsStream(resourcePath)) {
             if (in == null) {
-                throw new IllegalStateException("Support resource not found: /support/MissingPropertyException.java");
+                throw new IllegalStateException("Support class not found: " + resourcePath);
             }
-            java.nio.file.Files.write(dest.toPath(), in.readAllBytes());
+            Files.write(dest.toPath(), in.readAllBytes());
         }
     }
 

@@ -30,7 +30,7 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
 
         @JsonCreator()
         public static EnumWithoutType findByValue(String value) {
-            return Optional.ofNullable(value).map(BY_VALUE::get).orElseThrow(() -> new IllegalArgumentException("No EnumWithoutType with value " + value));
+            return Optional.ofNullable(value).map(BY_VALUE::get).orElseThrow(() -> new InvalidPropertyException("EnumWithoutType", value));
         }
     }
 
@@ -50,7 +50,7 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
 
         @JsonCreator()
         public static OptionalEnum findByValue(String value) {
-            return Optional.ofNullable(value).map(BY_VALUE::get).orElseThrow(() -> new IllegalArgumentException("No OptionalEnum with value " + value));
+            return Optional.ofNullable(value).map(BY_VALUE::get).orElseThrow(() -> new InvalidPropertyException("OptionalEnum", value));
         }
     }
 
@@ -70,7 +70,7 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
 
         @JsonCreator()
         public static NullableEnum findByValue(String value) {
-            return Optional.ofNullable(value).map(BY_VALUE::get).orElseThrow(() -> new IllegalArgumentException("No NullableEnum with value " + value));
+            return Optional.ofNullable(value).map(BY_VALUE::get).orElseThrow(() -> new InvalidPropertyException("NullableEnum", value));
         }
     }
 
@@ -90,7 +90,7 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
 
         @JsonCreator()
         public static EnumWithNull findByValue(String value) {
-            return Optional.ofNullable(value).map(BY_VALUE::get).orElseThrow(() -> new IllegalArgumentException("No EnumWithNull with value " + value));
+            return Optional.ofNullable(value).map(BY_VALUE::get).orElseThrow(() -> new InvalidPropertyException("EnumWithNull", value));
         }
     }
 
@@ -110,7 +110,7 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
 
         @JsonCreator()
         public static NullableEnumWithNull findByValue(String value) {
-            return Optional.ofNullable(value).map(BY_VALUE::get).orElseThrow(() -> new IllegalArgumentException("No NullableEnumWithNull with value " + value));
+            return Optional.ofNullable(value).map(BY_VALUE::get).orElseThrow(() -> new InvalidPropertyException("NullableEnumWithNull", value));
         }
     }
 
