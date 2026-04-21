@@ -3,8 +3,6 @@ package com.github.sp00m.jopenapi.generate;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.Modifier;
-import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.CompactConstructorDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.RecordDeclaration;
@@ -13,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 
 import static com.github.javaparser.StaticJavaParser.parseBlock;
 import static com.github.javaparser.StaticJavaParser.parseType;
+import static com.github.javaparser.ast.Modifier.Keyword.PUBLIC;
 
 @RequiredArgsConstructor
 final class JavaValueRecordGenerator implements JavaTypeGenerator {
@@ -23,10 +22,9 @@ final class JavaValueRecordGenerator implements JavaTypeGenerator {
     @Override
     public CompilationUnit generate() {
 
-        var recordDeclaration = new RecordDeclaration(
-                NodeList.nodeList(Modifier.publicModifier()),
-                valueRecordDefinition.name()
-        );
+        var recordDeclaration = new RecordDeclaration()
+                .setName(valueRecordDefinition.name())
+                .addModifier(PUBLIC);
         compiler.addType(recordDeclaration);
 
         var fieldDefinition = valueRecordDefinition.field();
@@ -40,15 +38,14 @@ final class JavaValueRecordGenerator implements JavaTypeGenerator {
         recordDeclaration.getParameters().add(param);
         param.addAnnotation(JsonValue.class);
 
-        var compactConstructor = new CompactConstructorDeclaration(
-                NodeList.nodeList(Modifier.publicModifier()),
-                valueRecordDefinition.name()
-        );
-        compactConstructor.addAnnotation(JsonCreator.class);
+        var compactConstructor = new CompactConstructorDeclaration()
+                .setName(valueRecordDefinition.name())
+                .setModifiers(PUBLIC)
+                .addAnnotation(JsonCreator.class);
 
         if (fieldType.collection()) {
             var emptyValue = fieldType.decoratedDefaultValue();
-            var unmodifiable = JavaRecordGenerator.getUnmodifiableWrapper(fieldType.fullName());
+            var unmodifiable = JavaRecordGenerator.getCollectionUnmodifier(fieldType.fullName());
             var statement = "%s = %s == null ? %s : %s(%s);".formatted(
                     fieldDefinition.name(), fieldDefinition.name(),
                     emptyValue, unmodifiable, fieldDefinition.name());

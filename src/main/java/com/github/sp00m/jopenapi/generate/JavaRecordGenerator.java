@@ -2,7 +2,6 @@ package com.github.sp00m.jopenapi.generate;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
 import com.github.sp00m.jopenapi.read.JavaFieldAnnotator;
@@ -19,6 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.github.javaparser.StaticJavaParser.*;
+import static com.github.javaparser.ast.Modifier.Keyword.PUBLIC;
 import static com.github.javaparser.ast.Modifier.Keyword.STATIC;
 
 @RequiredArgsConstructor
@@ -30,10 +30,9 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
     @Override
     public CompilationUnit generate() {
 
-        var recordDeclaration = new RecordDeclaration(
-                NodeList.nodeList(Modifier.publicModifier()),
-                recordDefinition.name()
-        );
+        var recordDeclaration = new RecordDeclaration()
+                .setName(recordDefinition.name())
+                .addModifier(PUBLIC);
         compiler.addType(recordDeclaration);
 
         recordDeclaration.addAnnotation(With.class);
@@ -64,7 +63,7 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
         Optional
                 .ofNullable(fieldType.definition())
                 .ifPresent(typeDefinition -> addMember(compiler, recordDeclaration, typeDefinition));
-        var param = new Parameter(parseType(getRecordParamType(field)), field.name());
+        var param = new Parameter(parseType(getFieldType(field)), field.name());
         recordDeclaration.getParameters().add(param);
         fieldType
                 .fieldAnnotators()
@@ -72,17 +71,14 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
         return getCompactConstructorStatement(field);
     }
 
-    private static String getRecordParamType(JavaFieldDefinition fieldDefinition) {
+    private static String getFieldType(JavaFieldDefinition fieldDefinition) {
         var fieldType = fieldDefinition.type();
-        if (fieldType.collection()) {
-            return fieldType.fullName();
+        if (fieldDefinition.property().optional() && fieldType.decoratedDefaultValue() == null && !fieldType.collection()) {
+            return "Optional<%s>".formatted(fieldType.fullName());
         }
-        if (!fieldDefinition.property().optional() || fieldType.decoratedDefaultValue() != null) {
-            return toPrimitiveType(fieldType.fullName())
-                    .map(Class::getName)
-                    .orElse(fieldType.fullName());
-        }
-        return "Optional<%s>".formatted(fieldType.fullName());
+        return toPrimitiveType(fieldType.fullName())
+                .map(Class::getName)
+                .orElse(fieldType.fullName());
     }
 
     private static String getCompactConstructorStatement(JavaFieldDefinition fieldDefinition) {
@@ -90,9 +86,9 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
         var fieldName = fieldDefinition.name();
         if (fieldType.collection()) {
             var emptyValue = fieldType.decoratedDefaultValue();
-            var unmodifiable = getUnmodifiableWrapper(fieldType.fullName());
+            var unmodifier = getCollectionUnmodifier(fieldType.fullName());
             return "%s = %s == null ? %s : %s(%s);".formatted(
-                    fieldName, fieldName, emptyValue, unmodifiable, fieldName);
+                    fieldName, fieldName, emptyValue, unmodifier, fieldName);
         }
         if (fieldDefinition.property().optional() && fieldType.decoratedDefaultValue() == null) {
             return "%s = Objects.requireNonNullElse(%s, Optional.empty());".formatted(
@@ -102,12 +98,11 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
     }
 
     private void addCompactConstructor(RecordDeclaration recordDeclaration, List<String> statements) {
-        var compactConstructor = new CompactConstructorDeclaration(
-                NodeList.nodeList(Modifier.publicModifier()),
-                recordDefinition.name()
-        );
         var body = "{\n" + String.join("\n", statements) + "\n}";
-        compactConstructor.setBody(parseBlock(body));
+        var compactConstructor = new CompactConstructorDeclaration()
+                .setName(recordDefinition.name())
+                .setModifiers(PUBLIC)
+                .setBody(parseBlock(body));
         recordDeclaration.addMember(compactConstructor);
     }
 
@@ -229,7 +224,7 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
         return "null";
     }
 
-    static String getUnmodifiableWrapper(String fullName) {
+    static String getCollectionUnmodifier(String fullName) {
         if (fullName.startsWith("List<")) {
             return "Collections.unmodifiableList";
         }
@@ -242,7 +237,7 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
         throw new IllegalStateException("Unknown collection type: " + fullName);
     }
 
-    static void addMember(CompilationUnit compiler, TypeDeclaration<?> parentType, JavaTypeDefinition innerTypeDefinition) {
+    private static void addMember(CompilationUnit compiler, TypeDeclaration<?> parentType, JavaTypeDefinition innerTypeDefinition) {
         var innerTypeCompiler = JavaGenerator.generateCompiler(innerTypeDefinition);
         var innerType = innerTypeCompiler.getType(0);
         if (innerType instanceof ClassOrInterfaceDeclaration declaration) {
