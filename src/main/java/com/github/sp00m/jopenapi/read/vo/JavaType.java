@@ -23,6 +23,7 @@ public class JavaType {
     @Getter(AccessLevel.NONE)
     UnaryOperator<String> defaultValueDecorator;
     String decoratedDefaultValue;
+    UnaryOperator<String> unmodifier;
     boolean collection;
     String description;
 
@@ -32,6 +33,7 @@ public class JavaType {
             Set<JavaFieldAnnotator> fieldAnnotators,
             String defaultValue,
             UnaryOperator<String> defaultValueDecorator,
+            UnaryOperator<String> unmodifier,
             boolean collection,
             String description
     ) {
@@ -41,12 +43,13 @@ public class JavaType {
         this.defaultValue = defaultValue;
         this.defaultValueDecorator = defaultValueDecorator;
         this.decoratedDefaultValue = defaultValue == null ? null : defaultValueDecorator.apply(defaultValue);
+        this.unmodifier = unmodifier;
         this.collection = collection;
         this.description = description;
     }
 
     public JavaType(String fullName, JavaTypeDefinition definition) {
-        this(fullName, definition, Collections.emptySet(), null, UnaryOperator.identity(), false, null);
+        this(fullName, definition, Collections.emptySet(), null, UnaryOperator.identity(), UnaryOperator.identity(), false, null);
     }
 
     public JavaType(String fullName) {
@@ -62,59 +65,59 @@ public class JavaType {
         updatedFieldAnnotators.add(JavaFieldAnnotator.MIN);
         updatedFieldAnnotators.add(JavaFieldAnnotator.MAX);
         updatedFieldAnnotators.add(JavaFieldAnnotator.MULTIPLE_OF);
-        return new JavaType(fullName, definition, updatedFieldAnnotators, defaultValue, defaultValueDecorator, collection, description);
+        return new JavaType(fullName, definition, updatedFieldAnnotators, defaultValue, defaultValueDecorator, unmodifier, collection, description);
     }
 
     public JavaType string() {
         var updatedFieldAnnotators = new TreeSet<>(fieldAnnotators);
         updatedFieldAnnotators.add(JavaFieldAnnotator.PATTERN);
         updatedFieldAnnotators.add(JavaFieldAnnotator.SIZE);
-        return new JavaType(fullName, definition, updatedFieldAnnotators, defaultValue, defaultValueDecorator, collection, description);
+        return new JavaType(fullName, definition, updatedFieldAnnotators, defaultValue, defaultValueDecorator, unmodifier, collection, description);
     }
 
     public JavaType set() {
         var updatedFullName = "Set<%s>".formatted(fullName);
         var updatedFieldAnnotators = new TreeSet<>(fieldAnnotators);
         updatedFieldAnnotators.add(JavaFieldAnnotator.SIZE);
-        return new JavaType(updatedFullName, definition, updatedFieldAnnotators, "Collections.emptySet()", UnaryOperator.identity(), true, description);
+        return new JavaType(updatedFullName, definition, updatedFieldAnnotators, "Collections.emptySet()", UnaryOperator.identity(), "Collections.unmodifiableSet(%s)"::formatted, true, description);
     }
 
     public JavaType list() {
         var updatedFullName = "List<%s>".formatted(fullName);
         var updatedFieldAnnotators = new TreeSet<>(fieldAnnotators);
         updatedFieldAnnotators.add(JavaFieldAnnotator.SIZE);
-        return new JavaType(updatedFullName, definition, updatedFieldAnnotators, "Collections.emptyList()", UnaryOperator.identity(), true, description);
+        return new JavaType(updatedFullName, definition, updatedFieldAnnotators, "Collections.emptyList()", UnaryOperator.identity(), "Collections.unmodifiableList(%s)"::formatted, true, description);
     }
 
     public JavaType map() {
         var updatedFullName = "Map<String, %s>".formatted(fullName);
         var updatedFieldAnnotators = new TreeSet<>(fieldAnnotators);
         updatedFieldAnnotators.add(JavaFieldAnnotator.SIZE);
-        return new JavaType(updatedFullName, definition, updatedFieldAnnotators, "Collections.emptyMap()", UnaryOperator.identity(), true, description);
+        return new JavaType(updatedFullName, definition, updatedFieldAnnotators, "Collections.emptyMap()", UnaryOperator.identity(), "Collections.unmodifiableMap(%s)"::formatted, true, description);
     }
 
     public JavaType jsonProperty() {
         var updatedFieldAnnotators = new TreeSet<>(fieldAnnotators);
         updatedFieldAnnotators.add(JavaFieldAnnotator.JSON_PROPERTY);
-        return new JavaType(fullName, definition, updatedFieldAnnotators, defaultValue, defaultValueDecorator, collection, description);
+        return new JavaType(fullName, definition, updatedFieldAnnotators, defaultValue, defaultValueDecorator, unmodifier, collection, description);
     }
 
     public JavaType jsonUnwrapped() {
         var updatedFieldAnnotators = new TreeSet<>(fieldAnnotators);
         updatedFieldAnnotators.add(JavaFieldAnnotator.JSON_UNWRAPPED);
-        return new JavaType(fullName, definition, updatedFieldAnnotators, defaultValue, defaultValueDecorator, collection, description);
+        return new JavaType(fullName, definition, updatedFieldAnnotators, defaultValue, defaultValueDecorator, unmodifier, collection, description);
     }
 
     public JavaType description(String description) {
-        return new JavaType(fullName, definition, fieldAnnotators, defaultValue, defaultValueDecorator, collection, description);
+        return new JavaType(fullName, definition, fieldAnnotators, defaultValue, defaultValueDecorator, unmodifier, collection, description);
     }
 
     public JavaType defaultValue(String defaultValue) {
-        return new JavaType(fullName, definition, fieldAnnotators, defaultValue, defaultValueDecorator, collection, description);
+        return new JavaType(fullName, definition, fieldAnnotators, defaultValue, defaultValueDecorator, unmodifier, collection, description);
     }
 
     public JavaType defaultValueDecorator(UnaryOperator<String> defaultValueDecorator) {
-        return new JavaType(fullName, definition, fieldAnnotators, defaultValue, defaultValueDecorator, collection, description);
+        return new JavaType(fullName, definition, fieldAnnotators, defaultValue, defaultValueDecorator, unmodifier, collection, description);
     }
 
 }

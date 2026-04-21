@@ -43,12 +43,8 @@ final class JavaValueRecordGenerator implements JavaTypeGenerator {
                 .setModifiers(PUBLIC)
                 .addAnnotation(JsonCreator.class);
 
-        if (fieldType.collection()) {
-            var emptyValue = fieldType.decoratedDefaultValue();
-            var unmodifiable = JavaRecordGenerator.getCollectionUnmodifier(fieldType.fullName());
-            var statement = "%s = %s == null ? %s : %s(%s);".formatted(
-                    fieldDefinition.name(), fieldDefinition.name(),
-                    emptyValue, unmodifiable, fieldDefinition.name());
+        var statement = JavaRecordGenerator.getCompactConstructorStatement(fieldDefinition);
+        if (statement != null) {
             compactConstructor.setBody(parseBlock("{" + statement + "}"));
         }
 

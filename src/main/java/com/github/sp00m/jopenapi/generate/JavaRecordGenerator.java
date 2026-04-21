@@ -81,14 +81,14 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
                 .orElse(fieldType.fullName());
     }
 
-    private static String getCompactConstructorStatement(JavaFieldDefinition fieldDefinition) {
+    static String getCompactConstructorStatement(JavaFieldDefinition fieldDefinition) {
         var fieldType = fieldDefinition.type();
         var fieldName = fieldDefinition.name();
         if (fieldType.collection()) {
             var emptyValue = fieldType.decoratedDefaultValue();
-            var unmodifier = getCollectionUnmodifier(fieldType.fullName());
-            return "%s = %s == null ? %s : %s(%s);".formatted(
-                    fieldName, fieldName, emptyValue, unmodifier, fieldName);
+            var unmodifier = fieldType.unmodifier();
+            return "%s = %s == null ? %s : %s;".formatted(
+                    fieldName, fieldName, emptyValue, unmodifier.apply(fieldName));
         }
         if (fieldDefinition.property().optional() && fieldType.decoratedDefaultValue() == null) {
             return "%s = Objects.requireNonNullElse(%s, Optional.empty());".formatted(
@@ -222,19 +222,6 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
             return "0";
         }
         return "null";
-    }
-
-    static String getCollectionUnmodifier(String fullName) {
-        if (fullName.startsWith("List<")) {
-            return "Collections.unmodifiableList";
-        }
-        if (fullName.startsWith("Set<")) {
-            return "Collections.unmodifiableSet";
-        }
-        if (fullName.startsWith("Map<")) {
-            return "Collections.unmodifiableMap";
-        }
-        throw new IllegalStateException("Unknown collection type: " + fullName);
     }
 
     private static void addMember(CompilationUnit compiler, TypeDeclaration<?> parentType, JavaTypeDefinition innerTypeDefinition) {
