@@ -27,11 +27,17 @@ public final class OpenApiReader {
     private final File inputDir;
 
     public List<JavaTypeDefinition> read() {
-        var typeDefinitions = Stream
+        var typeDefinitions = inputDir.isFile()
+                ? parse(basePackageName, inputDir)
+                : scan();
+        return link(typeDefinitions);
+    }
+
+    private List<JavaTypeDefinition> scan() {
+        return Stream
                 .of(Objects.requireNonNull(inputDir.listFiles()))
                 .flatMap(file -> scan(basePackageName, file).stream())
                 .toList();
-        return link(typeDefinitions);
     }
 
     private List<JavaTypeDefinition> scan(String basePackageName, File input) {

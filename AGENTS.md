@@ -30,7 +30,7 @@ Parses OpenAPI specs and produces value objects representing schemas.
 
 | Class | Responsibility |
 |---|---|
-| `OpenApiReader` | Scans an input directory for `.yml`/`.yaml`/`.json` files, parses each, and links cross-schema references (interfaces for `oneOf`, enum defaults). |
+ `OpenApiReader`  Scans an input directory for `.yml`/`.yaml`/`.json` files (or accepts a single schema file directly), parses each, and links cross-schema references (interfaces for `oneOf`, enum defaults). When a single file is given, DTOs are placed directly in the base package with no subpackage. 
 | `OpenApiComponentReader` | Reads a single OpenAPI component schema and produces a `JavaTypeDefinition`. Wraps simple/collection types in `JavaValueRecordDefinition`. |
 | `OpenApiSchemaReader` | Recursive schema reader. Handles `string`, `number`, `integer`, `boolean`, `array`, `object`, `$ref`, `allOf`, `oneOf`, `enum`. Returns a `JavaType`. |
 | `JavaFieldAnnotator` | Enum of annotation strategies (`MIN`, `MAX`, `SIZE`, `PATTERN`, `JSON_PROPERTY`, `JSON_UNWRAPPED`). Each adds Jakarta Validation or Jackson annotations to a record parameter. |
@@ -131,6 +131,13 @@ Test schemas live in `src/test/resources/example/schemas/` and cover integers, b
 | `jakarta.validation:jakarta.validation-api` | Validation annotations used in generated code |
 | `org.projectlombok:lombok` | `@Builder`, `@With` in pre-delombok code; also used in the tool's own source |
 | `info.picocli:picocli` | CLI argument parsing |
+
+## After every code change
+
+1. **Run the tests** — `mvn test`. If generation logic changed, regenerate expected files first (see [Testing](#testing)).
+2. **Update the docs** — check whether the following need updating:
+   - **`AGENTS.md`** — architecture tables, class responsibilities, parameter rules, pitfalls.
+   - **`README.md`** — CLI usage block (option descriptions, examples), Maven/Gradle snippets.
 
 ## Common pitfalls
 

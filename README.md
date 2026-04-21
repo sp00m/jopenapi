@@ -52,7 +52,7 @@ Usage: jopenapi [-hV] -i=<inputDir> -o=<outputDir> -p=<packageName>
 Generate Java DTOs from OpenAPI schemas.
 
   -p, --package=<packageName>   Base Java package name for generated classes (e.g. com.example.api).
-  -i, --input=<inputDir>        Input directory containing OpenAPI schema files (.yml, .yaml, .json).
+  -i, --input=<inputDir>        Input directory or single file containing OpenAPI schema(s) (.yml, .yaml, .json). When a single file is provided, DTOs are placed directly in the base package.
   -o, --output=<outputDir>      Output directory for generated Java source files.
   -h, --help                    Show this help message and exit.
   -V, --version                 Print version information and exit.
