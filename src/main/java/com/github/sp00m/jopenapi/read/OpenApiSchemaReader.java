@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -20,6 +21,8 @@ import static java.util.stream.Collectors.toMap;
 @Slf4j
 final class OpenApiSchemaReader {
 
+    private static final DateFormat DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd");
+
     private final String packageName;
     private final String schemaName;
     private final Schema<?> schema;
@@ -27,7 +30,7 @@ final class OpenApiSchemaReader {
     @Nullable
     public JavaType read() {
         try {
-            var type = readOrThrow()
+            var type = Objects.requireNonNull(readOrThrow())
                     .description(schema.getDescription());
             return Optional
                     .ofNullable(schema.getDefault())
@@ -41,7 +44,7 @@ final class OpenApiSchemaReader {
 
     private String prepareDefaultValue(Object defaultValue) {
         return defaultValue instanceof Date date
-                ? new SimpleDateFormat("yyyy-MM-dd").format(date)
+                ? DATE_FORMATTER.format(date)
                 : defaultValue.toString();
     }
 
@@ -270,13 +273,16 @@ final class OpenApiSchemaReader {
         var enumValues = Optional
                 .ofNullable(propertySchema.getEnum())
                 .orElseGet(Collections::emptyList);
-        var oas31Nullable = Optional.ofNullable(propertySchema.getTypes()).orElseGet(Set::of).contains("null");
-        var nullable = (Boolean.TRUE.equals(propertySchema.getNullable()) || oas31Nullable) && (enumValues.isEmpty() || enumValues.contains(null));
-        var readOnly = Boolean.TRUE.equals(propertySchema.getReadOnly());
-        var optional = !requiredProperties.contains(propertyName);
+        var hasNullType = Optional
+                .ofNullable(propertySchema.getTypes())
+                .orElseGet(Collections::emptySet)
+                .contains("null");
+        var isNullable = (Boolean.TRUE.equals(propertySchema.getNullable()) || hasNullType) && (enumValues.isEmpty() || enumValues.contains(null));
+        var isReadOnly = Boolean.TRUE.equals(propertySchema.getReadOnly());
+        var isOptional = !requiredProperties.contains(propertyName);
         var hasMin = propertySchema.getMinItems() != null && propertySchema.getMinItems() > 0
                 || propertySchema.getMinProperties() != null && propertySchema.getMinProperties() > 0;
-        return (nullable || optional || readOnly) && !hasMin;
+        return (isNullable || isOptional || isReadOnly) && !hasMin;
     }
 
     private JavaType readAllOf(List<Schema> allOf) {
@@ -320,7 +326,7 @@ final class OpenApiSchemaReader {
     private JavaType readOneOf(Discriminator discriminator) {
         var mapping = Optional
                 .ofNullable(discriminator.getMapping())
-                .orElseGet(Map::of)
+                .orElseGet(Collections::emptyMap)
                 .entrySet()
                 .stream()
                 .collect(toMap(Map.Entry::getKey, e -> refToTypeFullName(e.getValue())));

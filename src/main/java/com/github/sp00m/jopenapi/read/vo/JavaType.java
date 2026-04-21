@@ -10,70 +10,18 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.UnaryOperator;
 
-/**
- * Immutable representation of a Java type derived from an OpenAPI schema, carrying all the metadata
- * needed to generate the corresponding Java source code.
- */
 @Value
 public class JavaType {
 
-    /**
-     * Fully qualified Java type name used to declare fields in the generated code
-     * (e.g.&nbsp;{@code "String"}, {@code "java.util.List<Integer>"}).
-     */
     String fullName;
-
-    /**
-     * Optional structural definition of this type (a {@link JavaRecordDefinition},
-     * {@link JavaEnumDefinition}, {@link JavaValueRecordDefinition}, or
-     * {@link JavaInterfaceDefinition}) used to generate a dedicated Java source file.
-     *
-     * <p>{@code null} for primitive/simple types (e.g.&nbsp;{@code String}, {@code Integer}) and
-     * for OpenAPI {@code $ref} references, whose definitions are read from their own schema
-     * components independently.
-     */
     JavaTypeDefinition definition;
-
-    /**
-     * Set of {@link JavaFieldAnnotator} strategies that will add annotations to the generated
-     * record parameter (e.g.&nbsp;{@code @DecimalMin}, {@code @Size}, {@code @Pattern},
-     * {@code @JsonProperty}, {@code @JsonUnwrapped}).
-     */
     Set<JavaFieldAnnotator> fieldAnnotators;
-
-    /**
-     * Raw default value originating from the OpenAPI schema's {@code default} keyword, stored as a
-     * plain string (e.g.&nbsp;{@code "hello"}, {@code "42"}, {@code "2024-01-01"}).
-     *
-     * <p>Use {@link #getDefaultValue()} to obtain the value transformed into valid Java source code
-     * through the {@link #defaultValueDecorator}.
-     */
     String defaultValue;
-
-    /**
-     * Transformation function that converts the raw {@link #defaultValue} into a valid Java source
-     * code expression. For example, a string type's decorator wraps the value in quotes
-     * ({@code "\"%s\""}), a {@code LocalDate} decorator produces
-     * {@code LocalDate.parse("…")}, and a {@code long} decorator appends {@code L}.
-     */
     @Getter(AccessLevel.NONE)
     UnaryOperator<String> defaultValueDecorator;
-
-    /**
-     * Indicates whether this type is a collection ({@code List}, {@code Set}, or {@code Map}).
-     */
     boolean collection;
-
-    /**
-     * OpenAPI schema description, used to generate JavaDoc on the corresponding type or field in
-     * the generated Java source.
-     */
     String description;
 
-    /**
-     * Returns the {@link #defaultValue} transformed by the {@link #defaultValueDecorator} into a
-     * valid Java source code expression, or {@code null} if no default value is set.
-     */
     public String getDefaultValue() {
         return defaultValue == null ? null : defaultValueDecorator.apply(defaultValue);
     }

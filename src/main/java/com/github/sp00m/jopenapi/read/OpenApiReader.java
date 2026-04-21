@@ -73,7 +73,7 @@ public final class OpenApiReader {
         var openApi = result.getOpenAPI();
         if (openApi == null || openApi.getComponents() == null) {
             if (result.getMessages().contains("attribute openapi is missing")) {
-                return parse(packageName, "openapi: 3.0.3\n" + openApiContents);
+                return parse(packageName, "openapi: 3.1.1\n" + openApiContents);
             } else {
                 throw new IllegalArgumentException(String.join("; ", result.getMessages()));
             }
@@ -159,11 +159,11 @@ public final class OpenApiReader {
         if (!(fieldTypeDefinition instanceof JavaEnumDefinition enumDefinition)) {
             return field;
         }
-        var enumField = field.withType(field.type().defaultValueDecorator(enumDefinition::decorateDefaultValue));
-        if (enumField.property().optional() && enumField.type().getDefaultValue() == null && enumDefinition.defaultValue() != null) {
-            enumField = enumField.withType(enumField.type().defaultValue(enumDefinition.defaultValue()));
+        var type = field.type().defaultValueDecorator(enumDefinition::decorateDefaultValue);
+        if (field.property().optional() && field.type().getDefaultValue() == null && enumDefinition.defaultValue() != null) {
+            type = type.defaultValue(enumDefinition.defaultValue());
         }
-        return enumField;
+        return field.withType(type);
     }
 
 }
