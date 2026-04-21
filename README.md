@@ -1,6 +1,6 @@
 # jopenapi
 
-Generate immutable, null-safe Java records from OpenAPI schemas — ready for Jackson 3 and Jakarta Validation.
+Generate immutable, null-safe Java records from OpenAPI schemas — ready for Jackson 2/3 and Jakarta Validation.
 
 ## Design
 
@@ -33,7 +33,7 @@ When an enum schema has a `default`, that value is used as a fallback for invali
 
 - **Generated code** targets **Java 17+**.
 - **OpenAPI 3.x** schemas (YAML or JSON).
-- **Jackson 3** annotations (`@JsonCreator`, `@JsonProperty`, `@JsonUnwrapped`, …).
+- **Jackson 2 or 3** annotations (`@JsonCreator`, `@JsonProperty`, `@JsonUnwrapped`, …). Jackson 3 still uses `jackson-annotations` 2.x, so the generated code is compatible with both versions.
 - **Jakarta Validation** annotations (`@DecimalMin`, `@DecimalMax`, `@Size`, `@Pattern`).
 
 The generated records also carry Lombok's `@Builder` and `@With` annotations. jopenapi runs a delombok pass before writing the final sources, so the output is **Lombok-agnostic** — your project does not need Lombok at runtime.
