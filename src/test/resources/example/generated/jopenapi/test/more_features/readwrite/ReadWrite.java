@@ -18,7 +18,7 @@ public record ReadWrite(@JsonProperty(value = "readonly", access = JsonProperty.
     }
 
     @JsonCreator()
-    public static ReadWrite create(@JsonProperty(value = "writeonly", access = JsonProperty.Access.WRITE_ONLY) String writeonly, @JsonProperty(value = "readwrite") String readwrite) {
+    static ReadWrite create(@JsonProperty(value = "writeonly", access = JsonProperty.Access.WRITE_ONLY) String writeonly, @JsonProperty(value = "readwrite") String readwrite) {
         return new ReadWrite(Optional.empty(), Optional.ofNullable(writeonly), Optional.ofNullable(readwrite));
     }
 }

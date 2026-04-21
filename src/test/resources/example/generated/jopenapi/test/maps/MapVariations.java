@@ -16,7 +16,7 @@ public record MapVariations(@JsonProperty(value = "untyped_map") java.util.Map<S
     public record CustomTypedMap(@JsonProperty(value = "i") int i) {
 
         @JsonCreator()
-        public static CustomTypedMap create(@JsonProperty(value = "i") Integer i) {
+        static CustomTypedMap create(@JsonProperty(value = "i") Integer i) {
             if (i == null) {
                 throw new IllegalArgumentException("Property 'i' is required");
             }
@@ -29,7 +29,7 @@ public record MapVariations(@JsonProperty(value = "untyped_map") java.util.Map<S
     public record CustomTypedNestedMap(@JsonProperty(value = "i") int i) {
 
         @JsonCreator()
-        public static CustomTypedNestedMap create(@JsonProperty(value = "i") Integer i) {
+        static CustomTypedNestedMap create(@JsonProperty(value = "i") Integer i) {
             if (i == null) {
                 throw new IllegalArgumentException("Property 'i' is required");
             }
@@ -50,7 +50,7 @@ public record MapVariations(@JsonProperty(value = "untyped_map") java.util.Map<S
     }
 
     @JsonCreator()
-    public static MapVariations create(@JsonProperty(value = "untyped_map") java.util.Map<String, Object> untypedMap, @JsonProperty(value = "nested_map") java.util.Map<String, java.util.Map<String, Integer>> nestedMap, @JsonProperty(value = "custom_typed_map") java.util.Map<String, CustomTypedMap> customTypedMap, @JsonProperty(value = "custom_typed_nested_map") java.util.Map<String, java.util.Map<String, CustomTypedNestedMap>> customTypedNestedMap, @JsonProperty(value = "optional_map") java.util.Map<String, Integer> optionalMap, @JsonProperty(value = "map_with_min") java.util.Map<String, Integer> mapWithMin, @JsonProperty(value = "optional_map_with_min") java.util.Map<String, Integer> optionalMapWithMin, @JsonProperty(value = "map_with_max") java.util.Map<String, Integer> mapWithMax, @JsonProperty(value = "map_with_min_max") java.util.Map<String, Integer> mapWithMinMax) {
+    static MapVariations create(@JsonProperty(value = "untyped_map") java.util.Map<String, Object> untypedMap, @JsonProperty(value = "nested_map") java.util.Map<String, java.util.Map<String, Integer>> nestedMap, @JsonProperty(value = "custom_typed_map") java.util.Map<String, CustomTypedMap> customTypedMap, @JsonProperty(value = "custom_typed_nested_map") java.util.Map<String, java.util.Map<String, CustomTypedNestedMap>> customTypedNestedMap, @JsonProperty(value = "optional_map") java.util.Map<String, Integer> optionalMap, @JsonProperty(value = "map_with_min") java.util.Map<String, Integer> mapWithMin, @JsonProperty(value = "optional_map_with_min") java.util.Map<String, Integer> optionalMapWithMin, @JsonProperty(value = "map_with_max") java.util.Map<String, Integer> mapWithMax, @JsonProperty(value = "map_with_min_max") java.util.Map<String, Integer> mapWithMinMax) {
         return new MapVariations(untypedMap, nestedMap, customTypedMap, customTypedNestedMap, optionalMap, mapWithMin, optionalMapWithMin, mapWithMax, mapWithMinMax);
     }
 }

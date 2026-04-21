@@ -10,7 +10,7 @@ import lombok.With;
 public record CommonObject(@JsonProperty(value = "id") int id) {
 
     @JsonCreator()
-    public static CommonObject create(@JsonProperty(value = "id") Integer id) {
+    static CommonObject create(@JsonProperty(value = "id") Integer id) {
         if (id == null) {
             throw new IllegalArgumentException("Property 'id' is required");
         }

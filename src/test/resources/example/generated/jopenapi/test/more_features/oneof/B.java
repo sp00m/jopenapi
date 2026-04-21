@@ -11,7 +11,7 @@ import lombok.With;
 public record B(@JsonProperty(value = "b") boolean b, @JsonUnwrapped() jopenapi.test.more_features.oneof.CommonAb commonAb, @JsonUnwrapped() jopenapi.test.more_features.oneof.CommonBc commonBc) implements jopenapi.test.more_features.oneof.OneOfAb, jopenapi.test.more_features.oneof.OneOfBc {
 
     @JsonCreator()
-    public static B create(@JsonProperty(value = "b") Boolean b, @JsonUnwrapped() jopenapi.test.more_features.oneof.CommonAb commonAb, @JsonUnwrapped() jopenapi.test.more_features.oneof.CommonBc commonBc) {
+    static B create(@JsonProperty(value = "b") Boolean b, @JsonUnwrapped() jopenapi.test.more_features.oneof.CommonAb commonAb, @JsonUnwrapped() jopenapi.test.more_features.oneof.CommonBc commonBc) {
         if (b == null) {
             throw new IllegalArgumentException("Property 'b' is required");
         }

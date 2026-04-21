@@ -10,7 +10,7 @@ import lombok.With;
 public record CommonAb(@JsonProperty(value = "category_ab") String categoryAb) {
 
     @JsonCreator()
-    public static CommonAb create(@JsonProperty(value = "category_ab") String categoryAb) {
+    static CommonAb create(@JsonProperty(value = "category_ab") String categoryAb) {
         if (categoryAb == null) {
             throw new IllegalArgumentException("Property 'category_ab' is required");
         }

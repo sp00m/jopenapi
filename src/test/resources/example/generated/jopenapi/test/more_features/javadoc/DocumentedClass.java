@@ -28,7 +28,7 @@ public record DocumentedClass(@JsonProperty(value = "documented_field") Optional
         }
 
         @JsonCreator()
-        public static DocumentedInnerType create(@JsonProperty(value = "i") Integer i) {
+        static DocumentedInnerType create(@JsonProperty(value = "i") Integer i) {
             return new DocumentedInnerType(Optional.ofNullable(i));
         }
     }
@@ -39,7 +39,7 @@ public record DocumentedClass(@JsonProperty(value = "documented_field") Optional
     }
 
     @JsonCreator()
-    public static DocumentedClass create(@JsonProperty(value = "documented_field") Integer documentedField, @JsonProperty(value = "documented_inner_type") DocumentedInnerType documentedInnerType) {
+    static DocumentedClass create(@JsonProperty(value = "documented_field") Integer documentedField, @JsonProperty(value = "documented_inner_type") DocumentedInnerType documentedInnerType) {
         return new DocumentedClass(Optional.ofNullable(documentedField), Optional.ofNullable(documentedInnerType));
     }
 }

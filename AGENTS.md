@@ -65,7 +65,7 @@ Writes generated sources to disk, optionally running a delombok pass.
 
 ## `@JsonCreator` factory method — how it works
 
-`JavaRecordGenerator` generates a `public static` method named `create` annotated with `@JsonCreator` for each record. This is the core deserialization entry point.
+`JavaRecordGenerator` generates a package-private `static` method named `create` annotated with `@JsonCreator` for each record. This is the core deserialization entry point. It is intentionally not `public` so that developers cannot call it directly — Jackson invokes it via reflection during deserialization.
 
 ### Parameter rules
 

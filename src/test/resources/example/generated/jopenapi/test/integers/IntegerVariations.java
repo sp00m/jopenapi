@@ -19,7 +19,7 @@ public record IntegerVariations(@DecimalMin(value = "1", inclusive = true) @Json
     }
 
     @JsonCreator()
-    public static IntegerVariations create(@JsonProperty(value = "integer_with_min_inclusive") Integer integerWithMinInclusive, @JsonProperty(value = "integer_with_min_exclusive") Integer integerWithMinExclusive, @JsonProperty(value = "integer_with_max_inclusive") Integer integerWithMaxInclusive, @JsonProperty(value = "integer_with_max_exclusive") Integer integerWithMaxExclusive, @JsonProperty(value = "integer_with_min_max") Integer integerWithMinMax, @JsonProperty(value = "mandatory_integer") Integer mandatoryInteger, @JsonProperty(value = "optional_integer") Integer optionalInteger, @JsonProperty(value = "mandatory_long") Long mandatoryLong, @JsonProperty(value = "optional_long") Long optionalLong) {
+    static IntegerVariations create(@JsonProperty(value = "integer_with_min_inclusive") Integer integerWithMinInclusive, @JsonProperty(value = "integer_with_min_exclusive") Integer integerWithMinExclusive, @JsonProperty(value = "integer_with_max_inclusive") Integer integerWithMaxInclusive, @JsonProperty(value = "integer_with_max_exclusive") Integer integerWithMaxExclusive, @JsonProperty(value = "integer_with_min_max") Integer integerWithMinMax, @JsonProperty(value = "mandatory_integer") Integer mandatoryInteger, @JsonProperty(value = "optional_integer") Integer optionalInteger, @JsonProperty(value = "mandatory_long") Long mandatoryLong, @JsonProperty(value = "optional_long") Long optionalLong) {
         if (integerWithMinInclusive == null) {
             throw new IllegalArgumentException("Property 'integer_with_min_inclusive' is required");
         }

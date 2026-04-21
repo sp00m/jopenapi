@@ -10,7 +10,7 @@ import lombok.With;
 public record LocalCommonObject(@JsonProperty(value = "name") String name) {
 
     @JsonCreator()
-    public static LocalCommonObject create(@JsonProperty(value = "name") String name) {
+    static LocalCommonObject create(@JsonProperty(value = "name") String name) {
         if (name == null) {
             throw new IllegalArgumentException("Property 'name' is required");
         }

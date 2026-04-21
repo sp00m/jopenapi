@@ -9,7 +9,7 @@ import lombok.With;
 public record NestedNotString() {
 
     @JsonCreator()
-    public static NestedNotString create() {
+    static NestedNotString create() {
         return new NestedNotString();
     }
 }

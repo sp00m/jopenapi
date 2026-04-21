@@ -15,7 +15,7 @@ public record NestedAllOfs(@JsonProperty(value = "only_refs") OnlyRefs onlyRefs,
     public record OnlyRefs(@JsonUnwrapped() jopenapi.test.more_features.allof.LocalCommonObject localCommonObject, @JsonUnwrapped() jopenapi.test.common.CommonObject commonObject) {
 
         @JsonCreator()
-        public static OnlyRefs create(@JsonUnwrapped() jopenapi.test.more_features.allof.LocalCommonObject localCommonObject, @JsonUnwrapped() jopenapi.test.common.CommonObject commonObject) {
+        static OnlyRefs create(@JsonUnwrapped() jopenapi.test.more_features.allof.LocalCommonObject localCommonObject, @JsonUnwrapped() jopenapi.test.common.CommonObject commonObject) {
             if (localCommonObject == null) {
                 throw new IllegalArgumentException("Property 'localCommonObject' is required");
             }
@@ -31,7 +31,7 @@ public record NestedAllOfs(@JsonProperty(value = "only_refs") OnlyRefs onlyRefs,
     public record OneCustomObject(@JsonProperty(value = "active") boolean active, @JsonUnwrapped() jopenapi.test.more_features.allof.LocalCommonObject localCommonObject) {
 
         @JsonCreator()
-        public static OneCustomObject create(@JsonProperty(value = "active") Boolean active, @JsonUnwrapped() jopenapi.test.more_features.allof.LocalCommonObject localCommonObject) {
+        static OneCustomObject create(@JsonProperty(value = "active") Boolean active, @JsonUnwrapped() jopenapi.test.more_features.allof.LocalCommonObject localCommonObject) {
             if (active == null) {
                 throw new IllegalArgumentException("Property 'active' is required");
             }
@@ -43,7 +43,7 @@ public record NestedAllOfs(@JsonProperty(value = "only_refs") OnlyRefs onlyRefs,
     }
 
     @JsonCreator()
-    public static NestedAllOfs create(@JsonProperty(value = "only_refs") OnlyRefs onlyRefs, @JsonProperty(value = "one_custom_object") OneCustomObject oneCustomObject) {
+    static NestedAllOfs create(@JsonProperty(value = "only_refs") OnlyRefs onlyRefs, @JsonProperty(value = "one_custom_object") OneCustomObject oneCustomObject) {
         if (onlyRefs == null) {
             throw new IllegalArgumentException("Property 'only_refs' is required");
         }

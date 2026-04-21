@@ -11,7 +11,7 @@ import lombok.With;
 public record AllOfWithOneCustomObject(@JsonProperty(value = "active") boolean active, @JsonUnwrapped() jopenapi.test.more_features.allof.LocalCommonObject localCommonObject) {
 
     @JsonCreator()
-    public static AllOfWithOneCustomObject create(@JsonProperty(value = "active") Boolean active, @JsonUnwrapped() jopenapi.test.more_features.allof.LocalCommonObject localCommonObject) {
+    static AllOfWithOneCustomObject create(@JsonProperty(value = "active") Boolean active, @JsonUnwrapped() jopenapi.test.more_features.allof.LocalCommonObject localCommonObject) {
         if (active == null) {
             throw new IllegalArgumentException("Property 'active' is required");
         }

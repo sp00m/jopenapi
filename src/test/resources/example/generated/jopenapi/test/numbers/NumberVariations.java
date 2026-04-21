@@ -19,7 +19,7 @@ public record NumberVariations(@DecimalMin(value = "1", inclusive = true) @JsonP
     }
 
     @JsonCreator()
-    public static NumberVariations create(@JsonProperty(value = "number_with_min_inclusive") Number numberWithMinInclusive, @JsonProperty(value = "number_with_min_exclusive") Number numberWithMinExclusive, @JsonProperty(value = "number_with_max_inclusive") Number numberWithMaxInclusive, @JsonProperty(value = "number_with_max_exclusive") Number numberWithMaxExclusive, @JsonProperty(value = "number_with_min_max") Number numberWithMinMax, @JsonProperty(value = "mandatory_float") Float mandatoryFloat, @JsonProperty(value = "optional_float") Float optionalFloat, @JsonProperty(value = "mandatory_double") Double mandatoryDouble, @JsonProperty(value = "optional_double") Double optionalDouble) {
+    static NumberVariations create(@JsonProperty(value = "number_with_min_inclusive") Number numberWithMinInclusive, @JsonProperty(value = "number_with_min_exclusive") Number numberWithMinExclusive, @JsonProperty(value = "number_with_max_inclusive") Number numberWithMaxInclusive, @JsonProperty(value = "number_with_max_exclusive") Number numberWithMaxExclusive, @JsonProperty(value = "number_with_min_max") Number numberWithMinMax, @JsonProperty(value = "mandatory_float") Float mandatoryFloat, @JsonProperty(value = "optional_float") Float optionalFloat, @JsonProperty(value = "mandatory_double") Double mandatoryDouble, @JsonProperty(value = "optional_double") Double optionalDouble) {
         if (numberWithMinInclusive == null) {
             throw new IllegalArgumentException("Property 'number_with_min_inclusive' is required");
         }

@@ -9,7 +9,7 @@ import lombok.With;
 public record NestedAnyOf() {
 
     @JsonCreator()
-    public static NestedAnyOf create() {
+    static NestedAnyOf create() {
         return new NestedAnyOf();
     }
 }

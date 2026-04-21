@@ -198,7 +198,7 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
         methodBody.append("return new %s(%s);\n".formatted(recordDefinition.name(), constructorArgs));
         methodBody.append("}");
 
-        var method = recordDeclaration.addMethod("create", Modifier.Keyword.PUBLIC, Modifier.Keyword.STATIC);
+        var method = recordDeclaration.addMethod("create", STATIC);
         method.setType(parseType(recordDefinition.name()));
         method.setBody(parseBlock(methodBody.toString()));
         method.addAnnotation(JsonCreator.class);

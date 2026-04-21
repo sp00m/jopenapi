@@ -16,7 +16,7 @@ public record BooleanVariations(@JsonProperty(value = "mandatory_boolean") boole
     }
 
     @JsonCreator()
-    public static BooleanVariations create(@JsonProperty(value = "mandatory_boolean") Boolean mandatoryBoolean, @JsonProperty(value = "is_prefixed_mandatory_boolean") Boolean isPrefixedMandatoryBoolean, @JsonProperty(value = "optional_boolean") Boolean optionalBoolean) {
+    static BooleanVariations create(@JsonProperty(value = "mandatory_boolean") Boolean mandatoryBoolean, @JsonProperty(value = "is_prefixed_mandatory_boolean") Boolean isPrefixedMandatoryBoolean, @JsonProperty(value = "optional_boolean") Boolean optionalBoolean) {
         if (mandatoryBoolean == null) {
             throw new IllegalArgumentException("Property 'mandatory_boolean' is required");
         }

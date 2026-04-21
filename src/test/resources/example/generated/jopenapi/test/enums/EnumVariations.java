@@ -123,7 +123,7 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
     }
 
     @JsonCreator()
-    public static EnumVariations create(@JsonProperty(value = "enum_without_type") EnumWithoutType enumWithoutType, @JsonProperty(value = "optional_enum") OptionalEnum optionalEnum, @JsonProperty(value = "nullable_enum") NullableEnum nullableEnum, @JsonProperty(value = "enum_with_null") EnumWithNull enumWithNull, @JsonProperty(value = "nullable_enum_with_null") NullableEnumWithNull nullableEnumWithNull) {
+    static EnumVariations create(@JsonProperty(value = "enum_without_type") EnumWithoutType enumWithoutType, @JsonProperty(value = "optional_enum") OptionalEnum optionalEnum, @JsonProperty(value = "nullable_enum") NullableEnum nullableEnum, @JsonProperty(value = "enum_with_null") EnumWithNull enumWithNull, @JsonProperty(value = "nullable_enum_with_null") NullableEnumWithNull nullableEnumWithNull) {
         if (enumWithoutType == null) {
             throw new IllegalArgumentException("Property 'enum_without_type' is required");
         }
