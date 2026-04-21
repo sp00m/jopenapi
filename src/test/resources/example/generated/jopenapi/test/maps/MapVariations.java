@@ -18,7 +18,7 @@ public record MapVariations(@JsonProperty(value = "untyped_map") java.util.Map<S
         @JsonCreator()
         static CustomTypedMap create(@JsonProperty(value = "i") Integer i) {
             if (i == null) {
-                throw new IllegalArgumentException("Property 'i' is required");
+                throw new com.github.jopenapi.support.MissingPropertyException("i");
             }
             return new CustomTypedMap(i);
         }
@@ -31,7 +31,7 @@ public record MapVariations(@JsonProperty(value = "untyped_map") java.util.Map<S
         @JsonCreator()
         static CustomTypedNestedMap create(@JsonProperty(value = "i") Integer i) {
             if (i == null) {
-                throw new IllegalArgumentException("Property 'i' is required");
+                throw new com.github.jopenapi.support.MissingPropertyException("i");
             }
             return new CustomTypedNestedMap(i);
         }

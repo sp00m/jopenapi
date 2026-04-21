@@ -13,10 +13,10 @@ public record AllOfWithOneCustomObject(@JsonProperty(value = "active") boolean a
     @JsonCreator()
     static AllOfWithOneCustomObject create(@JsonProperty(value = "active") Boolean active, @JsonUnwrapped() jopenapi.test.more_features.allof.LocalCommonObject localCommonObject) {
         if (active == null) {
-            throw new IllegalArgumentException("Property 'active' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("active");
         }
         if (localCommonObject == null) {
-            throw new IllegalArgumentException("Property 'localCommonObject' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("localCommonObject");
         }
         return new AllOfWithOneCustomObject(active, localCommonObject);
     }

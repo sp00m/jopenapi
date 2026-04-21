@@ -100,7 +100,7 @@ public record MyObject(
         @JsonProperty("my_optional_int_with_default") Integer myOptionalIntWithDefault
     ) {
         if (myRequiredInt == null) {
-            throw new IllegalArgumentException("Property 'my_required_int' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("my_required_int");
         }
         return new MyObject(
             myRequiredInt,

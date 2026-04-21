@@ -125,13 +125,13 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
     @JsonCreator()
     static EnumVariations create(@JsonProperty(value = "enum_without_type") EnumWithoutType enumWithoutType, @JsonProperty(value = "optional_enum") OptionalEnum optionalEnum, @JsonProperty(value = "nullable_enum") NullableEnum nullableEnum, @JsonProperty(value = "enum_with_null") EnumWithNull enumWithNull, @JsonProperty(value = "nullable_enum_with_null") NullableEnumWithNull nullableEnumWithNull) {
         if (enumWithoutType == null) {
-            throw new IllegalArgumentException("Property 'enum_without_type' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("enum_without_type");
         }
         if (nullableEnum == null) {
-            throw new IllegalArgumentException("Property 'nullable_enum' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("nullable_enum");
         }
         if (enumWithNull == null) {
-            throw new IllegalArgumentException("Property 'enum_with_null' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("enum_with_null");
         }
         return new EnumVariations(enumWithoutType, Optional.ofNullable(optionalEnum), nullableEnum, enumWithNull, Optional.ofNullable(nullableEnumWithNull));
     }

@@ -12,7 +12,7 @@ public record LocalCommonObject(@JsonProperty(value = "name") String name) {
     @JsonCreator()
     static LocalCommonObject create(@JsonProperty(value = "name") String name) {
         if (name == null) {
-            throw new IllegalArgumentException("Property 'name' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("name");
         }
         return new LocalCommonObject(name);
     }

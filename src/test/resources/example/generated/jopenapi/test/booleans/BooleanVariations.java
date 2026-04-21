@@ -18,10 +18,10 @@ public record BooleanVariations(@JsonProperty(value = "mandatory_boolean") boole
     @JsonCreator()
     static BooleanVariations create(@JsonProperty(value = "mandatory_boolean") Boolean mandatoryBoolean, @JsonProperty(value = "is_prefixed_mandatory_boolean") Boolean isPrefixedMandatoryBoolean, @JsonProperty(value = "optional_boolean") Boolean optionalBoolean) {
         if (mandatoryBoolean == null) {
-            throw new IllegalArgumentException("Property 'mandatory_boolean' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("mandatory_boolean");
         }
         if (isPrefixedMandatoryBoolean == null) {
-            throw new IllegalArgumentException("Property 'is_prefixed_mandatory_boolean' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("is_prefixed_mandatory_boolean");
         }
         return new BooleanVariations(mandatoryBoolean, isPrefixedMandatoryBoolean, Optional.ofNullable(optionalBoolean));
     }

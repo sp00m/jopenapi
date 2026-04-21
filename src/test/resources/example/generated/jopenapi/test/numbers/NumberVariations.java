@@ -21,25 +21,25 @@ public record NumberVariations(@DecimalMin(value = "1", inclusive = true) @JsonP
     @JsonCreator()
     static NumberVariations create(@JsonProperty(value = "number_with_min_inclusive") Number numberWithMinInclusive, @JsonProperty(value = "number_with_min_exclusive") Number numberWithMinExclusive, @JsonProperty(value = "number_with_max_inclusive") Number numberWithMaxInclusive, @JsonProperty(value = "number_with_max_exclusive") Number numberWithMaxExclusive, @JsonProperty(value = "number_with_min_max") Number numberWithMinMax, @JsonProperty(value = "mandatory_float") Float mandatoryFloat, @JsonProperty(value = "optional_float") Float optionalFloat, @JsonProperty(value = "mandatory_double") Double mandatoryDouble, @JsonProperty(value = "optional_double") Double optionalDouble) {
         if (numberWithMinInclusive == null) {
-            throw new IllegalArgumentException("Property 'number_with_min_inclusive' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("number_with_min_inclusive");
         }
         if (numberWithMinExclusive == null) {
-            throw new IllegalArgumentException("Property 'number_with_min_exclusive' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("number_with_min_exclusive");
         }
         if (numberWithMaxInclusive == null) {
-            throw new IllegalArgumentException("Property 'number_with_max_inclusive' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("number_with_max_inclusive");
         }
         if (numberWithMaxExclusive == null) {
-            throw new IllegalArgumentException("Property 'number_with_max_exclusive' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("number_with_max_exclusive");
         }
         if (numberWithMinMax == null) {
-            throw new IllegalArgumentException("Property 'number_with_min_max' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("number_with_min_max");
         }
         if (mandatoryFloat == null) {
-            throw new IllegalArgumentException("Property 'mandatory_float' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("mandatory_float");
         }
         if (mandatoryDouble == null) {
-            throw new IllegalArgumentException("Property 'mandatory_double' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("mandatory_double");
         }
         return new NumberVariations(numberWithMinInclusive, numberWithMinExclusive, numberWithMaxInclusive, numberWithMaxExclusive, numberWithMinMax, mandatoryFloat, Optional.ofNullable(optionalFloat), mandatoryDouble, Optional.ofNullable(optionalDouble));
     }

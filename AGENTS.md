@@ -30,7 +30,7 @@ Parses OpenAPI specs and produces value objects representing schemas.
 
 | Class | Responsibility |
 |---|---|
- `OpenApiReader`  Scans an input directory for `.yml`/`.yaml`/`.json` files (or accepts a single schema file directly), parses each, and links cross-schema references (interfaces for `oneOf`, enum defaults). When a single file is given, DTOs are placed directly in the base package with no subpackage. 
+| `OpenApiReader` | Scans an input directory for `.yml`/`.yaml`/`.json` files (or accepts a single schema file directly), parses each, and links cross-schema references (interfaces for `oneOf`, enum defaults). When a single file is given, DTOs are placed directly in the base package with no subpackage. |
 | `OpenApiComponentReader` | Reads a single OpenAPI component schema and produces a `JavaTypeDefinition`. Wraps simple/collection types in `JavaValueRecordDefinition`. |
 | `OpenApiSchemaReader` | Recursive schema reader. Handles `string`, `number`, `integer`, `boolean`, `array`, `object`, `$ref`, `allOf`, `oneOf`, `enum`. Returns a `JavaType`. |
 | `JavaFieldAnnotator` | Enum of annotation strategies (`MIN`, `MAX`, `SIZE`, `PATTERN`, `JSON_PROPERTY`, `JSON_UNWRAPPED`). Each adds Jakarta Validation or Jackson annotations to a record parameter. |
@@ -63,6 +63,8 @@ Writes generated sources to disk, optionally running a delombok pass.
 | `JavaFileWriter` | Writes `.java` files. When `delombok=true`, writes to a temp directory first, then runs `Delomboker`. |
 | `Delomboker` | Invokes `java -jar lombok.jar delombok` as a subprocess to expand Lombok annotations into plain Java. |
 
+`Main.run()` also copies the bundled `/support/MissingPropertyException.java` resource into `com/github/jopenapi/support/` inside the output directory, so consumers have no external dependency for that class.
+
 ## `@JsonCreator` factory method — how it works
 
 `JavaRecordGenerator` generates a package-private `static` method named `create` annotated with `@JsonCreator` for each record. This is the core deserialization entry point. It is intentionally not `public` so that developers cannot call it directly — Jackson invokes it via reflection during deserialization.
@@ -71,8 +73,8 @@ Writes generated sources to disk, optionally running a delombok pass.
 
 | Field kind | Record param type | Factory param type | Factory body |
 |---|---|---|---|
-| Required primitive | `int`, `long`, `boolean`, … | `Integer`, `Long`, `Boolean`, … | `if (x == null) throw new IllegalArgumentException(…)` then auto-unbox |
-| Required reference | `String`, `LocalDate`, custom type | same | `if (x == null) throw new IllegalArgumentException(…)` |
+| Required primitive | `int`, `long`, `boolean`, … | `Integer`, `Long`, `Boolean`, … | `if (x == null) throw new com.github.jopenapi.support.MissingPropertyException(…)` then auto-unbox |
+| Required reference | `String`, `LocalDate`, custom type | same | `if (x == null) throw new com.github.jopenapi.support.MissingPropertyException(…)` |
 | Optional without default | `Optional<X>` | `X` | `Optional.ofNullable(x)` |
 | Optional with default (primitive-able) | `int`, `long`, `boolean`, … | `Integer`, `Long`, `Boolean`, … | `Objects.requireNonNullElse(x, default)` |
 | Optional with default (reference) | `String`, `LocalDate`, enum, … | same | `Objects.requireNonNullElse(x, default)` |

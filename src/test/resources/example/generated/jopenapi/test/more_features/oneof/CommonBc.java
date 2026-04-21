@@ -12,7 +12,7 @@ public record CommonBc(@JsonProperty(value = "category_bc") String categoryBc) {
     @JsonCreator()
     static CommonBc create(@JsonProperty(value = "category_bc") String categoryBc) {
         if (categoryBc == null) {
-            throw new IllegalArgumentException("Property 'category_bc' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("category_bc");
         }
         return new CommonBc(categoryBc);
     }

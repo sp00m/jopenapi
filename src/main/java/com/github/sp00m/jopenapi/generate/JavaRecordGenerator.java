@@ -177,7 +177,7 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
                 constructorArgs.append(paramName);
             } else if (!field.property().optional()) {
                 // Required non-collection: null-check
-                factoryChecks.append("if (%s == null) { throw new IllegalArgumentException(\"Property '%s' is required\"); }\n".formatted(
+                factoryChecks.append("if (%s == null) { throw new com.github.jopenapi.support.MissingPropertyException(\"%s\"); }\n".formatted(
                         paramName, field.property().name()));
                 constructorArgs.append(paramName);
             } else if (field.type().getDefaultValue() != null) {

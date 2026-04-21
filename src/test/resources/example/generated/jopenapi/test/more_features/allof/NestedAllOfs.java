@@ -17,10 +17,10 @@ public record NestedAllOfs(@JsonProperty(value = "only_refs") OnlyRefs onlyRefs,
         @JsonCreator()
         static OnlyRefs create(@JsonUnwrapped() jopenapi.test.more_features.allof.LocalCommonObject localCommonObject, @JsonUnwrapped() jopenapi.test.common.CommonObject commonObject) {
             if (localCommonObject == null) {
-                throw new IllegalArgumentException("Property 'localCommonObject' is required");
+                throw new com.github.jopenapi.support.MissingPropertyException("localCommonObject");
             }
             if (commonObject == null) {
-                throw new IllegalArgumentException("Property 'commonObject' is required");
+                throw new com.github.jopenapi.support.MissingPropertyException("commonObject");
             }
             return new OnlyRefs(localCommonObject, commonObject);
         }
@@ -33,10 +33,10 @@ public record NestedAllOfs(@JsonProperty(value = "only_refs") OnlyRefs onlyRefs,
         @JsonCreator()
         static OneCustomObject create(@JsonProperty(value = "active") Boolean active, @JsonUnwrapped() jopenapi.test.more_features.allof.LocalCommonObject localCommonObject) {
             if (active == null) {
-                throw new IllegalArgumentException("Property 'active' is required");
+                throw new com.github.jopenapi.support.MissingPropertyException("active");
             }
             if (localCommonObject == null) {
-                throw new IllegalArgumentException("Property 'localCommonObject' is required");
+                throw new com.github.jopenapi.support.MissingPropertyException("localCommonObject");
             }
             return new OneCustomObject(active, localCommonObject);
         }
@@ -45,10 +45,10 @@ public record NestedAllOfs(@JsonProperty(value = "only_refs") OnlyRefs onlyRefs,
     @JsonCreator()
     static NestedAllOfs create(@JsonProperty(value = "only_refs") OnlyRefs onlyRefs, @JsonProperty(value = "one_custom_object") OneCustomObject oneCustomObject) {
         if (onlyRefs == null) {
-            throw new IllegalArgumentException("Property 'only_refs' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("only_refs");
         }
         if (oneCustomObject == null) {
-            throw new IllegalArgumentException("Property 'one_custom_object' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("one_custom_object");
         }
         return new NestedAllOfs(onlyRefs, oneCustomObject);
     }

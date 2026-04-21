@@ -13,10 +13,10 @@ public record C(@JsonProperty(value = "c") boolean c, @JsonUnwrapped() jopenapi.
     @JsonCreator()
     static C create(@JsonProperty(value = "c") Boolean c, @JsonUnwrapped() jopenapi.test.more_features.oneof.CommonBc commonBc) {
         if (c == null) {
-            throw new IllegalArgumentException("Property 'c' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("c");
         }
         if (commonBc == null) {
-            throw new IllegalArgumentException("Property 'commonBc' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("commonBc");
         }
         return new C(c, commonBc);
     }

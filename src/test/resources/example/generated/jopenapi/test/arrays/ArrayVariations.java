@@ -18,7 +18,7 @@ public record ArrayVariations(@JsonProperty(value = "untyped_array") java.util.L
         @JsonCreator()
         static CustomTypedArray create(@JsonProperty(value = "i") Integer i) {
             if (i == null) {
-                throw new IllegalArgumentException("Property 'i' is required");
+                throw new com.github.jopenapi.support.MissingPropertyException("i");
             }
             return new CustomTypedArray(i);
         }
@@ -31,7 +31,7 @@ public record ArrayVariations(@JsonProperty(value = "untyped_array") java.util.L
         @JsonCreator()
         static CustomTypedNestedArray create(@JsonProperty(value = "i") Integer i) {
             if (i == null) {
-                throw new IllegalArgumentException("Property 'i' is required");
+                throw new com.github.jopenapi.support.MissingPropertyException("i");
             }
             return new CustomTypedNestedArray(i);
         }

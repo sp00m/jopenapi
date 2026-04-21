@@ -20,28 +20,28 @@ public record StringVariations(@JsonProperty(value = "as_date") java.time.LocalD
     @JsonCreator()
     static StringVariations create(@JsonProperty(value = "as_date") java.time.LocalDate asDate, @JsonProperty(value = "as_date_time") java.time.OffsetDateTime asDateTime, @JsonProperty(value = "as_uuid") java.util.UUID asUuid, @JsonProperty(value = "as_uri") java.net.URI asUri, @JsonProperty(value = "string_with_pattern") String stringWithPattern, @JsonProperty(value = "string_with_min") String stringWithMin, @JsonProperty(value = "string_with_max") String stringWithMax, @JsonProperty(value = "string_with_pattern_min_max") String stringWithPatternMinMax, @JsonProperty(value = "optional_string") String optionalString) {
         if (asDate == null) {
-            throw new IllegalArgumentException("Property 'as_date' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("as_date");
         }
         if (asDateTime == null) {
-            throw new IllegalArgumentException("Property 'as_date_time' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("as_date_time");
         }
         if (asUuid == null) {
-            throw new IllegalArgumentException("Property 'as_uuid' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("as_uuid");
         }
         if (asUri == null) {
-            throw new IllegalArgumentException("Property 'as_uri' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("as_uri");
         }
         if (stringWithPattern == null) {
-            throw new IllegalArgumentException("Property 'string_with_pattern' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("string_with_pattern");
         }
         if (stringWithMin == null) {
-            throw new IllegalArgumentException("Property 'string_with_min' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("string_with_min");
         }
         if (stringWithMax == null) {
-            throw new IllegalArgumentException("Property 'string_with_max' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("string_with_max");
         }
         if (stringWithPatternMinMax == null) {
-            throw new IllegalArgumentException("Property 'string_with_pattern_min_max' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("string_with_pattern_min_max");
         }
         return new StringVariations(asDate, asDateTime, asUuid, asUri, stringWithPattern, stringWithMin, stringWithMax, stringWithPatternMinMax, Optional.ofNullable(optionalString));
     }

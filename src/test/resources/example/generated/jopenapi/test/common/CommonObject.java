@@ -12,7 +12,7 @@ public record CommonObject(@JsonProperty(value = "id") int id) {
     @JsonCreator()
     static CommonObject create(@JsonProperty(value = "id") Integer id) {
         if (id == null) {
-            throw new IllegalArgumentException("Property 'id' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("id");
         }
         return new CommonObject(id);
     }

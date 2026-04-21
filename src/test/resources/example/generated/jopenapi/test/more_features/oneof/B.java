@@ -13,13 +13,13 @@ public record B(@JsonProperty(value = "b") boolean b, @JsonUnwrapped() jopenapi.
     @JsonCreator()
     static B create(@JsonProperty(value = "b") Boolean b, @JsonUnwrapped() jopenapi.test.more_features.oneof.CommonAb commonAb, @JsonUnwrapped() jopenapi.test.more_features.oneof.CommonBc commonBc) {
         if (b == null) {
-            throw new IllegalArgumentException("Property 'b' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("b");
         }
         if (commonAb == null) {
-            throw new IllegalArgumentException("Property 'commonAb' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("commonAb");
         }
         if (commonBc == null) {
-            throw new IllegalArgumentException("Property 'commonBc' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("commonBc");
         }
         return new B(b, commonAb, commonBc);
     }

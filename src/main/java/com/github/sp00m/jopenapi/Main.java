@@ -3,6 +3,7 @@ package com.github.sp00m.jopenapi;
 import com.github.sp00m.jopenapi.generate.JavaGenerator;
 import com.github.sp00m.jopenapi.read.OpenApiReader;
 import com.github.sp00m.jopenapi.write.JavaFileWriter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -71,7 +72,22 @@ public class Main implements Callable<Integer> {
         var typeDefinitions = new OpenApiReader(basePackageName, inputDir).read();
         var javaFiles = new JavaGenerator(typeDefinitions).generate();
         new JavaFileWriter(outputDir, javaFiles, delombok).write();
+        writeSupportClass(outputDir);
         return javaFiles.size();
+    }
+
+    @SneakyThrows
+    private static void writeSupportClass(File outputDir) {
+        var supportPackage = "com.github.jopenapi.support";
+        var supportDir = new File(outputDir, supportPackage.replace('.', '/'));
+        supportDir.mkdirs();
+        var dest = new File(supportDir, "MissingPropertyException.java");
+        try (var in = Main.class.getResourceAsStream("/support/MissingPropertyException.java")) {
+            if (in == null) {
+                throw new IllegalStateException("Support resource not found: /support/MissingPropertyException.java");
+            }
+            java.nio.file.Files.write(dest.toPath(), in.readAllBytes());
+        }
     }
 
 }

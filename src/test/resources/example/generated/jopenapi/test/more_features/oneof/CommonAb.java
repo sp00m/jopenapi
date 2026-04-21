@@ -12,7 +12,7 @@ public record CommonAb(@JsonProperty(value = "category_ab") String categoryAb) {
     @JsonCreator()
     static CommonAb create(@JsonProperty(value = "category_ab") String categoryAb) {
         if (categoryAb == null) {
-            throw new IllegalArgumentException("Property 'category_ab' is required");
+            throw new com.github.jopenapi.support.MissingPropertyException("category_ab");
         }
         return new CommonAb(categoryAb);
     }
