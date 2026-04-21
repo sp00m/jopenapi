@@ -1,8 +1,11 @@
 package jopenapi.test.more_features.oneof;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.fasterxml.jackson.annotation.*;
+import com.github.jopenapi.support.*;
+import jakarta.validation.constraints.*;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 import lombok.Builder;
 import lombok.With;
 
@@ -13,10 +16,10 @@ public record C(@JsonProperty(value = "c") boolean c, @JsonUnwrapped() jopenapi.
     @JsonCreator()
     static C create(@JsonProperty(value = "c") Boolean c, @JsonUnwrapped() jopenapi.test.more_features.oneof.CommonBc commonBc) {
         if (c == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("c");
+            throw new MissingPropertyException("c");
         }
         if (commonBc == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("commonBc");
+            throw new MissingPropertyException("commonBc");
         }
         return new C(c, commonBc);
     }

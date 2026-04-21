@@ -1,9 +1,11 @@
 package jopenapi.test.more_features.readwrite;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Objects;
-import java.util.Optional;
+import com.fasterxml.jackson.annotation.*;
+import com.github.jopenapi.support.*;
+import jakarta.validation.constraints.*;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 import lombok.Builder;
 import lombok.With;
 

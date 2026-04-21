@@ -61,28 +61,28 @@ public final class JavaGenerator {
             throw new IllegalStateException();
         }
         var compiler = typeGenerator.generate();
-        addJavaDoc(typeDefinition, compiler);
+        addJavadoc(typeDefinition, compiler);
         return compiler;
     }
 
-    private static void addJavaDoc(JavaTypeDefinition typeDefinition, CompilationUnit compiler) {
-        var javadocBuilder = new StringBuilder();
+    private static void addJavadoc(JavaTypeDefinition typeDefinition, CompilationUnit compiler) {
+        var javadoc = new StringBuilder();
         if (typeDefinition.description() != null) {
-            javadocBuilder.append(typeDefinition.description());
+            javadoc.append(typeDefinition.description());
         }
         if (typeDefinition instanceof JavaRecordDefinition recordDefinition) {
             recordDefinition.fields().forEach(field -> {
-                var desc = field.type().description();
-                if (desc != null) {
-                    if (!javadocBuilder.isEmpty()) {
-                        javadocBuilder.append("\n");
+                var description = field.type().description();
+                if (description != null) {
+                    if (!javadoc.isEmpty()) {
+                        javadoc.append("\n");
                     }
-                    javadocBuilder.append("@param ").append(field.name()).append(" ").append(desc);
+                    javadoc.append("@param ").append(field.name()).append(" ").append(description);
                 }
             });
         }
-        if (!javadocBuilder.isEmpty()) {
-            compiler.getType(0).setJavadocComment(javadocBuilder.toString());
+        if (!javadoc.isEmpty()) {
+            compiler.getType(0).setJavadocComment(javadoc.toString());
         }
     }
 

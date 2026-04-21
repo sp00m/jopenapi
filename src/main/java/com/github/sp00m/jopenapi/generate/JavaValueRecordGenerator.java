@@ -11,8 +11,6 @@ import com.github.javaparser.ast.body.RecordDeclaration;
 import com.github.sp00m.jopenapi.read.vo.JavaValueRecordDefinition;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Collections;
-
 import static com.github.javaparser.StaticJavaParser.parseBlock;
 import static com.github.javaparser.StaticJavaParser.parseType;
 
@@ -20,7 +18,7 @@ import static com.github.javaparser.StaticJavaParser.parseType;
 final class JavaValueRecordGenerator implements JavaTypeGenerator {
 
     private final JavaValueRecordDefinition valueRecordDefinition;
-    private final CompilationUnit compiler = new CompilationUnit();
+    private final CompilationUnit compiler = CompilationUnitFactory.create();
 
     @Override
     public CompilationUnit generate() {
@@ -46,11 +44,9 @@ final class JavaValueRecordGenerator implements JavaTypeGenerator {
                 NodeList.nodeList(Modifier.publicModifier()),
                 valueRecordDefinition.name()
         );
-        compiler.addImport(JsonCreator.class);
         compactConstructor.addAnnotation(JsonCreator.class);
 
         if (fieldType.collection()) {
-            compiler.addImport(Collections.class);
             var emptyValue = fieldType.decoratedDefaultValue();
             var unmodifiable = JavaRecordGenerator.getUnmodifiableWrapper(fieldType.fullName());
             var statement = "%s = %s == null ? %s : %s(%s);".formatted(

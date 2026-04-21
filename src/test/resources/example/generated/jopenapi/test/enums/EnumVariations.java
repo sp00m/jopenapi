@@ -1,14 +1,11 @@
 package jopenapi.test.enums;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.fasterxml.jackson.annotation.*;
+import com.github.jopenapi.support.*;
+import jakarta.validation.constraints.*;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.With;
@@ -125,13 +122,13 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
     @JsonCreator()
     static EnumVariations create(@JsonProperty(value = "enum_without_type") EnumWithoutType enumWithoutType, @JsonProperty(value = "optional_enum") OptionalEnum optionalEnum, @JsonProperty(value = "nullable_enum") NullableEnum nullableEnum, @JsonProperty(value = "enum_with_null") EnumWithNull enumWithNull, @JsonProperty(value = "nullable_enum_with_null") NullableEnumWithNull nullableEnumWithNull) {
         if (enumWithoutType == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("enum_without_type");
+            throw new MissingPropertyException("enum_without_type");
         }
         if (nullableEnum == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("nullable_enum");
+            throw new MissingPropertyException("nullable_enum");
         }
         if (enumWithNull == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("enum_with_null");
+            throw new MissingPropertyException("enum_with_null");
         }
         return new EnumVariations(enumWithoutType, Optional.ofNullable(optionalEnum), nullableEnum, enumWithNull, Optional.ofNullable(nullableEnumWithNull));
     }

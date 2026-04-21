@@ -1,8 +1,6 @@
 package com.github.sp00m.jopenapi.generate;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
@@ -16,7 +14,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.With;
 import org.apache.commons.lang3.ClassUtils;
 
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import static com.github.javaparser.StaticJavaParser.*;
 import static com.github.javaparser.ast.Modifier.Keyword.STATIC;
@@ -25,7 +25,7 @@ import static com.github.javaparser.ast.Modifier.Keyword.STATIC;
 final class JavaRecordGenerator implements JavaTypeGenerator {
 
     private final JavaRecordDefinition recordDefinition;
-    private final CompilationUnit compiler = new CompilationUnit();
+    private final CompilationUnit compiler = CompilationUnitFactory.create();
 
     @Override
     public CompilationUnit generate() {
@@ -102,15 +102,6 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
     }
 
     private void addCompactConstructor(RecordDeclaration recordDeclaration, List<String> statements) {
-        if (statements.stream().anyMatch(s -> s.contains("Optional.empty()"))) {
-            compiler.addImport(Optional.class);
-        }
-        if (statements.stream().anyMatch(s -> s.contains("Collections.unmodifiable"))) {
-            compiler.addImport(Collections.class);
-        }
-        if (statements.stream().anyMatch(s -> s.contains("Objects.requireNonNullElse"))) {
-            compiler.addImport(Objects.class);
-        }
         var compactConstructor = new CompactConstructorDeclaration(
                 NodeList.nodeList(Modifier.publicModifier()),
                 recordDefinition.name()
@@ -128,9 +119,6 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
         var factoryChecks = new StringBuilder();
         var constructorArgs = new StringBuilder();
 
-        boolean needsObjects = false;
-        boolean needsOptional = false;
-
         for (int i = 0; i < fields.size(); i++) {
             var field = fields.get(i);
             var isReadOnly = Boolean.TRUE.equals(field.property().schema().getReadOnly());
@@ -144,14 +132,11 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
             if (isReadOnly) {
                 // Read-only fields are excluded from factory params, pass default
                 constructorArgs.append(getReadOnlyDefault(field));
-                if (getReadOnlyDefault(field).contains("Optional.empty()")) {
-                    needsOptional = true;
-                }
                 continue;
             }
 
             // Add factory parameter
-            if (factoryParams.length() > 0) {
+            if (!factoryParams.isEmpty()) {
                 factoryParams.append(", ");
             }
 
@@ -177,17 +162,15 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
                 constructorArgs.append(paramName);
             } else if (!field.property().optional()) {
                 // Required non-collection: null-check
-                factoryChecks.append("if (%s == null) { throw new com.github.jopenapi.support.MissingPropertyException(\"%s\"); }\n".formatted(
+                factoryChecks.append("if (%s == null) { throw new MissingPropertyException(\"%s\"); }\n".formatted(
                         paramName, field.property().name()));
                 constructorArgs.append(paramName);
             } else if (field.type().decoratedDefaultValue() != null) {
                 // Optional with default: use Objects.requireNonNullElse
-                needsObjects = true;
                 constructorArgs.append("Objects.requireNonNullElse(%s, %s)".formatted(
                         paramName, field.type().decoratedDefaultValue()));
             } else {
                 // Optional without default, non-collection: wrap in Optional.ofNullable
-                needsOptional = true;
                 constructorArgs.append("Optional.ofNullable(%s)".formatted(paramName));
             }
         }
@@ -213,27 +196,6 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
             }
         }
 
-        // Add imports
-        compiler.addImport(JsonCreator.class);
-        if (needsObjects) {
-            compiler.addImport(Objects.class);
-        }
-        if (needsOptional) {
-            compiler.addImport(Optional.class);
-        }
-        // Check if we need JsonProperty/JsonUnwrapped for factory params
-        var hasJsonProperty = fields.stream()
-                .anyMatch(f -> !Boolean.TRUE.equals(f.property().schema().getReadOnly())
-                        && !f.type().fieldAnnotators().contains(JavaFieldAnnotator.JSON_UNWRAPPED));
-        var hasJsonUnwrapped = fields.stream()
-                .anyMatch(f -> !Boolean.TRUE.equals(f.property().schema().getReadOnly())
-                        && f.type().fieldAnnotators().contains(JavaFieldAnnotator.JSON_UNWRAPPED));
-        if (hasJsonProperty) {
-            compiler.addImport(JsonProperty.class);
-        }
-        if (hasJsonUnwrapped) {
-            compiler.addImport(JsonUnwrapped.class);
-        }
     }
 
     private static NodeList<Parameter> parseParameters(String paramString) {
@@ -268,14 +230,14 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
     }
 
     static String getUnmodifiableWrapper(String fullName) {
-        if (fullName.startsWith("java.util.List<")) {
-            return "java.util.Collections.unmodifiableList";
+        if (fullName.startsWith("List<")) {
+            return "Collections.unmodifiableList";
         }
-        if (fullName.startsWith("java.util.Set<")) {
-            return "java.util.Collections.unmodifiableSet";
+        if (fullName.startsWith("Set<")) {
+            return "Collections.unmodifiableSet";
         }
-        if (fullName.startsWith("java.util.Map<")) {
-            return "java.util.Collections.unmodifiableMap";
+        if (fullName.startsWith("Map<")) {
+            return "Collections.unmodifiableMap";
         }
         throw new IllegalStateException("Unknown collection type: " + fullName);
     }

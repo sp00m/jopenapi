@@ -1,11 +1,11 @@
 package jopenapi.test.strings;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
-import java.util.Objects;
-import java.util.Optional;
+import com.fasterxml.jackson.annotation.*;
+import com.github.jopenapi.support.*;
+import jakarta.validation.constraints.*;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 import lombok.Builder;
 import lombok.With;
 
@@ -20,28 +20,28 @@ public record StringVariations(@JsonProperty(value = "as_date") java.time.LocalD
     @JsonCreator()
     static StringVariations create(@JsonProperty(value = "as_date") java.time.LocalDate asDate, @JsonProperty(value = "as_date_time") java.time.OffsetDateTime asDateTime, @JsonProperty(value = "as_uuid") java.util.UUID asUuid, @JsonProperty(value = "as_uri") java.net.URI asUri, @JsonProperty(value = "string_with_pattern") String stringWithPattern, @JsonProperty(value = "string_with_min") String stringWithMin, @JsonProperty(value = "string_with_max") String stringWithMax, @JsonProperty(value = "string_with_pattern_min_max") String stringWithPatternMinMax, @JsonProperty(value = "optional_string") String optionalString) {
         if (asDate == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("as_date");
+            throw new MissingPropertyException("as_date");
         }
         if (asDateTime == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("as_date_time");
+            throw new MissingPropertyException("as_date_time");
         }
         if (asUuid == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("as_uuid");
+            throw new MissingPropertyException("as_uuid");
         }
         if (asUri == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("as_uri");
+            throw new MissingPropertyException("as_uri");
         }
         if (stringWithPattern == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("string_with_pattern");
+            throw new MissingPropertyException("string_with_pattern");
         }
         if (stringWithMin == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("string_with_min");
+            throw new MissingPropertyException("string_with_min");
         }
         if (stringWithMax == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("string_with_max");
+            throw new MissingPropertyException("string_with_max");
         }
         if (stringWithPatternMinMax == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("string_with_pattern_min_max");
+            throw new MissingPropertyException("string_with_pattern_min_max");
         }
         return new StringVariations(asDate, asDateTime, asUuid, asUri, stringWithPattern, stringWithMin, stringWithMax, stringWithPatternMinMax, Optional.ofNullable(optionalString));
     }

@@ -1,11 +1,11 @@
 package jopenapi.test.integers;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
-import java.util.Objects;
-import java.util.Optional;
+import com.fasterxml.jackson.annotation.*;
+import com.github.jopenapi.support.*;
+import jakarta.validation.constraints.*;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 import lombok.Builder;
 import lombok.With;
 
@@ -21,25 +21,25 @@ public record IntegerVariations(@DecimalMin(value = "1", inclusive = true) @Json
     @JsonCreator()
     static IntegerVariations create(@JsonProperty(value = "integer_with_min_inclusive") Integer integerWithMinInclusive, @JsonProperty(value = "integer_with_min_exclusive") Integer integerWithMinExclusive, @JsonProperty(value = "integer_with_max_inclusive") Integer integerWithMaxInclusive, @JsonProperty(value = "integer_with_max_exclusive") Integer integerWithMaxExclusive, @JsonProperty(value = "integer_with_min_max") Integer integerWithMinMax, @JsonProperty(value = "mandatory_integer") Integer mandatoryInteger, @JsonProperty(value = "optional_integer") Integer optionalInteger, @JsonProperty(value = "mandatory_long") Long mandatoryLong, @JsonProperty(value = "optional_long") Long optionalLong) {
         if (integerWithMinInclusive == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("integer_with_min_inclusive");
+            throw new MissingPropertyException("integer_with_min_inclusive");
         }
         if (integerWithMinExclusive == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("integer_with_min_exclusive");
+            throw new MissingPropertyException("integer_with_min_exclusive");
         }
         if (integerWithMaxInclusive == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("integer_with_max_inclusive");
+            throw new MissingPropertyException("integer_with_max_inclusive");
         }
         if (integerWithMaxExclusive == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("integer_with_max_exclusive");
+            throw new MissingPropertyException("integer_with_max_exclusive");
         }
         if (integerWithMinMax == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("integer_with_min_max");
+            throw new MissingPropertyException("integer_with_min_max");
         }
         if (mandatoryInteger == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("mandatory_integer");
+            throw new MissingPropertyException("mandatory_integer");
         }
         if (mandatoryLong == null) {
-            throw new com.github.jopenapi.support.MissingPropertyException("mandatory_long");
+            throw new MissingPropertyException("mandatory_long");
         }
         return new IntegerVariations(integerWithMinInclusive, integerWithMinExclusive, integerWithMaxInclusive, integerWithMaxExclusive, integerWithMinMax, mandatoryInteger, Optional.ofNullable(optionalInteger), mandatoryLong, Optional.ofNullable(optionalLong));
     }

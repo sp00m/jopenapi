@@ -19,7 +19,7 @@ import static java.util.Map.Entry.comparingByKey;
 final class JavaInterfaceGenerator implements JavaTypeGenerator {
 
     private final JavaInterfaceDefinition interfaceDefinition;
-    private final CompilationUnit compiler = new CompilationUnit();
+    private final CompilationUnit compiler = CompilationUnitFactory.create();
 
     @Override
     public CompilationUnit generate() {

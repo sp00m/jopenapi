@@ -10,12 +10,6 @@ import com.github.sp00m.jopenapi.read.vo.JavaEnumDefinition;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import static com.github.javaparser.StaticJavaParser.parseBlock;
 import static com.github.javaparser.StaticJavaParser.parseExpression;
 import static com.github.javaparser.ast.Modifier.Keyword.*;
@@ -24,7 +18,7 @@ import static com.github.javaparser.ast.Modifier.Keyword.*;
 final class JavaEnumGenerator implements JavaTypeGenerator {
 
     private final JavaEnumDefinition enumDefinition;
-    private final CompilationUnit compiler = new CompilationUnit();
+    private final CompilationUnit compiler = CompilationUnitFactory.create();
 
     @Override
     public CompilationUnit generate() {
@@ -32,13 +26,6 @@ final class JavaEnumGenerator implements JavaTypeGenerator {
         EnumDeclaration enumDeclaration = compiler
                 .addEnum(enumDefinition.name())
                 .addAnnotation(RequiredArgsConstructor.class);
-
-        compiler
-                .addImport(Map.class)
-                .addImport(Stream.class)
-                .addImport(Collectors.class)
-                .addImport(Function.class)
-                .addImport(Optional.class);
 
         enumDeclaration.addFieldWithInitializer(
                 "Map<String, %s>".formatted(enumDefinition.name()),

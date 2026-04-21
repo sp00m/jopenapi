@@ -1,13 +1,16 @@
 package jopenapi.test.maps;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Collections;
+import com.fasterxml.jackson.annotation.*;
+import com.github.jopenapi.support.*;
+import jakarta.validation.constraints.*;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 
-public record SimpleMap(@JsonValue() java.util.Map<String, Integer> value) {
+public record SimpleMap(@JsonValue() Map<String, Integer> value) {
 
     @JsonCreator()
     public SimpleMap {
-        value = value == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(value);
+        value = value == null ? Collections.emptyMap() : Collections.unmodifiableMap(value);
     }
 }

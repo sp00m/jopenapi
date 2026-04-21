@@ -73,24 +73,24 @@ public class JavaType {
     }
 
     public JavaType set() {
-        var updatedFullName = "java.util.Set<%s>".formatted(fullName);
+        var updatedFullName = "Set<%s>".formatted(fullName);
         var updatedFieldAnnotators = new TreeSet<>(fieldAnnotators);
         updatedFieldAnnotators.add(JavaFieldAnnotator.SIZE);
-        return new JavaType(updatedFullName, definition, updatedFieldAnnotators, "java.util.Collections.emptySet()", UnaryOperator.identity(), true, description);
+        return new JavaType(updatedFullName, definition, updatedFieldAnnotators, "Collections.emptySet()", UnaryOperator.identity(), true, description);
     }
 
     public JavaType list() {
-        var updatedFullName = "java.util.List<%s>".formatted(fullName);
+        var updatedFullName = "List<%s>".formatted(fullName);
         var updatedFieldAnnotators = new TreeSet<>(fieldAnnotators);
         updatedFieldAnnotators.add(JavaFieldAnnotator.SIZE);
-        return new JavaType(updatedFullName, definition, updatedFieldAnnotators, "java.util.Collections.emptyList()", UnaryOperator.identity(), true, description);
+        return new JavaType(updatedFullName, definition, updatedFieldAnnotators, "Collections.emptyList()", UnaryOperator.identity(), true, description);
     }
 
     public JavaType map() {
-        var updatedFullName = "java.util.Map<String, %s>".formatted(fullName);
+        var updatedFullName = "Map<String, %s>".formatted(fullName);
         var updatedFieldAnnotators = new TreeSet<>(fieldAnnotators);
         updatedFieldAnnotators.add(JavaFieldAnnotator.SIZE);
-        return new JavaType(updatedFullName, definition, updatedFieldAnnotators, "java.util.Collections.emptyMap()", UnaryOperator.identity(), true, description);
+        return new JavaType(updatedFullName, definition, updatedFieldAnnotators, "Collections.emptyMap()", UnaryOperator.identity(), true, description);
     }
 
     public JavaType jsonProperty() {
