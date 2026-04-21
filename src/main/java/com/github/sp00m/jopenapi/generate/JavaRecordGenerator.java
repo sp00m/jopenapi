@@ -62,39 +62,39 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
     private static String addField(CompilationUnit compiler, RecordDeclaration recordDeclaration, JavaFieldDefinition field) {
         var fieldType = field.type();
         Optional
-                .ofNullable(fieldType.getDefinition())
+                .ofNullable(fieldType.definition())
                 .ifPresent(typeDefinition -> addMember(compiler, recordDeclaration, typeDefinition));
         var param = new Parameter(parseType(getRecordParamType(field)), field.name());
         recordDeclaration.getParameters().add(param);
         fieldType
-                .getFieldAnnotators()
+                .fieldAnnotators()
                 .forEach(annotator -> annotator.annotate(param, field.property()));
         return getCompactConstructorStatement(field);
     }
 
     private static String getRecordParamType(JavaFieldDefinition fieldDefinition) {
         var fieldType = fieldDefinition.type();
-        if (fieldType.isCollection()) {
-            return fieldType.getFullName();
+        if (fieldType.collection()) {
+            return fieldType.fullName();
         }
-        if (!fieldDefinition.property().optional() || fieldType.getDefaultValue() != null) {
-            return toPrimitiveType(fieldType.getFullName())
+        if (!fieldDefinition.property().optional() || fieldType.decoratedDefaultValue() != null) {
+            return toPrimitiveType(fieldType.fullName())
                     .map(Class::getName)
-                    .orElse(fieldType.getFullName());
+                    .orElse(fieldType.fullName());
         }
-        return "Optional<%s>".formatted(fieldType.getFullName());
+        return "Optional<%s>".formatted(fieldType.fullName());
     }
 
     private static String getCompactConstructorStatement(JavaFieldDefinition fieldDefinition) {
         var fieldType = fieldDefinition.type();
         var fieldName = fieldDefinition.name();
-        if (fieldType.isCollection()) {
-            var emptyValue = fieldType.getDefaultValue();
-            var unmodifiable = getUnmodifiableWrapper(fieldType.getFullName());
+        if (fieldType.collection()) {
+            var emptyValue = fieldType.decoratedDefaultValue();
+            var unmodifiable = getUnmodifiableWrapper(fieldType.fullName());
             return "%s = %s == null ? %s : %s(%s);".formatted(
                     fieldName, fieldName, emptyValue, unmodifiable, fieldName);
         }
-        if (fieldDefinition.property().optional() && fieldType.getDefaultValue() == null) {
+        if (fieldDefinition.property().optional() && fieldType.decoratedDefaultValue() == null) {
             return "%s = Objects.requireNonNullElse(%s, Optional.empty());".formatted(
                     fieldName, fieldName);
         }
@@ -135,7 +135,7 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
             var field = fields.get(i);
             var isReadOnly = Boolean.TRUE.equals(field.property().schema().getReadOnly());
             var isWriteOnly = Boolean.TRUE.equals(field.property().schema().getWriteOnly());
-            var isJsonUnwrapped = field.type().getFieldAnnotators().contains(JavaFieldAnnotator.JSON_UNWRAPPED);
+            var isJsonUnwrapped = field.type().fieldAnnotators().contains(JavaFieldAnnotator.JSON_UNWRAPPED);
 
             if (i > 0) {
                 constructorArgs.append(", ");
@@ -155,7 +155,7 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
                 factoryParams.append(", ");
             }
 
-            var paramType = field.type().getFullName();
+            var paramType = field.type().fullName();
             var paramName = field.name();
 
             // Build annotation for the factory parameter
@@ -172,7 +172,7 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
             factoryParams.append("%s %s".formatted(paramType, paramName));
 
             // Build validation/transformation in factory body and constructor arg
-            if (field.type().isCollection()) {
+            if (field.type().collection()) {
                 // Collections pass through as-is — compact constructor handles null/immutability
                 constructorArgs.append(paramName);
             } else if (!field.property().optional()) {
@@ -180,11 +180,11 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
                 factoryChecks.append("if (%s == null) { throw new com.github.jopenapi.support.MissingPropertyException(\"%s\"); }\n".formatted(
                         paramName, field.property().name()));
                 constructorArgs.append(paramName);
-            } else if (field.type().getDefaultValue() != null) {
+            } else if (field.type().decoratedDefaultValue() != null) {
                 // Optional with default: use Objects.requireNonNullElse
                 needsObjects = true;
                 constructorArgs.append("Objects.requireNonNullElse(%s, %s)".formatted(
-                        paramName, field.type().getDefaultValue()));
+                        paramName, field.type().decoratedDefaultValue()));
             } else {
                 // Optional without default, non-collection: wrap in Optional.ofNullable
                 needsOptional = true;
@@ -224,10 +224,10 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
         // Check if we need JsonProperty/JsonUnwrapped for factory params
         var hasJsonProperty = fields.stream()
                 .anyMatch(f -> !Boolean.TRUE.equals(f.property().schema().getReadOnly())
-                        && !f.type().getFieldAnnotators().contains(JavaFieldAnnotator.JSON_UNWRAPPED));
+                        && !f.type().fieldAnnotators().contains(JavaFieldAnnotator.JSON_UNWRAPPED));
         var hasJsonUnwrapped = fields.stream()
                 .anyMatch(f -> !Boolean.TRUE.equals(f.property().schema().getReadOnly())
-                        && f.type().getFieldAnnotators().contains(JavaFieldAnnotator.JSON_UNWRAPPED));
+                        && f.type().fieldAnnotators().contains(JavaFieldAnnotator.JSON_UNWRAPPED));
         if (hasJsonProperty) {
             compiler.addImport(JsonProperty.class);
         }
@@ -246,19 +246,19 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
 
     private static String getReadOnlyDefault(JavaFieldDefinition field) {
         var fieldType = field.type();
-        if (fieldType.isCollection()) {
-            return fieldType.getDefaultValue(); // e.g. java.util.Collections.emptyList()
+        if (fieldType.collection()) {
+            return fieldType.decoratedDefaultValue(); // e.g. java.util.Collections.emptyList()
         }
-        if (field.property().optional() && fieldType.getDefaultValue() == null) {
+        if (field.property().optional() && fieldType.decoratedDefaultValue() == null) {
             // It's Optional<X> in the record
             return "Optional.empty()";
         }
-        if (fieldType.getDefaultValue() != null) {
-            return fieldType.getDefaultValue();
+        if (fieldType.decoratedDefaultValue() != null) {
+            return fieldType.decoratedDefaultValue();
         }
         // Fallback for required read-only primitives (shouldn't normally happen
         // since read-only properties are now treated as optional)
-        var primitiveType = toPrimitiveType(fieldType.getFullName());
+        var primitiveType = toPrimitiveType(fieldType.fullName());
         if (primitiveType.isPresent()) {
             var prim = primitiveType.get();
             if (prim == boolean.class) return "false";

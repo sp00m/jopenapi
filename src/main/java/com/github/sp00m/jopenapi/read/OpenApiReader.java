@@ -14,9 +14,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
 @RequiredArgsConstructor
@@ -106,7 +106,7 @@ public final class OpenApiReader {
 
     private List<JavaTypeDefinition> link(List<JavaTypeDefinition> typeDefinitions) {
 
-        var typeDefinitionsByName = typeDefinitions.stream().collect(toMap(JavaTypeDefinition::fullName, identity()));
+        var typeDefinitionsByName = typeDefinitions.stream().collect(toMap(JavaTypeDefinition::fullName, Function.identity()));
 
         typeDefinitions
                 .stream()
@@ -155,12 +155,12 @@ public final class OpenApiReader {
     }
 
     private JavaFieldDefinition linkEnum(JavaFieldDefinition field, Map<String, JavaTypeDefinition> typeDefinitionsByName) {
-        var fieldTypeDefinition = typeDefinitionsByName.get(field.type().getFullName());
+        var fieldTypeDefinition = typeDefinitionsByName.get(field.type().fullName());
         if (!(fieldTypeDefinition instanceof JavaEnumDefinition enumDefinition)) {
             return field;
         }
         var type = field.type().defaultValueDecorator(enumDefinition::decorateDefaultValue);
-        if (field.property().optional() && field.type().getDefaultValue() == null && enumDefinition.defaultValue() != null) {
+        if (field.property().optional() && field.type().decoratedDefaultValue() == null && enumDefinition.defaultValue() != null) {
             type = type.defaultValue(enumDefinition.defaultValue());
         }
         return field.withType(type);

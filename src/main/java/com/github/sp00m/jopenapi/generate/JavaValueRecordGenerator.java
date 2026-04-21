@@ -34,9 +34,9 @@ final class JavaValueRecordGenerator implements JavaTypeGenerator {
         var fieldDefinition = valueRecordDefinition.field();
         var fieldType = fieldDefinition.type();
         var paramType = JavaRecordGenerator
-                .toPrimitiveType(fieldType.getFullName())
+                .toPrimitiveType(fieldType.fullName())
                 .map(Class::getName)
-                .orElse(fieldType.getFullName());
+                .orElse(fieldType.fullName());
 
         var param = new Parameter(parseType(paramType), fieldDefinition.name());
         recordDeclaration.getParameters().add(param);
@@ -49,10 +49,10 @@ final class JavaValueRecordGenerator implements JavaTypeGenerator {
         compiler.addImport(JsonCreator.class);
         compactConstructor.addAnnotation(JsonCreator.class);
 
-        if (fieldType.isCollection()) {
+        if (fieldType.collection()) {
             compiler.addImport(Collections.class);
-            var emptyValue = fieldType.getDefaultValue();
-            var unmodifiable = JavaRecordGenerator.getUnmodifiableWrapper(fieldType.getFullName());
+            var emptyValue = fieldType.decoratedDefaultValue();
+            var unmodifiable = JavaRecordGenerator.getUnmodifiableWrapper(fieldType.fullName());
             var statement = "%s = %s == null ? %s : %s(%s);".formatted(
                     fieldDefinition.name(), fieldDefinition.name(),
                     emptyValue, unmodifiable, fieldDefinition.name());

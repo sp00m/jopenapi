@@ -72,7 +72,7 @@ public final class JavaGenerator {
         }
         if (typeDefinition instanceof JavaRecordDefinition recordDefinition) {
             recordDefinition.fields().forEach(field -> {
-                var desc = field.type().getDescription();
+                var desc = field.type().description();
                 if (desc != null) {
                     if (!javadocBuilder.isEmpty()) {
                         javadocBuilder.append("\n");

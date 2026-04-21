@@ -212,7 +212,7 @@ final class OpenApiSchemaReader {
         if (itemsType == null) {
             return null;
         }
-        var type = new JavaType(itemsType.getFullName(), itemsType.getDefinition());
+        var type = new JavaType(itemsType.fullName(), itemsType.definition());
         return Boolean.TRUE.equals(schema.getUniqueItems()) ? type.set() : type.list();
     }
 
@@ -233,7 +233,7 @@ final class OpenApiSchemaReader {
         if (additionalPropertiesType == null) {
             return null;
         }
-        return new JavaType(additionalPropertiesType.getFullName(), additionalPropertiesType.getDefinition()).map();
+        return new JavaType(additionalPropertiesType.fullName(), additionalPropertiesType.definition()).map();
     }
 
     private JavaType readStandardObject() {
@@ -294,7 +294,7 @@ final class OpenApiSchemaReader {
                     if (refType == null) {
                         return null;
                     }
-                    var refTypeName = refType.getFullName().substring(refType.getFullName().lastIndexOf('.'));
+                    var refTypeName = refType.fullName().substring(refType.fullName().lastIndexOf('.'));
                     var fieldName = Names.toFieldName(refTypeName);
                     var property = new OpenApiProperty(fieldName, allOfSchema, false);
                     return new JavaFieldDefinition(property, fieldName, refType.jsonUnwrapped());
@@ -313,8 +313,8 @@ final class OpenApiSchemaReader {
             return new JavaType(className, recordDefinition);
         } else if (nonRefTypes.size() == 1) {
             var nonRefInnerType = nonRefTypes.get(0);
-            var nonRefInnerTypeDefinition = nonRefInnerType.getDefinition();
-            if (nonRefInnerTypeDefinition instanceof JavaRecordDefinition recordDefinition && !nonRefInnerType.isCollection()) {
+            var nonRefInnerTypeDefinition = nonRefInnerType.definition();
+            if (nonRefInnerTypeDefinition instanceof JavaRecordDefinition recordDefinition && !nonRefInnerType.collection()) {
                 return new JavaType(recordDefinition.name(), recordDefinition.addFields(refFieldDefinitions));
             } else {
                 throw new IllegalStateException("Only a non-$ref schema of type 'object' is supported with 'allOf'");

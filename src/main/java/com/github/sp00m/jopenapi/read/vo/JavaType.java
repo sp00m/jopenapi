@@ -4,6 +4,7 @@ import com.github.sp00m.jopenapi.read.JavaFieldAnnotator;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Value;
+import lombok.experimental.Accessors;
 
 import java.util.Collections;
 import java.util.Set;
@@ -11,20 +12,19 @@ import java.util.TreeSet;
 import java.util.function.UnaryOperator;
 
 @Value
+@Accessors(fluent = true)
 public class JavaType {
 
     String fullName;
     JavaTypeDefinition definition;
     Set<JavaFieldAnnotator> fieldAnnotators;
+    @Getter(AccessLevel.NONE)
     String defaultValue;
     @Getter(AccessLevel.NONE)
     UnaryOperator<String> defaultValueDecorator;
+    String decoratedDefaultValue;
     boolean collection;
     String description;
-
-    public String getDefaultValue() {
-        return defaultValue == null ? null : defaultValueDecorator.apply(defaultValue);
-    }
 
     private JavaType(
             String fullName,
@@ -40,6 +40,7 @@ public class JavaType {
         this.fieldAnnotators = Collections.unmodifiableSet(new TreeSet<>(fieldAnnotators));
         this.defaultValue = defaultValue;
         this.defaultValueDecorator = defaultValueDecorator;
+        this.decoratedDefaultValue = defaultValue == null ? null : defaultValueDecorator.apply(defaultValue);
         this.collection = collection;
         this.description = description;
     }
