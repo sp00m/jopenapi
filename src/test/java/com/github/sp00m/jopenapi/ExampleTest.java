@@ -84,4 +84,12 @@ class ExampleTest {
         }
     }
 
+    @SneakyThrows
+    public static void main(String[] args) {
+        var basePackageName = "jopenapi.test";
+        var inputDir = new File("src/test/resources/example/schemas");
+        var actualOutputDir = new File("src/test/resources/example/generated");
+        Main.run(basePackageName, inputDir, actualOutputDir, false);
+    }
+
 }

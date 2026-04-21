@@ -112,12 +112,13 @@ Leading digits are spelled out (`1foo` → `OneFoo`). Reserved words get a `Valu
 
 1. Make your code changes.
 2. Run `mvn compile`.
-3. Delete `src/test/resources/example/generated/jopenapi/` and regenerate:
-   ```java
-   Main.run("jopenapi.test", new File("src/test/resources/example/schemas"),
-            new File("src/test/resources/example/generated"), false);
+3. Run `ExampleTest.main` to regenerate the expected files in-place:
    ```
-4. Run `mvn test` and verify all tests pass.
+   mvn exec:java -Dexec.mainClass="com.github.sp00m.jopenapi.ExampleTest" -Dexec.classpathScope="test"
+   ```
+   This calls `Main.run(…)` pointing directly at `src/test/resources/example/generated`, overwriting the expected files.
+4. **Verify the generated DTOs** — do not blindly accept the output. Check that the changes in the generated files match what you actually intended (correct types, annotations, null-handling, defaults, etc.).
+5. Run `mvn test` and verify all tests pass.
 
 Test schemas live in `src/test/resources/example/schemas/` and cover integers, booleans, strings, numbers, arrays, maps, enums, refs, allOf, oneOf, anyOf, not, defaults, readwrite, and javadoc.
 
