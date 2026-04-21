@@ -94,7 +94,7 @@ public record MyObject(
     }
 
     @JsonCreator
-    public static MyObject create(
+    static MyObject create(
         @JsonProperty("my_required_int") Integer myRequiredInt,
         @JsonProperty("my_optional_int_without_default") Integer myOptionalIntWithoutDefault,
         @JsonProperty("my_optional_int_with_default") Integer myOptionalIntWithDefault
