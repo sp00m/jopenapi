@@ -8,4 +8,12 @@ public record OpenApiProperty(
         boolean optional
 ) {
 
+    public boolean readOnly() {
+        return Boolean.TRUE.equals(schema.getReadOnly());
+    }
+
+    public boolean writeOnly() {
+        return Boolean.TRUE.equals(schema.getWriteOnly());
+    }
+
 }

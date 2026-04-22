@@ -278,8 +278,8 @@ final class OpenApiSchemaReader {
                 .orElseGet(Collections::emptySet)
                 .contains("null");
         var isNullable = (Boolean.TRUE.equals(propertySchema.getNullable()) || hasNullType) && (enumValues.isEmpty() || enumValues.contains(null));
-        var isReadOnly = Boolean.TRUE.equals(propertySchema.getReadOnly());
         var isOptional = !requiredProperties.contains(propertyName);
+        var isReadOnly = Boolean.TRUE.equals(propertySchema.getReadOnly());
         var hasMin = propertySchema.getMinItems() != null && propertySchema.getMinItems() > 0
                 || propertySchema.getMinProperties() != null && propertySchema.getMinProperties() > 0;
         return (isNullable || isOptional || isReadOnly) && !hasMin;

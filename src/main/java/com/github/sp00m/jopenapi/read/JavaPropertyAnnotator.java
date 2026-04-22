@@ -14,11 +14,11 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Optional;
 
 @Slf4j
-public enum JavaFieldAnnotator {
+public enum JavaPropertyAnnotator {
 
     MIN {
         @Override
-        public void annotate(NodeWithAnnotations<?> node, OpenApiProperty property) {
+        public void annotateRecordField(NodeWithAnnotations<?> node, OpenApiProperty property) {
             if (property.schema().getMinimum() == null) {
                 return;
             }
@@ -29,11 +29,16 @@ public enum JavaFieldAnnotator {
                     .addPair("value", "\"%s\"".formatted(min))
                     .addPair("inclusive", "%b".formatted(!exclusive));
         }
+
+        @Override
+        public void annotateFactoryArgument(NodeWithAnnotations<?> node, OpenApiProperty property) {
+            // noop
+        }
     },
 
     MAX {
         @Override
-        public void annotate(NodeWithAnnotations<?> node, OpenApiProperty property) {
+        public void annotateRecordField(NodeWithAnnotations<?> node, OpenApiProperty property) {
             if (property.schema().getMaximum() == null) {
                 return;
             }
@@ -44,21 +49,31 @@ public enum JavaFieldAnnotator {
                     .addPair("value", "\"%s\"".formatted(max))
                     .addPair("inclusive", "%b".formatted(!exclusive));
         }
+
+        @Override
+        public void annotateFactoryArgument(NodeWithAnnotations<?> node, OpenApiProperty property) {
+            // noop
+        }
     },
 
     MULTIPLE_OF {
         @Override
-        public void annotate(NodeWithAnnotations<?> node, OpenApiProperty property) {
+        public void annotateRecordField(NodeWithAnnotations<?> node, OpenApiProperty property) {
             if (property.schema().getMultipleOf() == null) {
                 return;
             }
             log.warn("'multipleOf' not supported");
         }
+
+        @Override
+        public void annotateFactoryArgument(NodeWithAnnotations<?> node, OpenApiProperty property) {
+            // noop
+        }
     },
 
     SIZE {
         @Override
-        public void annotate(NodeWithAnnotations<?> node, OpenApiProperty property) {
+        public void annotateRecordField(NodeWithAnnotations<?> node, OpenApiProperty property) {
             if (property.schema().getMinLength() == null && property.schema().getMaxLength() == null
                     && property.schema().getMinItems() == null && property.schema().getMaxItems() == null
                     && property.schema().getMinProperties() == null && property.schema().getMaxProperties() == null) {
@@ -77,11 +92,16 @@ public enum JavaFieldAnnotator {
                     .addPair("min", "%d".formatted(min))
                     .addPair("max", "%d".formatted(max));
         }
+
+        @Override
+        public void annotateFactoryArgument(NodeWithAnnotations<?> node, OpenApiProperty property) {
+            // noop
+        }
     },
 
     PATTERN {
         @Override
-        public void annotate(NodeWithAnnotations<?> node, OpenApiProperty property) {
+        public void annotateRecordField(NodeWithAnnotations<?> node, OpenApiProperty property) {
             if (property.schema().getPattern() == null) {
                 return;
             }
@@ -90,18 +110,28 @@ public enum JavaFieldAnnotator {
                     .addAndGetAnnotation(Pattern.class)
                     .addPair("regexp", "\"%s\"".formatted(pattern));
         }
+
+        @Override
+        public void annotateFactoryArgument(NodeWithAnnotations<?> node, OpenApiProperty property) {
+            // noop
+        }
     },
 
     JSON_UNWRAPPED {
         @Override
-        public void annotate(NodeWithAnnotations<?> node, OpenApiProperty property) {
+        public void annotateRecordField(NodeWithAnnotations<?> node, OpenApiProperty property) {
             node.addAnnotation(JsonUnwrapped.class);
+        }
+
+        @Override
+        public void annotateFactoryArgument(NodeWithAnnotations<?> node, OpenApiProperty property) {
+            annotateRecordField(node, property);
         }
     },
 
     JSON_PROPERTY {
         @Override
-        public void annotate(NodeWithAnnotations<?> node, OpenApiProperty property) {
+        public void annotateRecordField(NodeWithAnnotations<?> node, OpenApiProperty property) {
             var value = "\"%s\"".formatted(property.name());
             var annotation = node
                     .addAndGetAnnotation(JsonProperty.class)
@@ -116,10 +146,15 @@ public enum JavaFieldAnnotator {
             }
         }
 
+        @Override
+        public void annotateFactoryArgument(NodeWithAnnotations<?> node, OpenApiProperty property) {
+            annotateRecordField(node, property);
+        }
+
         private JsonProperty.Access getAccess(OpenApiProperty property) {
-            if (Boolean.TRUE.equals(property.schema().getReadOnly())) {
+            if (property.readOnly()) {
                 return JsonProperty.Access.READ_ONLY;
-            } else if (Boolean.TRUE.equals(property.schema().getWriteOnly())) {
+            } else if (property.writeOnly()) {
                 return JsonProperty.Access.WRITE_ONLY;
             } else {
                 return JsonProperty.Access.AUTO;
@@ -127,6 +162,8 @@ public enum JavaFieldAnnotator {
         }
     };
 
-    public abstract void annotate(NodeWithAnnotations<?> node, OpenApiProperty property);
+    public abstract void annotateRecordField(NodeWithAnnotations<?> node, OpenApiProperty property);
+
+    public abstract void annotateFactoryArgument(NodeWithAnnotations<?> node, OpenApiProperty property);
 
 }

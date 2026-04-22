@@ -4,20 +4,22 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
-import com.github.sp00m.jopenapi.read.JavaFieldAnnotator;
 import com.github.sp00m.jopenapi.read.vo.JavaFieldDefinition;
 import com.github.sp00m.jopenapi.read.vo.JavaRecordDefinition;
 import com.github.sp00m.jopenapi.read.vo.JavaTypeDefinition;
+import joptsimple.internal.Strings;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.With;
 import org.apache.commons.lang3.ClassUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.github.javaparser.StaticJavaParser.*;
+import static com.github.javaparser.StaticJavaParser.parseBlock;
+import static com.github.javaparser.StaticJavaParser.parseType;
 import static com.github.javaparser.ast.Modifier.Keyword.PUBLIC;
 import static com.github.javaparser.ast.Modifier.Keyword.STATIC;
 
@@ -66,8 +68,8 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
         var param = new Parameter(parseType(getFieldType(field)), field.name());
         recordDeclaration.getParameters().add(param);
         fieldType
-                .fieldAnnotators()
-                .forEach(annotator -> annotator.annotate(param, field.property()));
+                .propertyAnnotators()
+                .forEach(annotator -> annotator.annotateRecordField(param, field.property()));
         return getCompactConstructorStatement(field);
     }
 
@@ -107,121 +109,57 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
     }
 
     private void addFactoryMethod(RecordDeclaration recordDeclaration) {
-        var fields = recordDefinition.fields();
 
-        // Build factory parameter list (excluding read-only fields)
-        var factoryParams = new StringBuilder();
-        var factoryChecks = new StringBuilder();
-        var constructorArgs = new StringBuilder();
+        var factoryArgs = new ArrayList<Parameter>();
+        var checks = new ArrayList<String>();
+        var constructorArgs = new ArrayList<String>();
 
-        for (int i = 0; i < fields.size(); i++) {
-            var field = fields.get(i);
-            var isReadOnly = Boolean.TRUE.equals(field.property().schema().getReadOnly());
-            var isWriteOnly = Boolean.TRUE.equals(field.property().schema().getWriteOnly());
-            var isJsonUnwrapped = field.type().fieldAnnotators().contains(JavaFieldAnnotator.JSON_UNWRAPPED);
+        for (JavaFieldDefinition field : recordDefinition.fields()) {
 
-            if (i > 0) {
-                constructorArgs.append(", ");
-            }
-
-            if (isReadOnly) {
-                // Read-only fields are excluded from factory params, pass default
-                constructorArgs.append(getReadOnlyDefault(field));
+            if (field.property().readOnly()) {
+                constructorArgs.add("null");
                 continue;
             }
 
-            // Add factory parameter
-            if (!factoryParams.isEmpty()) {
-                factoryParams.append(", ");
-            }
+            var param = new Parameter(parseType(field.type().fullName()), field.name());
+            field
+                    .type()
+                    .propertyAnnotators()
+                    .forEach(annotator -> annotator.annotateFactoryArgument(param, field.property()));
+            factoryArgs.add(param);
 
-            var paramType = field.type().fullName();
-            var paramName = field.name();
-
-            // Build annotation for the factory parameter
-            if (isJsonUnwrapped) {
-                factoryParams.append("@JsonUnwrapped() ");
-            } else {
-                factoryParams.append("@JsonProperty(value = \"%s\"".formatted(field.property().name()));
-                if (isWriteOnly) {
-                    factoryParams.append(", access = JsonProperty.Access.WRITE_ONLY");
-                }
-                factoryParams.append(") ");
-            }
-
-            factoryParams.append("%s %s".formatted(paramType, paramName));
-
-            // Build validation/transformation in factory body and constructor arg
             if (field.type().collection()) {
-                // Collections pass through as-is — compact constructor handles null/immutability
-                constructorArgs.append(paramName);
+                constructorArgs.add(field.name());
             } else if (!field.property().optional()) {
-                // Required non-collection: null-check
-                factoryChecks.append("if (%s == null) { throw new MissingPropertyException(\"%s\"); }\n".formatted(
-                        paramName, field.property().name()));
-                constructorArgs.append(paramName);
+                checks.add("if (%s == null) { throw new MissingPropertyException(\"%s\"); }\n".formatted(
+                        field.name(), field.property().name()));
+                constructorArgs.add(field.name());
             } else if (field.type().decoratedDefaultValue() != null) {
-                // Optional with default: use Objects.requireNonNullElse
-                constructorArgs.append("Objects.requireNonNullElse(%s, %s)".formatted(
-                        paramName, field.type().decoratedDefaultValue()));
+                constructorArgs.add("Objects.requireNonNullElse(%s, %s)".formatted(field.name(), field.type().decoratedDefaultValue()));
             } else {
-                // Optional without default, non-collection: wrap in Optional.ofNullable
-                constructorArgs.append("Optional.ofNullable(%s)".formatted(paramName));
+                constructorArgs.add("Optional.ofNullable(%s)".formatted(field.name()));
             }
-        }
 
-        var methodBody = new StringBuilder();
-        methodBody.append("{\n");
-        methodBody.append(factoryChecks);
-        methodBody.append("return new %s(%s);\n".formatted(recordDefinition.name(), constructorArgs));
-        methodBody.append("}");
-
-        var method = recordDeclaration.addMethod("create", STATIC);
-        method.setType(parseType(recordDefinition.name()));
-        method.setBody(parseBlock(methodBody.toString()));
-        method.addAnnotation(JsonCreator.class);
-
-        // Parse and add parameters to the method
-        if (factoryParams.length() > 0) {
-            // Parse each parameter with annotations
-            var paramString = factoryParams.toString();
-            var parsedParams = parseParameters(paramString);
-            for (var param : parsedParams) {
-                method.addParameter(param);
-            }
         }
+        ;
 
-    }
+        var body = """
+                {
+                    %s
+                    return new %s(%s);
+                }
+                """.formatted(
+                Strings.join(checks, ""),
+                recordDefinition.name(),
+                Strings.join(constructorArgs, ", ")
+        );
 
-    private static NodeList<Parameter> parseParameters(String paramString) {
-        // Parse by creating a temporary method declaration
-        var tempMethod = "class Tmp { void m(%s) {} }".formatted(paramString);
-        var tempCu = parse(tempMethod);
-        var tempMethodDecl = tempCu.getType(0).getMethods().get(0);
-        return tempMethodDecl.getParameters();
-    }
-
-    private static String getReadOnlyDefault(JavaFieldDefinition field) {
-        var fieldType = field.type();
-        if (fieldType.collection()) {
-            return fieldType.decoratedDefaultValue(); // e.g. java.util.Collections.emptyList()
-        }
-        if (field.property().optional() && fieldType.decoratedDefaultValue() == null) {
-            // It's Optional<X> in the record
-            return "Optional.empty()";
-        }
-        if (fieldType.decoratedDefaultValue() != null) {
-            return fieldType.decoratedDefaultValue();
-        }
-        // Fallback for required read-only primitives (shouldn't normally happen
-        // since read-only properties are now treated as optional)
-        var primitiveType = toPrimitiveType(fieldType.fullName());
-        if (primitiveType.isPresent()) {
-            var prim = primitiveType.get();
-            if (prim == boolean.class) return "false";
-            return "0";
-        }
-        return "null";
+        recordDeclaration
+                .addMethod("create", STATIC)
+                .addAnnotation(JsonCreator.class)
+                .setType(parseType(recordDefinition.name()))
+                .setBody(parseBlock(body))
+                .setParameters(new NodeList<>(factoryArgs));
     }
 
     private static void addMember(CompilationUnit compiler, TypeDeclaration<?> parentType, JavaTypeDefinition innerTypeDefinition) {
