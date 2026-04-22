@@ -8,6 +8,14 @@ import com.github.sp00m.jopenapi.Names;
 import com.github.sp00m.jopenapi.read.vo.JavaEnumDefinition;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.Catalog;
+import org.jooq.EnumType;
+import org.jooq.Schema;
+import org.jooq.impl.DSL;
+
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
 
 import static com.github.javaparser.StaticJavaParser.parseBlock;
 import static com.github.javaparser.StaticJavaParser.parseExpression;
@@ -38,7 +46,7 @@ final class JavaEnumGenerator implements JavaTypeGenerator {
         enumDeclaration
                 .addMethod("value", PUBLIC)
                 .setType(String.class)
-                .setBody(parseBlock("{return value;}"))
+                .setBody(parseBlock("{ return value; }"))
                 .addAnnotation(JsonValue.class);
 
         final String onValueNotFound;
@@ -53,7 +61,7 @@ final class JavaEnumGenerator implements JavaTypeGenerator {
                 .addMethod("findByValue", PUBLIC, STATIC)
                 .setType(enumDefinition.name())
                 .addParameter(String.class, "value")
-                .setBody(parseBlock("{return Optional.ofNullable(value).map(BY_VALUE::get)%s;}".formatted(onValueNotFound)))
+                .setBody(parseBlock("{ return Optional.ofNullable(value).map(BY_VALUE::get)%s; }".formatted(onValueNotFound)))
                 .addAnnotation(JsonCreator.class);
 
         enumDefinition.values().forEach(value -> {
@@ -61,6 +69,39 @@ final class JavaEnumGenerator implements JavaTypeGenerator {
             valueDeclaration.addArgument("\"" + value + "\"");
             enumDeclaration.addEntry(valueDeclaration);
         });
+
+        var extensions = Optional
+                .ofNullable(enumDefinition.schema().getExtensions())
+                .orElseGet(Collections::emptyMap);
+        if (extensions.get("x-jooq") instanceof Map<?, ?> jooq) {
+            compiler.addImport("org.jooq.*", false, true);
+            compiler.addImport(DSL.class);
+            enumDeclaration.addImplementedType(EnumType.class);
+            enumDeclaration
+                    .addMethod("getLiteral", PUBLIC)
+                    .setType(String.class)
+                    .setBody(parseBlock("{ return value; }"))
+                    .addAnnotation(Override.class);
+            enumDeclaration
+                    .addMethod("getName", PUBLIC)
+                    .setType(String.class)
+                    .setBody(parseBlock("{ return %s; }".formatted(jooq.get("name") instanceof String name ? "\"%s\"".formatted(name) : "null")))
+                    .addAnnotation(Override.class);
+            if (jooq.get("catalog") instanceof String catalog) {
+                enumDeclaration
+                        .addMethod("getCatalog", PUBLIC)
+                        .setType(Catalog.class)
+                        .setBody(parseBlock("{ return DSL.catalog(\"%s\"); }".formatted(catalog)))
+                        .addAnnotation(Override.class);
+            }
+            if (jooq.get("schema") instanceof String schema) {
+                enumDeclaration
+                        .addMethod("getSchema", PUBLIC)
+                        .setType(Schema.class)
+                        .setBody(parseBlock("{ return DSL.schema(\"%s\"); }".formatted(schema)))
+                        .addAnnotation(Override.class);
+            }
+        }
 
         return compiler;
     }

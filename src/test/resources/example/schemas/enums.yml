@@ -39,3 +39,20 @@ components:
         - enum_without_type
         - nullable_enum
         - enum_with_null
+
+    JooqEnumDefault:
+      type: string
+      enum:
+        - foo
+        - bar
+      x-jooq: {}
+
+    JooqEnumCustom:
+      type: string
+      enum:
+        - foo
+        - bar
+      x-jooq:
+        catalog: test_catalog
+        name: test_name
+        schema: ""

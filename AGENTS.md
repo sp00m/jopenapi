@@ -50,7 +50,7 @@ Produces Java source code from the value objects using JavaParser.
 |---|---|
 | `JavaGenerator` | Orchestrates generation: dispatches to the correct type generator, adds JavaDoc, sets the package declaration, sorts imports. |
 | `JavaRecordGenerator` | Generates `record` declarations with `@With`, `@Builder(toBuilder = true)`, compact constructor, and `@JsonCreator` static factory method. |
-| `JavaEnumGenerator` | Generates `enum` declarations with `@JsonValue`, `@JsonCreator`, and optional default-fallback logic. |
+| `JavaEnumGenerator` | Generates `enum` declarations with `@JsonValue`, `@JsonCreator`, optional default-fallback logic, and optional `org.jooq.EnumType` implementation when `x-jooq` is present on the schema. |
 | `JavaValueRecordGenerator` | Generates wrapper records for simple/collection top-level types (`SimpleInteger`, `SimpleArray`, …). |
 | `JavaInterfaceGenerator` | Generates `sealed interface` declarations with `@JsonTypeInfo` and `@JsonSubTypes` for `oneOf`. |
 
@@ -63,7 +63,7 @@ Writes generated sources to disk, optionally running a delombok pass.
 | `JavaFileWriter` | Writes `.java` files. When `delombok=true`, writes to a temp directory first, then runs `Delomboker`. |
 | `Delomboker` | Invokes `java -jar lombok.jar delombok` as a subprocess to expand Lombok annotations into plain Java. |
 
-`Main.run()` also copies the bundled `/support/MissingPropertyException.java` resource into `com/github/jopenapi/support/` inside the output directory, so consumers have no external dependency for that class.
+`Main.run()` also copies the bundled `/support/*.java` resources into `com/github/jopenapi/support/` inside the output directory, so consumers have no external dependency for these classes.
 
 ## `@JsonCreator` factory method — how it works
 
@@ -134,6 +134,7 @@ Test schemas live in `src/test/resources/example/schemas/` and cover integers, b
 | `jakarta.validation:jakarta.validation-api` | Validation annotations used in generated code |
 | `org.projectlombok:lombok` | `@Builder`, `@With` in pre-delombok code; also used in the tool's own source |
 | `info.picocli:picocli` | CLI argument parsing |
+| `org.jooq:jooq` | `EnumType`, `Catalog`, `Schema`, `DSL` — used in generated code when `x-jooq` is present |
 
 ## After every code change
 
@@ -150,4 +151,5 @@ Test schemas live in `src/test/resources/example/schemas/` and cover integers, b
 - **Test comparison is byte-exact.** Any whitespace, import order, or annotation argument difference will fail the test. If you change generation logic, always regenerate the expected files.
 - **`@JsonUnwrapped` + `@JsonCreator`.** This works since Jackson 2.19. `@JsonUnwrapped` fields in allOf records are included in the factory method parameters with the `@JsonUnwrapped` annotation (not `@JsonProperty`).
 - **Read-only properties are treated as optional.** `isPropertyOptional()` in `OpenApiSchemaReader` returns `true` when `readOnly` is set, ensuring these fields become `Optional<T>` or collections. They are excluded from the `@JsonCreator` factory.
+- **`x-jooq` and `JavaEnumDefinition`.** `JavaEnumDefinition` stores the full `Schema<?>` object (mutable) so that `JavaEnumGenerator` can read `getExtensions()` for `x-jooq`. The `description()` method delegates to `schema.getDescription()` to preserve the `JavaTypeDefinition` interface contract. Consumers of `JooqEnumDefault`/`JooqEnumCustom`-style enums must have `org.jooq:jooq` on their classpath.
 

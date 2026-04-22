@@ -175,7 +175,7 @@ final class OpenApiSchemaReader {
 
     private JavaType readEnum(List<String> enumValues, String defaultValue) {
         var enumName = Names.toClassName(schemaName);
-        var enumDefinition = new JavaEnumDefinition(packageName, enumName, schema.getDescription(), enumValues, defaultValue);
+        var enumDefinition = new JavaEnumDefinition(packageName, enumName, schema, enumValues, defaultValue);
         return new JavaType(enumName, enumDefinition).defaultValueDecorator(enumDefinition::decorateDefaultValue);
     }
 

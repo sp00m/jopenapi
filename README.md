@@ -18,7 +18,7 @@ jopenapi produces Java `record` types that enforce a few strict rules at the typ
 Every generated record includes a `@JsonCreator` static factory method. The factory:
 
 - Accepts **boxed types** for all parameters (e.g. `Integer` instead of `int`) so Jackson can distinguish missing values from zero/false.
-- **Validates required fields** — throws `IllegalArgumentException` when a required property is `null`.
+- **Validates required fields** — throws `com.github.jopenapi.support.MissingPropertyException` when a required property is `null`.
 - **Applies defaults** — uses `Objects.requireNonNullElse(value, default)` for optional properties with a schema-level default.
 - **Wraps optionals** — uses `Optional.ofNullable(value)` for optional properties without a default.
 - **Excludes read-only fields** — read-only properties are not part of the factory signature; they receive a safe default (`Optional.empty()`, empty collection, …).
@@ -28,6 +28,94 @@ The compact constructor remains a safety net: it ensures collection immutability
 ### Enum defaults
 
 When an enum schema has a `default`, that value is used as a fallback for invalid inputs. If an optional property references such an enum without a local default, the enum's default is inherited automatically.
+
+### jOOQ integration
+
+If you use [jOOQ](https://www.jooq.org/), you can make generated enums implement `org.jooq.EnumType` by adding an `x-jooq` extension to the schema. This lets jOOQ bind enum values directly to SQL enum columns without any manual mapping.
+
+The extension accepts the following optional fields:
+
+| Field | Type | Description |
+|---|---|---|
+| `name` | `string` | SQL type name returned by `getName()`. Omit to return `null` (anonymous type). |
+| `catalog` | `string` | Catalog name, generates a `getCatalog()` override. Omit to use the jOOQ default. |
+| `schema` | `string` | Schema name, generates a `getSchema()` override. Omit to use the jOOQ default. |
+
+**Minimal opt-in** (no SQL metadata — `getName()` returns `null`):
+
+```yaml
+components:
+  schemas:
+    Status:
+      type: string
+      enum:
+        - active
+        - inactive
+      x-jooq: {}
+```
+
+Generates:
+
+```java
+public enum Status implements EnumType {
+
+    ACTIVE("active"), INACTIVE("inactive");
+
+    // ... BY_VALUE map, value field, @JsonValue, @JsonCreator ...
+
+    @Override
+    public String getLiteral() {
+        return value;
+    }
+
+    @Override
+    public String getName() {
+        return null;
+    }
+}
+```
+
+**Full metadata** (bound to a specific catalog/schema/type):
+
+```yaml
+components:
+  schemas:
+    Status:
+      type: string
+      enum:
+        - active
+        - inactive
+      x-jooq:
+        name: status
+        catalog: my_catalog
+        schema: my_schema
+```
+
+Generates:
+
+```java
+public enum Status implements EnumType {
+
+    // ...
+
+    @Override
+    public String getName() {
+        return "status";
+    }
+
+    @Override
+    public Catalog getCatalog() {
+        return DSL.catalog("my_catalog");
+    }
+
+    @Override
+    public Schema getSchema() {
+        return DSL.schema("my_schema");
+    }
+}
+```
+
+> **Note:** your project must have `org.jooq:jooq` on the classpath to compile the generated enums that use `x-jooq`.
 
 ## Prerequisites
 
