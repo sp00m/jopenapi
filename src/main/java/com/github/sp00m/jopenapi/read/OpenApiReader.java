@@ -106,7 +106,9 @@ public final class OpenApiReader {
 
     private List<JavaTypeDefinition> link(List<JavaTypeDefinition> typeDefinitions) {
 
-        var typeDefinitionsByName = typeDefinitions.stream().collect(toMap(JavaTypeDefinition::fullName, Function.identity()));
+        var typeDefinitionsByName = typeDefinitions
+                .stream()
+                .collect(toMap(JavaTypeDefinition::fullName, Function.identity()));
 
         typeDefinitions
                 .stream()
@@ -139,7 +141,11 @@ public final class OpenApiReader {
                     entry.setValue(updatedRecordDefinition);
                 });
 
-        return typeDefinitionsByName.values().stream().sorted().toList();
+        return typeDefinitionsByName
+                .values()
+                .stream()
+                .sorted()
+                .toList();
     }
 
     private JavaRecordDefinition linkInterface(JavaInterfaceDefinition interfaceDefinition, String implementingType, Map<String, JavaTypeDefinition> typeDefinitionsByName) {

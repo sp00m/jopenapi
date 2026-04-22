@@ -141,7 +141,6 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
             }
 
         }
-        ;
 
         var body = """
                 {

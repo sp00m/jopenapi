@@ -10,6 +10,9 @@ public final class CompilationUnitFactory {
     public static CompilationUnit create() {
         return new CompilationUnit()
                 .addImport("java.util.*", false, true)
+                .addImport("java.time.*", false, true)
+                .addImport("java.net.*", false, true)
+                .addImport("java.math.*", false, true)
                 .addImport("java.util.stream.*", false, true)
                 .addImport("java.util.function.*", false, true)
                 .addImport("com.github.jopenapi.support.*", false, true)

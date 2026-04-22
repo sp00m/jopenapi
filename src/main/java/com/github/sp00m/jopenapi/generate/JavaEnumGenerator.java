@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
-import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.sp00m.jopenapi.Names;
 import com.github.sp00m.jopenapi.read.vo.JavaEnumDefinition;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,7 @@ final class JavaEnumGenerator implements JavaTypeGenerator {
     @Override
     public CompilationUnit generate() {
 
-        EnumDeclaration enumDeclaration = compiler
+        var enumDeclaration = compiler
                 .addEnum(enumDefinition.name())
                 .addAnnotation(RequiredArgsConstructor.class);
 
@@ -36,7 +35,8 @@ final class JavaEnumGenerator implements JavaTypeGenerator {
 
         enumDeclaration.addField(String.class, "value", PRIVATE, FINAL);
 
-        enumDeclaration.addMethod("value", PUBLIC)
+        enumDeclaration
+                .addMethod("value", PUBLIC)
                 .setType(String.class)
                 .setBody(parseBlock("{return value;}"))
                 .addAnnotation(JsonValue.class);
@@ -45,11 +45,12 @@ final class JavaEnumGenerator implements JavaTypeGenerator {
         if (enumDefinition.defaultValue() == null) {
             onValueNotFound = ".orElseThrow(() -> new InvalidPropertyException(\"%s\", value))".formatted(enumDefinition.name());
         } else {
-            onValueNotFound = ".orElseGet(() -> {log.warn(\"No %s with value {}\", value);return %s;})".formatted(enumDefinition.name(), enumDefinition.decorateDefaultValue());
+            onValueNotFound = ".orElseGet(() -> { log.warn(\"No %s with value {}\", value); return %s; })".formatted(enumDefinition.name(), enumDefinition.decorateDefaultValue());
             enumDeclaration.addAnnotation(Slf4j.class);
         }
 
-        enumDeclaration.addMethod("findByValue", PUBLIC, STATIC)
+        enumDeclaration
+                .addMethod("findByValue", PUBLIC, STATIC)
                 .setType(enumDefinition.name())
                 .addParameter(String.class, "value")
                 .setBody(parseBlock("{return Optional.ofNullable(value).map(BY_VALUE::get)%s;}".formatted(onValueNotFound)))

@@ -30,7 +30,8 @@ final class OpenApiSchemaReader {
     @Nullable
     public JavaType read() {
         try {
-            var type = Objects.requireNonNull(readOrThrow())
+            var type = Objects
+                    .requireNonNull(readOrThrow())
                     .description(schema.getDescription());
             return Optional
                     .ofNullable(schema.getDefault())
@@ -111,7 +112,8 @@ final class OpenApiSchemaReader {
         if (types == null || types.isEmpty()) {
             return null;
         }
-        return types.stream()
+        return types
+                .stream()
                 .filter(t -> !"null".equals(t))
                 .findFirst()
                 .orElse(null);
@@ -158,13 +160,13 @@ final class OpenApiSchemaReader {
                 .orElse("");
         return switch (format) {
             case "date" -> new JavaType(LocalDate.class)
-                    .defaultValueDecorator("java.time.LocalDate.parse(\"%s\")"::formatted);
+                    .defaultValueDecorator("LocalDate.parse(\"%s\")"::formatted);
             case "date-time" -> new JavaType(OffsetDateTime.class)
-                    .defaultValueDecorator("java.time.OffsetDateTime.parse(\"%s\")"::formatted);
+                    .defaultValueDecorator("OffsetDateTime.parse(\"%s\")"::formatted);
             case "uuid" -> new JavaType(UUID.class)
-                    .defaultValueDecorator("java.util.UUID.fromString(\"%s\")"::formatted);
+                    .defaultValueDecorator("UUID.fromString(\"%s\")"::formatted);
             case "uri" -> new JavaType(URI.class)
-                    .defaultValueDecorator("java.net.URI.create(\"%s\")"::formatted);
+                    .defaultValueDecorator("URI.create(\"%s\")"::formatted);
             default -> new JavaType(String.class)
                     .string()
                     .defaultValueDecorator("\"%s\""::formatted);
@@ -184,7 +186,7 @@ final class OpenApiSchemaReader {
         var field = switch (format) {
             case "float" -> new JavaType(Float.class).defaultValueDecorator("%sF"::formatted);
             case "double" -> new JavaType(Double.class).defaultValueDecorator("%sD"::formatted);
-            default -> new JavaType(Number.class).defaultValueDecorator("new java.math.BigDecimal(\"%s\")"::formatted);
+            default -> new JavaType(Number.class).defaultValueDecorator("new BigDecimal(\"%s\")"::formatted);
         };
         return field.number();
     }
