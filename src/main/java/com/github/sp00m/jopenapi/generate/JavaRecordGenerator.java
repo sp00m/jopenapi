@@ -131,7 +131,7 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
             if (field.type().collection()) {
                 constructorArgs.add(field.name());
             } else if (!field.property().optional()) {
-                checks.add("if (%s == null) { throw new MissingPropertyException(\"%s\"); }\n".formatted(
+                checks.add("if (%s == null) { throw new MissingPropertyException(\"%s\"); }".formatted(
                         field.name(), field.property().name()));
                 constructorArgs.add(field.name());
             } else if (field.type().decoratedDefaultValue() != null) {
@@ -142,12 +142,7 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
 
         }
 
-        var body = """
-                {
-                    %s
-                    return new %s(%s);
-                }
-                """.formatted(
+        var body = "{ %s return new %s(%s); }".formatted(
                 Strings.join(checks, ""),
                 recordDefinition.name(),
                 Strings.join(constructorArgs, ", ")
