@@ -30,16 +30,17 @@ Parses OpenAPI specs and produces value objects representing schemas.
 
 | Class | Responsibility |
 |---|---|
-| `OpenApiReader` | Scans an input directory for `.yml`/`.yaml`/`.json` files (or accepts a single schema file directly), parses each, and links cross-schema references (interfaces for `oneOf`, enum defaults). When a single file is given, DTOs are placed directly in the base package with no subpackage. |
+| `OpenApiReader` | Scans an input directory for `.yml`/`.yaml`/`.json` files (recursing into subdirectories) or accepts a single schema file directly when passed a `File` that is not a directory. Parses each file, links cross-schema references (interfaces for `oneOf`, enum defaults). When a single file is given, DTOs are placed directly in the base package with no subpackage. |
 | `OpenApiComponentReader` | Reads a single OpenAPI component schema and produces a `JavaTypeDefinition`. Wraps simple/collection types in `JavaValueRecordDefinition`. |
 | `OpenApiSchemaReader` | Recursive schema reader. Handles `string`, `number`, `integer`, `boolean`, `array`, `object`, `$ref`, `allOf`, `oneOf`, `enum`. Returns a `JavaType`. |
-| `JavaFieldAnnotator` | Enum of annotation strategies (`MIN`, `MAX`, `SIZE`, `PATTERN`, `JSON_PROPERTY`, `JSON_UNWRAPPED`). Each adds Jakarta Validation or Jackson annotations to a record parameter. |
+| `JavaPropertyAnnotator` | Enum of annotation strategies (`MIN`, `MAX`, `MULTIPLE_OF`, `SIZE`, `PATTERN`, `JSON_UNWRAPPED`, `JSON_PROPERTY`). Each strategy implements two methods: `annotateRecordField` (applied to the record component) and `annotateFactoryArgument` (applied to the `@JsonCreator` factory parameter). Adds Jakarta Validation or Jackson annotations. |
 
 **Key value objects** (`read.vo`):
 
 - `JavaType` — immutable type descriptor: full name, optional `JavaTypeDefinition`, field annotators, default value + decorator, collection flag, description.
 - `JavaFieldDefinition` — a field: `OpenApiProperty` + Java name + `JavaType`.
-- `OpenApiProperty` — original property name, schema, optional flag.
+- `OpenApiProperty` — original property name, schema, optional/readOnly/writeOnly flags.
+- `OpenApiComponent` — a raw OpenAPI component: name + raw `Schema<?>` object, used internally by `OpenApiReader` to pass components to `OpenApiComponentReader`.
 - `JavaRecordDefinition`, `JavaEnumDefinition`, `JavaValueRecordDefinition`, `JavaInterfaceDefinition` — type definitions that implement `JavaTypeDefinition`.
 
 ### Phase 2 — Generate (`com.github.sp00m.jopenapi.generate`)

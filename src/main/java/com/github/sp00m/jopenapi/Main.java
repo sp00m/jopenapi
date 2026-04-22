@@ -15,7 +15,6 @@ import java.util.concurrent.Callable;
 @Command(
         name = "jopenapi",
         mixinStandardHelpOptions = true,
-        version = "jopenapi 0-SNAPSHOT",
         description = "Generate Java DTOs from OpenAPI schemas."
 )
 public class Main implements Callable<Integer> {
@@ -30,7 +29,7 @@ public class Main implements Callable<Integer> {
     @Option(
             names = {"-i", "--input"},
             required = true,
-            description = "Input directory containing OpenAPI schema files (.yml, .yaml, .json)."
+            description = "Input directory or single file containing OpenAPI schema(s) (.yml, .yaml, .json). When a single file is provided, DTOs are placed directly in the base package."
     )
     private File inputDir;
 
@@ -43,8 +42,8 @@ public class Main implements Callable<Integer> {
 
     @Override
     public Integer call() {
-        if (!inputDir.isDirectory()) {
-            log.error("Input path is not an existing directory: {}", inputDir);
+        if (!inputDir.exists()) {
+            log.error("Input path does not exist: {}", inputDir);
             return 1;
         }
         try {
