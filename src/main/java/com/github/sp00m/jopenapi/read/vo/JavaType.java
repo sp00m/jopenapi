@@ -37,7 +37,7 @@ public class JavaType {
             boolean collection,
             String description
     ) {
-        this.fullName = fullName.replaceFirst("^java\\.lang\\.([^.]+)$", "$1");
+        this.fullName = fullName.replaceFirst("^java\\.(?:lang|util|time|net)\\.([^.]+)$", "$1");
         this.definition = definition;
         this.propertyAnnotators = Collections.unmodifiableSet(new TreeSet<>(propertyAnnotators));
         this.defaultValue = defaultValue;
