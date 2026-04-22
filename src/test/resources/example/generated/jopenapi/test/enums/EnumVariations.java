@@ -22,7 +22,7 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
 
         WITHOUT_TYPE("without type");
 
-        private static final Map<String, EnumWithoutType> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(EnumWithoutType::get, Function.identity()));
+        private static final Map<String, EnumWithoutType> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(EnumWithoutType::value, Function.identity()));
 
         private final String value;
 
@@ -42,7 +42,7 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
 
         OPTIONAL("optional");
 
-        private static final Map<String, OptionalEnum> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(OptionalEnum::get, Function.identity()));
+        private static final Map<String, OptionalEnum> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(OptionalEnum::value, Function.identity()));
 
         private final String value;
 
@@ -62,7 +62,7 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
 
         NULLABLE("nullable");
 
-        private static final Map<String, NullableEnum> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(NullableEnum::get, Function.identity()));
+        private static final Map<String, NullableEnum> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(NullableEnum::value, Function.identity()));
 
         private final String value;
 
@@ -82,7 +82,7 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
 
         WITH_NULL("with null");
 
-        private static final Map<String, EnumWithNull> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(EnumWithNull::get, Function.identity()));
+        private static final Map<String, EnumWithNull> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(EnumWithNull::value, Function.identity()));
 
         private final String value;
 
@@ -102,7 +102,7 @@ public record EnumVariations(@JsonProperty(value = "enum_without_type") EnumWith
 
         WITH_NULL("with null");
 
-        private static final Map<String, NullableEnumWithNull> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(NullableEnumWithNull::get, Function.identity()));
+        private static final Map<String, NullableEnumWithNull> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(NullableEnumWithNull::value, Function.identity()));
 
         private final String value;
 

@@ -18,7 +18,7 @@ public enum LocalEnumWithDefault {
 
     FOO("foo"), BAR("bar");
 
-    private static final Map<String, LocalEnumWithDefault> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(LocalEnumWithDefault::get, Function.identity()));
+    private static final Map<String, LocalEnumWithDefault> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(LocalEnumWithDefault::value, Function.identity()));
 
     private final String value;
 

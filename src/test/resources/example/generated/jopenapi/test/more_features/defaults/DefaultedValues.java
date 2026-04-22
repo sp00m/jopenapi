@@ -24,7 +24,7 @@ public record DefaultedValues(@JsonProperty(value = "defaulted_int") int default
 
         FOO("foo"), BAR("bar");
 
-        private static final Map<String, DefaultedInternalEnum> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(DefaultedInternalEnum::get, Function.identity()));
+        private static final Map<String, DefaultedInternalEnum> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(DefaultedInternalEnum::value, Function.identity()));
 
         private final String value;
 

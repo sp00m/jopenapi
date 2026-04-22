@@ -29,9 +29,11 @@ public final class JavaFileWriter {
         if (delombok) {
             var tempOutputDir = Files.createTempDirectory("jopenapi-").toFile();
             javaFiles.forEach(javaFile -> write(tempOutputDir, javaFile));
+            writeSupportClasses(tempOutputDir);
             new Delomboker(tempOutputDir, finalBaseOutputDir).delombok();
         } else {
             javaFiles.forEach(javaFile -> write(finalBaseOutputDir, javaFile));
+            writeSupportClasses(finalBaseOutputDir);
         }
     }
 
@@ -61,6 +63,27 @@ public final class JavaFileWriter {
             }
 
         });
+    }
+
+    @SneakyThrows
+    private static void writeSupportClasses(File outputDir) {
+        var supportPackage = "com.github.jopenapi.support";
+        var supportDir = new File(outputDir, supportPackage.replace('.', '/'));
+        supportDir.mkdirs();
+        writeSupportClass(supportDir, "MissingPropertyException.java");
+        writeSupportClass(supportDir, "InvalidPropertyException.java");
+    }
+
+    @SneakyThrows
+    private static void writeSupportClass(File supportDir, String fileName) {
+        var resourcePath = "/support/" + fileName;
+        var dest = new File(supportDir, fileName);
+        try (var in = JavaFileWriter.class.getResourceAsStream(resourcePath)) {
+            if (in == null) {
+                throw new IllegalStateException("Support class not found: " + resourcePath);
+            }
+            Files.write(dest.toPath(), in.readAllBytes());
+        }
     }
 
 }

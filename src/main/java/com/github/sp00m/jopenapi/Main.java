@@ -3,14 +3,12 @@ package com.github.sp00m.jopenapi;
 import com.github.sp00m.jopenapi.generate.JavaGenerator;
 import com.github.sp00m.jopenapi.read.OpenApiReader;
 import com.github.sp00m.jopenapi.write.JavaFileWriter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.util.concurrent.Callable;
 
 @Slf4j
@@ -73,29 +71,7 @@ public class Main implements Callable<Integer> {
         var typeDefinitions = new OpenApiReader(basePackageName, inputDir).read();
         var javaFiles = new JavaGenerator(typeDefinitions).generate();
         new JavaFileWriter(outputDir, javaFiles, delombok).write();
-        writeSupportClasses(outputDir);
         return javaFiles.size();
-    }
-
-    @SneakyThrows
-    private static void writeSupportClasses(File outputDir) {
-        var supportPackage = "com.github.jopenapi.support";
-        var supportDir = new File(outputDir, supportPackage.replace('.', '/'));
-        supportDir.mkdirs();
-        writeSupportClass(supportDir, "MissingPropertyException.java");
-        writeSupportClass(supportDir, "InvalidPropertyException.java");
-    }
-
-    @SneakyThrows
-    private static void writeSupportClass(File supportDir, String fileName) {
-        var resourcePath = "/support/" + fileName;
-        var dest = new File(supportDir, fileName);
-        try (var in = Main.class.getResourceAsStream(resourcePath)) {
-            if (in == null) {
-                throw new IllegalStateException("Support class not found: " + resourcePath);
-            }
-            Files.write(dest.toPath(), in.readAllBytes());
-        }
     }
 
 }

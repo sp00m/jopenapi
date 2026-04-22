@@ -16,7 +16,7 @@ public enum SimpleEnum {
 
     VALUE_1("value 1"), VALUE_2("value 2");
 
-    private static final Map<String, SimpleEnum> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(SimpleEnum::get, Function.identity()));
+    private static final Map<String, SimpleEnum> BY_VALUE = Stream.of(values()).collect(Collectors.toUnmodifiableMap(SimpleEnum::value, Function.identity()));
 
     private final String value;
 

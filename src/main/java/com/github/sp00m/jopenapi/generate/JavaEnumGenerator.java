@@ -29,7 +29,7 @@ final class JavaEnumGenerator implements JavaTypeGenerator {
         enumDeclaration.addFieldWithInitializer(
                 "Map<String, %s>".formatted(enumDefinition.name()),
                 "BY_VALUE",
-                parseExpression("Stream.of(values()).collect(Collectors.toUnmodifiableMap(%s::get, Function.identity()))".formatted(enumDefinition.name())),
+                parseExpression("Stream.of(values()).collect(Collectors.toUnmodifiableMap(%s::value, Function.identity()))".formatted(enumDefinition.name())),
                 PRIVATE, STATIC, FINAL
         );
 
