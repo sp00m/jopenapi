@@ -16,7 +16,7 @@ These rules are fundamental to the project and must never be bypassed:
 
 3. **Use primitives** — when a property is required (or optional but has a default), and its type maps to a Java primitive, use the primitive instead of the boxed type.
 
-4. **Enum defaults** — when an enum has a `default`, that default is used for invalid values. When an optional property references such an enum without a local default, it inherits the enum's default.
+4. **Enum defaults** — when an enum has a `default`, that default is used for invalid values and a warning is logged. When an optional property references such an enum without a local default, it inherits the enum's default. When an enum has **no** `default`, attempting to parse an unknown value throws `com.github.jopenapi.support.InvalidPropertyException`.
 
 5. **Explicit null == no value** — an explicit `null` in JSON behaves identically to an absent value.
 

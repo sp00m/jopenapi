@@ -27,7 +27,9 @@ The compact constructor remains a safety net: it ensures collection immutability
 
 ### Enum defaults
 
-When an enum schema has a `default`, that value is used as a fallback for invalid inputs. If an optional property references such an enum without a local default, the enum's default is inherited automatically.
+When an enum schema has a `default`, that value is used as a fallback for invalid inputs and a warning is logged. If an optional property references such an enum without a local default, the enum's default is inherited automatically.
+
+When an enum schema has **no** `default`, attempting to deserialize an unknown value throws `com.github.jopenapi.support.InvalidPropertyException`.
 
 ### jOOQ integration
 
