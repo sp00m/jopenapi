@@ -46,7 +46,9 @@ public final class Names {
                 .collect(collectingAndThen(joining("_"), Names::ensureValid));
     }
 
-    /** Appends {@code Value} if the name collides with a Java keyword or is otherwise invalid. */
+    /**
+     * Appends {@code Value} if the name collides with a Java keyword or is otherwise invalid.
+     */
     private static String ensureValid(String name) {
         return SourceVersion.isName(name) ? name : name + "Value";
     }

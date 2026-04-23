@@ -108,7 +108,7 @@ public final class OpenApiSchema {
         return null;
     }
 
-    public boolean getUniqueItems() {
+    public boolean isUniqueItems() {
         return Boolean.TRUE.equals(schema.getUniqueItems());
     }
 
@@ -122,7 +122,7 @@ public final class OpenApiSchema {
                 .toList();
     }
 
-    public boolean getNullable() {
+    public boolean isNullable() {
         var enumValues = schema.getEnum();
         var hasNullType = Optional.ofNullable(schema.getTypes()).orElseGet(Collections::emptySet).contains("null");
         // An enum is only nullable if its values list explicitly includes null
@@ -133,43 +133,35 @@ public final class OpenApiSchema {
         return schema.getPattern();
     }
 
-    public Integer getMinLength() {
-        return schema.getMinLength();
+    public Integer getMinSize() {
+        return Optional
+                .ofNullable(schema.getMinLength())
+                .or(() -> Optional.ofNullable(schema.getMinItems()))
+                .or(() -> Optional.ofNullable(schema.getMinProperties()))
+                .orElse(null);
     }
 
-    public Integer getMaxLength() {
-        return schema.getMaxLength();
+    public Integer getMaxSize() {
+        return Optional
+                .ofNullable(schema.getMaxLength())
+                .or(() -> Optional.ofNullable(schema.getMaxItems()))
+                .or(() -> Optional.ofNullable(schema.getMaxProperties()))
+                .orElse(null);
     }
 
-    public Integer getMinItems() {
-        return schema.getMinItems();
-    }
-
-    public Integer getMaxItems() {
-        return schema.getMaxItems();
-    }
-
-    public Integer getMinProperties() {
-        return schema.getMinProperties();
-    }
-
-    public Integer getMaxProperties() {
-        return schema.getMaxProperties();
-    }
-
-    public BigDecimal getMinimum() {
+    public BigDecimal getDecimalMin() {
         return schema.getMinimum();
     }
 
-    public BigDecimal getMaximum() {
+    public BigDecimal getDecimalMax() {
         return schema.getMaximum();
     }
 
-    public boolean getExclusiveMinimum() {
+    public boolean isExclusiveMinimum() {
         return Boolean.TRUE.equals(schema.getExclusiveMinimum());
     }
 
-    public boolean getExclusiveMaximum() {
+    public boolean isExclusiveMaximum() {
         return Boolean.TRUE.equals(schema.getExclusiveMaximum());
     }
 
@@ -184,11 +176,11 @@ public final class OpenApiSchema {
         return schema.getMultipleOf();
     }
 
-    public boolean getReadOnly() {
+    public boolean isReadOnly() {
         return Boolean.TRUE.equals(schema.getReadOnly());
     }
 
-    public boolean getWriteOnly() {
+    public boolean isWriteOnly() {
         return Boolean.TRUE.equals(schema.getWriteOnly());
     }
 

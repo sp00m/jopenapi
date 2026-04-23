@@ -200,7 +200,7 @@ final class OpenApiSchemaReader {
             return null;
         }
         var type = new JavaType(itemsType.fullName(), itemsType.definition());
-        return schema.getUniqueItems() ? type.set() : type.list();
+        return schema.isUniqueItems() ? type.set() : type.list();
     }
 
     @Nullable
@@ -270,9 +270,9 @@ final class OpenApiSchemaReader {
      * {@link JavaPropertyAnnotator#SIZE}.
      */
     private boolean isPropertyOptional(String propertyName, OpenApiSchema propertySchema, List<String> requiredProperties) {
-        var isNullable = propertySchema.getNullable();
+        var isNullable = propertySchema.isNullable();
         var isOptional = !requiredProperties.contains(propertyName);
-        var isReadOnly = propertySchema.getReadOnly();
+        var isReadOnly = propertySchema.isReadOnly();
         return isNullable || isOptional || isReadOnly;
     }
 

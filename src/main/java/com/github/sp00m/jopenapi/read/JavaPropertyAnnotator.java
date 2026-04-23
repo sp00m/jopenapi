@@ -11,8 +11,6 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Optional;
-
 /**
  * Enum of annotation strategies applied to record fields and factory parameters.
  *
@@ -29,11 +27,11 @@ public enum JavaPropertyAnnotator {
     MIN {
         @Override
         public void annotateRecordField(NodeWithAnnotations<?> node, OpenApiProperty property) {
-            if (property.schema().getMinimum() == null) {
+            if (property.schema().getDecimalMin() == null) {
                 return;
             }
-            var min = property.schema().getMinimum().toString();
-            var exclusive = property.schema().getExclusiveMinimum();
+            var min = property.schema().getDecimalMin().toString();
+            var exclusive = property.schema().isExclusiveMinimum();
             node
                     .addAndGetAnnotation(DecimalMin.class)
                     .addPair("value", "\"%s\"".formatted(min))
@@ -49,11 +47,11 @@ public enum JavaPropertyAnnotator {
     MAX {
         @Override
         public void annotateRecordField(NodeWithAnnotations<?> node, OpenApiProperty property) {
-            if (property.schema().getMaximum() == null) {
+            if (property.schema().getDecimalMax() == null) {
                 return;
             }
-            var max = property.schema().getMaximum().toString();
-            var exclusive = property.schema().getExclusiveMaximum();
+            var max = property.schema().getDecimalMax().toString();
+            var exclusive = property.schema().isExclusiveMaximum();
             node
                     .addAndGetAnnotation(DecimalMax.class)
                     .addPair("value", "\"%s\"".formatted(max))
@@ -84,20 +82,18 @@ public enum JavaPropertyAnnotator {
     SIZE {
         @Override
         public void annotateRecordField(NodeWithAnnotations<?> node, OpenApiProperty property) {
-            if (property.schema().getMinLength() == null && property.schema().getMaxLength() == null
-                    && property.schema().getMinItems() == null && property.schema().getMaxItems() == null
-                    && property.schema().getMinProperties() == null && property.schema().getMaxProperties() == null) {
+            var min = property.schema().getMinSize();
+            var max = property.schema().getMaxSize();
+            if (min == null && max == null) {
                 return;
             }
-            var min = Optional.ofNullable(property.schema().getMinLength())
-                    .or(() -> Optional.ofNullable(property.schema().getMinItems()))
-                    .or(() -> Optional.ofNullable(property.schema().getMinProperties()));
-            var max = Optional.ofNullable(property.schema().getMaxLength())
-                    .or(() -> Optional.ofNullable(property.schema().getMaxItems()))
-                    .or(() -> Optional.ofNullable(property.schema().getMaxProperties()));
             var size = node.addAndGetAnnotation(Size.class);
-            min.ifPresent(i -> size.addPair("min", "%d".formatted(i)));
-            max.ifPresent(i -> size.addPair("max", "%d".formatted(i)));
+            if (min != null) {
+                size.addPair("min", "%d".formatted(min));
+            }
+            if (max != null) {
+                size.addPair("max", "%d".formatted(max));
+            }
         }
 
         @Override
@@ -159,9 +155,9 @@ public enum JavaPropertyAnnotator {
         }
 
         private JsonProperty.Access getAccess(OpenApiProperty property) {
-            if (property.schema().getReadOnly()) {
+            if (property.schema().isReadOnly()) {
                 return JsonProperty.Access.READ_ONLY;
-            } else if (property.schema().getWriteOnly()) {
+            } else if (property.schema().isWriteOnly()) {
                 return JsonProperty.Access.WRITE_ONLY;
             } else {
                 return JsonProperty.Access.AUTO;
