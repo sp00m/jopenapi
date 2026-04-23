@@ -98,7 +98,7 @@ public final class OpenApiReader {
                 .getSchemas()
                 .entrySet()
                 .stream()
-                .map(e -> new OpenApiComponent(e.getKey(), e.getValue()))
+                .map(e -> new OpenApiComponent(e.getKey(), new OpenApiSchema(e.getValue())))
                 .map(component -> readComponent(packageName, component))
                 .filter(Objects::nonNull)
                 .toList();

@@ -2,8 +2,6 @@ package com.github.sp00m.jopenapi.read;
 
 import com.github.sp00m.jopenapi.Names;
 import com.github.sp00m.jopenapi.read.vo.*;
-import io.swagger.v3.oas.models.media.Discriminator;
-import io.swagger.v3.oas.models.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,7 +40,7 @@ final class OpenApiSchemaReader {
 
     private final String packageName;
     private final String schemaName;
-    private final Schema<?> schema;
+    private final OpenApiSchema schema;
 
     @Nullable
     public JavaType read() {
@@ -71,44 +69,33 @@ final class OpenApiSchemaReader {
         if (schema.getNot() != null) {
             throw new IllegalStateException("'not' not supported");
         }
-        var anyOf = Optional
-                .ofNullable(schema.getAnyOf())
-                .orElseGet(Collections::emptyList);
-        var allOf = Optional
-                .ofNullable(schema.getAllOf())
-                .orElseGet(Collections::emptyList);
-        var oneOf = Optional
-                .ofNullable(schema.getOneOf())
-                .orElseGet(Collections::emptyList);
-        var enumValues = Optional
-                .ofNullable(schema.getEnum())
-                .orElseGet(Collections::emptyList)
-                .stream()
-                .filter(Objects::nonNull)
-                .map(Object::toString)
-                .toList();
+        var anyOf = schema.getAnyOf();
+        var allOf = schema.getAllOf();
+        var oneOf = schema.getOneOf();
+        var enumValues = schema.getEnum();
+        var discriminator = schema.getDiscriminator();
         // Priority: enum > discriminator > anyOf > allOf > oneOf > $ref > primitive type.
         // Enum must come first because a schema can have both type+enum.
         if (!enumValues.isEmpty()) {
-            return readEnum(enumValues, (String) schema.getDefault());
-        } else if (oneOf.isEmpty() && schema.getDiscriminator() != null) {
+            return readEnum(enumValues, schema.getDefault());
+        } else if (oneOf.isEmpty() && discriminator != null) {
             log.warn("'discriminator' without 'oneOf', defaulting to 'oneOf'");
-            return readOneOf(schema.getDiscriminator());
+            return readOneOf(discriminator);
         } else if (!anyOf.isEmpty()) {
             throw new IllegalStateException("'anyOf' not supported");
         } else if (!allOf.isEmpty()) {
             return readAllOf(allOf);
         } else if (!oneOf.isEmpty()) {
-            return readOneOf(schema.getDiscriminator());
+            return readOneOf(discriminator);
         } else if (schema.get$ref() != null) {
             return readRef();
         }
-        var resolvedType = resolveType();
-        if (resolvedType == null) {
+        var type = schema.getType();
+        if (type == null) {
             log.warn("null type, defaulting to 'object'");
             return readObject();
         }
-        return switch (resolvedType) {
+        return switch (type) {
             case "string" -> readString();
             case "number" -> readNumber();
             case "integer" -> readInteger();
@@ -116,30 +103,10 @@ final class OpenApiSchemaReader {
             case "array" -> readArray();
             case "object" -> readObject();
             default -> {
-                log.warn("Unknown type '{}', defaulting to 'object'", resolvedType);
+                log.warn("Unknown type '{}', defaulting to 'object'", type);
                 yield readObject();
             }
         };
-    }
-
-    /**
-     * OpenAPI 3.1 supports {@code type: [string, null]} as an array of types.
-     * We pick the first non-null type, treating the nullable aspect separately.
-     */
-    @Nullable
-    private String resolveType() {
-        if (schema.getType() != null) {
-            return schema.getType();
-        }
-        var types = schema.getTypes();
-        if (types == null || types.isEmpty()) {
-            return null;
-        }
-        return types
-                .stream()
-                .filter(t -> !"null".equals(t))
-                .findFirst()
-                .orElse(null);
     }
 
     /**
@@ -182,10 +149,7 @@ final class OpenApiSchemaReader {
     }
 
     private JavaType readString() {
-        var format = Optional
-                .ofNullable(schema.getFormat())
-                .orElse("");
-        return switch (format) {
+        return switch (schema.getFormat()) {
             case "date" -> new JavaType(LocalDate.class)
                     .defaultValueDecorator("LocalDate.parse(\"%s\")"::formatted);
             case "date-time" -> new JavaType(OffsetDateTime.class)
@@ -207,10 +171,7 @@ final class OpenApiSchemaReader {
     }
 
     private JavaType readNumber() {
-        var format = Optional
-                .ofNullable(schema.getFormat())
-                .orElse("");
-        var field = switch (format) {
+        var field = switch (schema.getFormat()) {
             case "float" -> new JavaType(Float.class).defaultValueDecorator("%sF"::formatted);
             case "double" -> new JavaType(Double.class).defaultValueDecorator("%sD"::formatted);
             default -> new JavaType(Number.class).defaultValueDecorator("new BigDecimal(\"%s\")"::formatted);
@@ -219,10 +180,7 @@ final class OpenApiSchemaReader {
     }
 
     private JavaType readInteger() {
-        var format = Optional
-                .ofNullable(schema.getFormat())
-                .orElse("");
-        var field = switch (format) {
+        var field = switch (schema.getFormat()) {
             case "int32" -> new JavaType(Integer.class);
             case "int64" -> new JavaType(Long.class).defaultValueDecorator("%sL"::formatted);
             default -> new JavaType(Integer.class);
@@ -242,13 +200,13 @@ final class OpenApiSchemaReader {
             return null;
         }
         var type = new JavaType(itemsType.fullName(), itemsType.definition());
-        return Boolean.TRUE.equals(schema.getUniqueItems()) ? type.set() : type.list();
+        return schema.getUniqueItems() ? type.set() : type.list();
     }
 
     @Nullable
     private JavaType readObject() {
         var additionalProperties = schema.getAdditionalProperties();
-        if (additionalProperties instanceof Schema<?> additionalPropertiesSchema) {
+        if (additionalProperties instanceof OpenApiSchema additionalPropertiesSchema) {
             return readAdditionalPropertiesSchema(additionalPropertiesSchema);
         } else if (additionalProperties instanceof Boolean additionalPropertiesBoolean && additionalPropertiesBoolean) {
             return new JavaType(Object.class).map();
@@ -257,7 +215,7 @@ final class OpenApiSchemaReader {
     }
 
     @Nullable
-    private JavaType readAdditionalPropertiesSchema(Schema<?> additionalPropertiesSchema) {
+    private JavaType readAdditionalPropertiesSchema(OpenApiSchema additionalPropertiesSchema) {
         var additionalPropertiesType = new OpenApiSchemaReader(packageName, schemaName, additionalPropertiesSchema).read();
         if (additionalPropertiesType == null) {
             return null;
@@ -287,7 +245,7 @@ final class OpenApiSchemaReader {
         return new JavaType(className, recordDefinition);
     }
 
-    private JavaFieldDefinition toFieldDefinition(String propertyName, Schema<?> propertySchema, List<String> requiredProperties) {
+    private JavaFieldDefinition toFieldDefinition(String propertyName, OpenApiSchema propertySchema, List<String> requiredProperties) {
         var optional = isPropertyOptional(propertyName, propertySchema, requiredProperties);
         var property = new OpenApiProperty(propertyName, propertySchema, optional);
         var fieldType = new OpenApiSchemaReader(packageName, propertyName, propertySchema).read();
@@ -308,18 +266,10 @@ final class OpenApiSchemaReader {
      * Exception: if the property has {@code minItems > 0} or {@code minProperties > 0},
      * it stays required even if not explicitly listed — the constraint implies presence.
      */
-    private boolean isPropertyOptional(String propertyName, Schema<?> propertySchema, List<String> requiredProperties) {
-        var enumValues = Optional
-                .ofNullable(propertySchema.getEnum())
-                .orElseGet(Collections::emptyList);
-        var hasNullType = Optional
-                .ofNullable(propertySchema.getTypes())
-                .orElseGet(Collections::emptySet)
-                .contains("null");
-        // An enum is only nullable if its values list explicitly includes null
-        var isNullable = (Boolean.TRUE.equals(propertySchema.getNullable()) || hasNullType) && (enumValues.isEmpty() || enumValues.contains(null));
+    private boolean isPropertyOptional(String propertyName, OpenApiSchema propertySchema, List<String> requiredProperties) {
+        var isNullable = propertySchema.getNullable();
         var isOptional = !requiredProperties.contains(propertyName);
-        var isReadOnly = Boolean.TRUE.equals(propertySchema.getReadOnly());
+        var isReadOnly = propertySchema.getReadOnly();
         var hasMin = propertySchema.getMinItems() != null && propertySchema.getMinItems() > 0
                 || propertySchema.getMinProperties() != null && propertySchema.getMinProperties() > 0;
         return (isNullable || isOptional || isReadOnly) && !hasMin;
@@ -330,7 +280,7 @@ final class OpenApiSchemaReader {
      * (flattened into the record), while at most one inline {@code object} schema provides the
      * record's own fields. This allows combining inherited types with local properties.
      */
-    private JavaType readAllOf(List<Schema> allOf) {
+    private JavaType readAllOf(List<OpenApiSchema> allOf) {
         var refFieldDefinitions = allOf
                 .stream()
                 .filter(allOfSchema -> allOfSchema.get$ref() != null)
@@ -373,10 +323,9 @@ final class OpenApiSchemaReader {
      * {@code discriminator.mapping} — implicit mapping is not supported because we need
      * to know the exact discriminator values upfront for {@code @JsonSubTypes}.
      */
-    private JavaType readOneOf(Discriminator discriminator) {
-        var mapping = Optional
-                .ofNullable(discriminator.getMapping())
-                .orElseGet(Collections::emptyMap)
+    private JavaType readOneOf(OpenApiDiscriminator discriminator) {
+        var mapping = discriminator
+                .getMapping()
                 .entrySet()
                 .stream()
                 .collect(toMap(Map.Entry::getKey, e -> refToTypeFullName(e.getValue())));

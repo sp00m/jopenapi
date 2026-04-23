@@ -148,7 +148,7 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
 
         for (JavaFieldDefinition field : recordDefinition.fields()) {
 
-            if (field.property().readOnly()) {
+            if (field.property().schema().getReadOnly()) {
                 // Read-only fields aren't deserialized; pass null and let the compact constructor
                 // convert to Optional.empty() or an empty collection
                 constructorArgs.add("null");

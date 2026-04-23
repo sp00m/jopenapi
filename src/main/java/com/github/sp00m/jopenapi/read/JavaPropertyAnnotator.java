@@ -33,7 +33,7 @@ public enum JavaPropertyAnnotator {
                 return;
             }
             var min = property.schema().getMinimum().toString();
-            var exclusive = Boolean.TRUE.equals(property.schema().getExclusiveMinimum());
+            var exclusive = property.schema().getExclusiveMinimum();
             node
                     .addAndGetAnnotation(DecimalMin.class)
                     .addPair("value", "\"%s\"".formatted(min))
@@ -53,7 +53,7 @@ public enum JavaPropertyAnnotator {
                 return;
             }
             var max = property.schema().getMaximum().toString();
-            var exclusive = Boolean.TRUE.equals(property.schema().getExclusiveMaximum());
+            var exclusive = property.schema().getExclusiveMaximum();
             node
                     .addAndGetAnnotation(DecimalMax.class)
                     .addPair("value", "\"%s\"".formatted(max))
@@ -159,9 +159,9 @@ public enum JavaPropertyAnnotator {
         }
 
         private JsonProperty.Access getAccess(OpenApiProperty property) {
-            if (property.readOnly()) {
+            if (property.schema().getReadOnly()) {
                 return JsonProperty.Access.READ_ONLY;
-            } else if (property.writeOnly()) {
+            } else if (property.schema().getWriteOnly()) {
                 return JsonProperty.Access.WRITE_ONLY;
             } else {
                 return JsonProperty.Access.AUTO;

@@ -13,9 +13,7 @@ import org.jooq.EnumType;
 import org.jooq.Schema;
 import org.jooq.impl.DSL;
 
-import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 
 import static com.github.javaparser.StaticJavaParser.parseBlock;
 import static com.github.javaparser.StaticJavaParser.parseExpression;
@@ -81,9 +79,7 @@ final class JavaEnumGenerator implements JavaTypeGenerator {
             enumDeclaration.addEntry(valueDeclaration);
         });
 
-        var extensions = Optional
-                .ofNullable(enumDefinition.schema().getExtensions())
-                .orElseGet(Collections::emptyMap);
+        var extensions = enumDefinition.schema().getExtensions();
         if (extensions.get("x-jooq") instanceof Map<?, ?> jooq) {
             compiler.addImport("org.jooq.*", false, true);
             compiler.addImport(DSL.class);
