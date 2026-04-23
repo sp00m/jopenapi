@@ -263,16 +263,17 @@ final class OpenApiSchemaReader {
      *   <li>It is not in the {@code required} list</li>
      *   <li>It is read-only (read-only fields are excluded from the factory, so they must be optional)</li>
      * </ul>
-     * Exception: if the property has {@code minItems > 0} or {@code minProperties > 0},
-     * it stays required even if not explicitly listed — the constraint implies presence.
+     * Note: {@code minItems}/{@code minProperties} constraints do <em>not</em> affect optionality.
+     * They constrain the <em>content</em> of a collection when it is present, not its presence
+     * itself (e.g. "either absent or an array with 3+ items" is a valid combination). These
+     * constraints are enforced at validation time via the {@code @Size} annotation added by
+     * {@link JavaPropertyAnnotator#SIZE}.
      */
     private boolean isPropertyOptional(String propertyName, OpenApiSchema propertySchema, List<String> requiredProperties) {
         var isNullable = propertySchema.getNullable();
         var isOptional = !requiredProperties.contains(propertyName);
         var isReadOnly = propertySchema.getReadOnly();
-        var hasMin = propertySchema.getMinItems() != null && propertySchema.getMinItems() > 0
-                || propertySchema.getMinProperties() != null && propertySchema.getMinProperties() > 0;
-        return (isNullable || isOptional || isReadOnly) && !hasMin;
+        return isNullable || isOptional || isReadOnly;
     }
 
     /**
