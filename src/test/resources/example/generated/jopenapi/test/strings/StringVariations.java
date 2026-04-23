@@ -14,7 +14,7 @@ import lombok.With;
 
 @With()
 @Builder(toBuilder = true)
-public record StringVariations(@JsonProperty(value = "as_date") LocalDate asDate, @JsonProperty(value = "as_date_time") OffsetDateTime asDateTime, @JsonProperty(value = "as_uuid") UUID asUuid, @JsonProperty(value = "as_uri") URI asUri, @Pattern(regexp = "^\\d+$") @JsonProperty(value = "string_with_pattern") String stringWithPattern, @Size(min = 1, max = 2147483647) @JsonProperty(value = "string_with_min") String stringWithMin, @Size(min = 0, max = 5) @JsonProperty(value = "string_with_max") String stringWithMax, @Size(min = 1, max = 5) @Pattern(regexp = "^\\d+$") @JsonProperty(value = "string_with_pattern_min_max") String stringWithPatternMinMax, @JsonProperty(value = "optional_string") Optional<String> optionalString) {
+public record StringVariations(@JsonProperty(value = "as_date") LocalDate asDate, @JsonProperty(value = "as_date_time") OffsetDateTime asDateTime, @JsonProperty(value = "as_uuid") UUID asUuid, @JsonProperty(value = "as_uri") URI asUri, @Pattern(regexp = "^\\d+$") @JsonProperty(value = "string_with_pattern") String stringWithPattern, @Size(min = 1) @JsonProperty(value = "string_with_min") String stringWithMin, @Size(max = 5) @JsonProperty(value = "string_with_max") String stringWithMax, @Size(min = 1, max = 5) @Pattern(regexp = "^\\d+$") @JsonProperty(value = "string_with_pattern_min_max") String stringWithPatternMinMax, @JsonProperty(value = "optional_string") Optional<String> optionalString) {
 
     public StringVariations {
         optionalString = Objects.requireNonNullElse(optionalString, Optional.empty());

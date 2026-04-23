@@ -81,16 +81,13 @@ public enum JavaPropertyAnnotator {
             }
             var min = Optional.ofNullable(property.schema().getMinLength())
                     .or(() -> Optional.ofNullable(property.schema().getMinItems()))
-                    .or(() -> Optional.ofNullable(property.schema().getMinProperties()))
-                    .orElse(0);
+                    .or(() -> Optional.ofNullable(property.schema().getMinProperties()));
             var max = Optional.ofNullable(property.schema().getMaxLength())
                     .or(() -> Optional.ofNullable(property.schema().getMaxItems()))
-                    .or(() -> Optional.ofNullable(property.schema().getMaxProperties()))
-                    .orElse(Integer.MAX_VALUE);
-            node
-                    .addAndGetAnnotation(Size.class)
-                    .addPair("min", "%d".formatted(min))
-                    .addPair("max", "%d".formatted(max));
+                    .or(() -> Optional.ofNullable(property.schema().getMaxProperties()));
+            var size = node.addAndGetAnnotation(Size.class);
+            min.ifPresent(i -> size.addPair("min", "%d".formatted(i)));
+            max.ifPresent(i -> size.addPair("max", "%d".formatted(i)));
         }
 
         @Override
