@@ -224,16 +224,12 @@ final class OpenApiSchemaReader {
     }
 
     private JavaType readStandardObject() {
-        var properties = Optional
-                .ofNullable(schema.getProperties())
-                .orElseGet(Collections::emptyMap);
+        var properties = schema.getProperties();
         if (properties.isEmpty()) {
             log.warn("'object' without 'properties'");
             return new JavaType(Object.class);
         }
-        var requiredProperties = Optional
-                .ofNullable(schema.getRequired())
-                .orElseGet(Collections::emptyList);
+        var requiredProperties = schema.getRequired();
         var fieldDefinitions = properties
                 .entrySet()
                 .stream()
