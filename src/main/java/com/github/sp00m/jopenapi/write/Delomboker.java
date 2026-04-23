@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipFile;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -53,12 +54,29 @@ public final class Delomboker {
     }
 
     private static String findLombokJar() {
+
         var classpath = System.getProperty("java.class.path");
         for (var entry : classpath.split(File.pathSeparator)) {
             if (entry.contains("lombok") && entry.endsWith(".jar")) {
                 return entry;
             }
         }
+
+        try {
+            var location = Delomboker.class.getProtectionDomain().getCodeSource().getLocation();
+            if (location != null) {
+                var jar = new File(location.toURI());
+                if (jar.isFile()) {
+                    try (var zf = new ZipFile(jar)) {
+                        if (zf.getEntry("lombok/Lombok.class") != null) {
+                            return jar.getAbsolutePath();
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+
         throw new IllegalStateException("Cannot find lombok.jar on the classpath");
     }
 
