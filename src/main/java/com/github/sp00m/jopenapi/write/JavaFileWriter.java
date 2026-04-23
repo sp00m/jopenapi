@@ -14,6 +14,16 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 
+/**
+ * Phase 3. Writes generated Java sources to disk. When {@code delombok=true}, writes to
+ * a temp directory first, runs Lombok's delombok to expand {@code @Builder}/{@code @With}
+ * into plain Java, then outputs the final sources. This way the generated code has no
+ * runtime dependency on Lombok.
+ *
+ * <p>Also copies the bundled support classes ({@code MissingPropertyException},
+ * {@code InvalidPropertyException}) into the output so consumers don't need any
+ * external dependency for them.
+ */
 @RequiredArgsConstructor
 @Slf4j
 public final class JavaFileWriter {

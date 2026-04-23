@@ -9,6 +9,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipFile;
 
+/**
+ * Invokes Lombok's delombok as a subprocess to expand {@code @Builder}, {@code @With},
+ * {@code @RequiredArgsConstructor} etc. into plain Java source code.
+ *
+ * <p>Two execution modes are supported:
+ * <ul>
+ *   <li><b>Separate lombok.jar</b> — found on the classpath by name; invoked with {@code -jar}.</li>
+ *   <li><b>Fat JAR</b> — when running as a shaded JAR (production), Lombok classes are embedded
+ *       inside our own JAR. In that case we use {@code -cp our.jar lombok.launch.Main} because
+ *       {@code -jar} would use our manifest's main class, not Lombok's.</li>
+ * </ul>
+ */
 @RequiredArgsConstructor
 @Slf4j
 public final class Delomboker {
@@ -39,8 +51,8 @@ public final class Delomboker {
         command.add("--classpath");
         command.add(classpath);
         command.add("-f");
-        command.add("pretty");
-        command.add("-n");
+        command.add("pretty");   // format output nicely
+        command.add("-n");       // --nocopy: skip non-Java files
         command.add("-v");
 
         var process = new ProcessBuilder(command)

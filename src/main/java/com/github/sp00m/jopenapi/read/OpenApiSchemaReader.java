@@ -17,10 +17,27 @@ import java.util.*;
 
 import static java.util.stream.Collectors.toMap;
 
+/**
+ * Recursive schema reader that converts an OpenAPI {@code Schema} into a {@link JavaType}.
+ *
+ * <p>This is the heart of the read phase. It handles every OpenAPI type ({@code string},
+ * {@code integer}, {@code boolean}, {@code array}, {@code object}), compositions
+ * ({@code allOf}, {@code oneOf}), {@code $ref} resolution, and inline enums.
+ *
+ * <p>Each {@code readXxx()} method returns a {@link JavaType} that captures:
+ * <ul>
+ *   <li>The Java type name (e.g. {@code String}, {@code List<Integer>})</li>
+ *   <li>A {@code defaultValueDecorator} — a function that turns a raw default string into
+ *       a valid Java expression (e.g. wrapping a date string with {@code LocalDate.parse("...")})</li>
+ *   <li>Which {@link JavaPropertyAnnotator}s apply (validation constraints, Jackson annotations)</li>
+ * </ul>
+ */
 @RequiredArgsConstructor
 @Slf4j
 final class OpenApiSchemaReader {
 
+    // swagger-parser deserializes date defaults as java.util.Date; we need to format
+    // them back to ISO strings for the generated Java code.
     private static final DateFormat DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd");
 
     private final String packageName;
@@ -70,6 +87,8 @@ final class OpenApiSchemaReader {
                 .filter(Objects::nonNull)
                 .map(Object::toString)
                 .toList();
+        // Priority: enum > discriminator > anyOf > allOf > oneOf > $ref > primitive type.
+        // Enum must come first because a schema can have both type+enum.
         if (!enumValues.isEmpty()) {
             return readEnum(enumValues, (String) schema.getDefault());
         } else if (oneOf.isEmpty() && schema.getDiscriminator() != null) {
@@ -103,6 +122,10 @@ final class OpenApiSchemaReader {
         };
     }
 
+    /**
+     * OpenAPI 3.1 supports {@code type: [string, null]} as an array of types.
+     * We pick the first non-null type, treating the nullable aspect separately.
+     */
     @Nullable
     private String resolveType() {
         if (schema.getType() != null) {
@@ -119,6 +142,10 @@ final class OpenApiSchemaReader {
                 .orElse(null);
     }
 
+    /**
+     * Resolves a {@code $ref} to a fully-qualified Java type name. Handles cross-file
+     * references by walking the relative path segments to compute the target package.
+     */
     private JavaType readRef() {
         return new JavaType(refToTypeFullName(schema.get$ref()));
     }
@@ -271,6 +298,16 @@ final class OpenApiSchemaReader {
         return new JavaFieldDefinition(property, fieldName, fieldType.jsonProperty());
     }
 
+    /**
+     * Determines if a property should be treated as optional. A property is optional when:
+     * <ul>
+     *   <li>It is nullable (explicit {@code nullable: true} or {@code type: [T, null]})</li>
+     *   <li>It is not in the {@code required} list</li>
+     *   <li>It is read-only (read-only fields are excluded from the factory, so they must be optional)</li>
+     * </ul>
+     * Exception: if the property has {@code minItems > 0} or {@code minProperties > 0},
+     * it stays required even if not explicitly listed — the constraint implies presence.
+     */
     private boolean isPropertyOptional(String propertyName, Schema<?> propertySchema, List<String> requiredProperties) {
         var enumValues = Optional
                 .ofNullable(propertySchema.getEnum())
@@ -279,6 +316,7 @@ final class OpenApiSchemaReader {
                 .ofNullable(propertySchema.getTypes())
                 .orElseGet(Collections::emptySet)
                 .contains("null");
+        // An enum is only nullable if its values list explicitly includes null
         var isNullable = (Boolean.TRUE.equals(propertySchema.getNullable()) || hasNullType) && (enumValues.isEmpty() || enumValues.contains(null));
         var isOptional = !requiredProperties.contains(propertyName);
         var isReadOnly = Boolean.TRUE.equals(propertySchema.getReadOnly());
@@ -287,6 +325,11 @@ final class OpenApiSchemaReader {
         return (isNullable || isOptional || isReadOnly) && !hasMin;
     }
 
+    /**
+     * Handles {@code allOf} composition. {@code $ref} entries become {@code @JsonUnwrapped} fields
+     * (flattened into the record), while at most one inline {@code object} schema provides the
+     * record's own fields. This allows combining inherited types with local properties.
+     */
     private JavaType readAllOf(List<Schema> allOf) {
         var refFieldDefinitions = allOf
                 .stream()
@@ -325,6 +368,11 @@ final class OpenApiSchemaReader {
         throw new IllegalStateException("Only zero or one non-$ref schema is supported with 'allOf', but got " + nonRefTypes.size());
     }
 
+    /**
+     * Handles {@code oneOf} by generating a sealed interface. Requires an explicit
+     * {@code discriminator.mapping} — implicit mapping is not supported because we need
+     * to know the exact discriminator values upfront for {@code @JsonSubTypes}.
+     */
     private JavaType readOneOf(Discriminator discriminator) {
         var mapping = Optional
                 .ofNullable(discriminator.getMapping())

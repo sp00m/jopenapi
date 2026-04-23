@@ -1,6 +1,8 @@
 package com.github.sp00m.jopenapi.read.vo;
 
+import com.github.sp00m.jopenapi.generate.CompilationUnitFactory;
 import com.github.sp00m.jopenapi.read.JavaPropertyAnnotator;
+import com.github.sp00m.jopenapi.read.OpenApiReader;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Value;
@@ -11,6 +13,29 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.UnaryOperator;
 
+/**
+ * Immutable type descriptor built during the read phase and consumed by the generate phase.
+ *
+ * <p>This is intentionally a "fat" value object — it carries everything needed to generate
+ * a field declaration: the Java type name, how to wrap/unwrap defaults, which annotations
+ * to add, and whether the type is a collection. The fluent builder methods ({@link #list()},
+ * {@link #set()}, {@link #map()}, {@link #string()}, {@link #number()}, etc.) return new
+ * instances because Lombok's {@code @Value} makes all fields final.
+ *
+ * <p>Key design decisions:
+ * <ul>
+ *   <li>{@code defaultValue} stores the <em>raw</em> default (e.g. {@code "2020-06-30"}).
+ *       {@code defaultValueDecorator} wraps it into a valid Java expression (e.g.
+ *       {@code LocalDate.parse("2020-06-30")}). They are kept separate because the decorator
+ *       is set by the type (readString, readEnum) while the raw value comes from the schema
+ *       and may be set later (in {@link OpenApiReader#link}).</li>
+ *   <li>{@code unmodifier} is only set for collections — it wraps the field value with
+ *       {@code Collections.unmodifiableX()} in the compact constructor.</li>
+ *   <li>The constructor strips common {@code java.*} package prefixes from the full name
+ *       (e.g. {@code java.lang.String → String}) because wildcard imports in
+ *       {@link CompilationUnitFactory} already cover them.</li>
+ * </ul>
+ */
 @Value
 @Accessors(fluent = true)
 public class JavaType {

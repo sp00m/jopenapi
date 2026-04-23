@@ -15,6 +15,12 @@ import java.util.Map;
 
 import static java.util.Map.Entry.comparingByKey;
 
+/**
+ * Generates sealed interfaces for {@code oneOf} schemas. Uses Jackson's
+ * {@code @JsonTypeInfo(use = Id.NAME, include = As.EXISTING_PROPERTY)} so the discriminator
+ * field exists as a real property on the implementing records (not just metadata).
+ * {@code visible = true} ensures the discriminator value is also deserialized into the record field.
+ */
 @RequiredArgsConstructor
 final class JavaInterfaceGenerator implements JavaTypeGenerator {
 

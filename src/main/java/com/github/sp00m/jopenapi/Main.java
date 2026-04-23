@@ -11,6 +11,11 @@ import picocli.CommandLine.Option;
 import java.io.File;
 import java.util.concurrent.Callable;
 
+/**
+ * CLI entry point. Orchestrates the three-phase pipeline: read → generate → write.
+ *
+ * <p>Exit codes: 0 = success, 1 = generation error, 2 = usage error (handled by picocli).
+ */
 @Slf4j
 @Command(
         name = "jopenapi",
@@ -66,6 +71,10 @@ public class Main implements Callable<Integer> {
         System.exit(exitCode);
     }
 
+    /**
+     * Core pipeline, also called directly by {@code ExampleTest} with {@code delombok=false}
+     * to produce pre-delombok output for byte-exact test comparison.
+     */
     static int run(String basePackageName, File inputDir, File outputDir, boolean delombok) {
         var typeDefinitions = new OpenApiReader(basePackageName, inputDir).read();
         var javaFiles = new JavaGenerator(typeDefinitions).generate();

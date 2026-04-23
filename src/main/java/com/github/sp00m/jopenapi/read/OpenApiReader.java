@@ -19,6 +19,14 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
 
+/**
+ * Phase 1 entry point. Scans the input directory for OpenAPI schema files, parses each one,
+ * then links cross-references in a post-processing pass.
+ *
+ * <p>The directory structure maps to Java packages: each subdirectory becomes a sub-package,
+ * and each schema file name becomes a sub-package too. When a single file is provided instead
+ * of a directory, DTOs go directly into the base package (no extra sub-package).
+ */
 @RequiredArgsConstructor
 @Slf4j
 public final class OpenApiReader {
@@ -72,6 +80,9 @@ public final class OpenApiReader {
         var result = new OpenAPIV3Parser().readContents(openApiContents);
         var openApi = result.getOpenAPI();
         if (openApi == null || openApi.getComponents() == null) {
+            // Some schema files omit the top-level "openapi: 3.x" field. If the parser
+            // complains about it, we retry by prepending a version header. This allows
+            // users to write component-only YAML files without boilerplate.
             if (result.getMessages().contains("attribute openapi is missing")) {
                 return parse(packageName, "openapi: 3.1.1\n" + openApiContents);
             } else {
@@ -104,12 +115,24 @@ public final class OpenApiReader {
         }
     }
 
+    /**
+     * Post-processing pass that wires relationships the parser couldn't resolve in isolation:
+     * <ol>
+     *   <li><b>Interfaces</b> — for each {@code oneOf}, tells the implementing records which
+     *       sealed interface they must implement.</li>
+     *   <li><b>Enum defaults</b> — if an optional property references an enum that has a default
+     *       but the property itself doesn't define one, the enum's default is inherited. Also
+     *       wires the enum's {@code decorateDefaultValue} so the generated code uses
+     *       {@code EnumName.VALUE} syntax.</li>
+     * </ol>
+     */
     private List<JavaTypeDefinition> link(List<JavaTypeDefinition> typeDefinitions) {
 
         var typeDefinitionsByName = typeDefinitions
                 .stream()
                 .collect(toMap(JavaTypeDefinition::fullName, Function.identity()));
 
+        // Pass 1: wire oneOf interfaces → tell each implementing record which sealed interface it belongs to
         typeDefinitions
                 .stream()
                 .filter(JavaInterfaceDefinition.class::isInstance)
@@ -126,6 +149,7 @@ public final class OpenApiReader {
                             });
                 });
 
+        // Pass 2: wire enum defaults → inherit enum's default when the field doesn't define its own
         typeDefinitionsByName
                 .entrySet()
                 .stream()

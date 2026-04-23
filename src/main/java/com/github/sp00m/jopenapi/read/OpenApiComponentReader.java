@@ -6,6 +6,14 @@ import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nullable;
 
+/**
+ * Reads a single OpenAPI component and decides what Java type it becomes.
+ *
+ * <p>If the schema maps directly to a record/enum/interface, that definition is returned as-is.
+ * Otherwise (e.g. a top-level {@code type: array} or {@code type: integer}), the schema is
+ * wrapped in a {@link JavaValueRecordDefinition} — a single-field record that acts as a
+ * type-safe wrapper (e.g. {@code record SimpleArray(List<String> value)}).
+ */
 @RequiredArgsConstructor
 final class OpenApiComponentReader {
 

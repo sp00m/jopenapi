@@ -4,6 +4,12 @@ import com.github.javaparser.ast.CompilationUnit;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+/**
+ * Creates a pre-configured {@link CompilationUnit} with wildcard imports for all packages
+ * commonly used in generated code. This avoids the need to add individual imports for
+ * {@code Objects}, {@code Optional}, {@code Collections}, etc. — the generated code can
+ * use short names directly.
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CompilationUnitFactory {
 

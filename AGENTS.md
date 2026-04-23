@@ -143,6 +143,7 @@ Test schemas live in `src/test/resources/example/schemas/` and cover integers, b
 2. **Update the docs** — check whether the following need updating:
    - **`AGENTS.md`** — architecture tables, class responsibilities, parameter rules, pitfalls.
    - **`README.md`** — CLI usage block (option descriptions, examples), Maven/Gradle snippets.
+   - **In-code Javadoc and comments** — classes and key methods have Javadoc explaining design decisions ("the whys"). If your change affects the behavior described in those comments (e.g. factory parameter rules, compact constructor responsibilities, linking passes, delombok modes), update them to stay accurate.
 
 ## Common pitfalls
 
@@ -153,4 +154,3 @@ Test schemas live in `src/test/resources/example/schemas/` and cover integers, b
 - **`@JsonUnwrapped` + `@JsonCreator`.** This works since Jackson 2.19. `@JsonUnwrapped` fields in allOf records are included in the factory method parameters with the `@JsonUnwrapped` annotation (not `@JsonProperty`).
 - **Read-only properties are treated as optional.** `isPropertyOptional()` in `OpenApiSchemaReader` returns `true` when `readOnly` is set, ensuring these fields become `Optional<T>` or collections. They are excluded from the `@JsonCreator` factory.
 - **`x-jooq` and `JavaEnumDefinition`.** `JavaEnumDefinition` stores the full `Schema<?>` object (mutable) so that `JavaEnumGenerator` can read `getExtensions()` for `x-jooq`. The `description()` method delegates to `schema.getDescription()` to preserve the `JavaTypeDefinition` interface contract. Consumers of `JooqEnumDefault`/`JooqEnumCustom`-style enums must have `org.jooq:jooq` on their classpath.
-

@@ -13,6 +13,16 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 
+/**
+ * Enum of annotation strategies applied to record fields and factory parameters.
+ *
+ * <p>Each strategy has two hooks: {@link #annotateRecordField} (adds the annotation to the
+ * record component declaration) and {@link #annotateFactoryArgument} (adds it to the
+ * {@code @JsonCreator} factory parameter). Most validation annotations (MIN, MAX, SIZE, PATTERN)
+ * only go on the record field — Jackson doesn't need them on the factory. Only Jackson-specific
+ * annotations (JSON_PROPERTY, JSON_UNWRAPPED) are duplicated on the factory parameter so
+ * Jackson can bind the right JSON field during deserialization.
+ */
 @Slf4j
 public enum JavaPropertyAnnotator {
 

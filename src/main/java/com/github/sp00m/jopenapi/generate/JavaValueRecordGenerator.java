@@ -13,6 +13,14 @@ import static com.github.javaparser.StaticJavaParser.parseBlock;
 import static com.github.javaparser.StaticJavaParser.parseType;
 import static com.github.javaparser.ast.Modifier.Keyword.PUBLIC;
 
+/**
+ * Generates wrapper records for top-level schemas that are simple types or collections
+ * (e.g. {@code type: array} → {@code record SimpleArray(@JsonValue List<String> value)}).
+ *
+ * <p>Uses {@code @JsonValue} on the single field and {@code @JsonCreator} on the compact
+ * constructor so Jackson transparently wraps/unwraps the value. Reuses
+ * {@link JavaRecordGenerator#getCompactConstructorStatement} to handle collection immutability.
+ */
 @RequiredArgsConstructor
 final class JavaValueRecordGenerator implements JavaTypeGenerator {
 

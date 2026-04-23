@@ -237,7 +237,7 @@ Use `maven-antrun-plugin` to download the fat JAR from the GitHub Release, then 
 
 ```xml
 <properties>
-    <jopenapi.version>0.1.0</jopenapi.version>
+    <jopenapi.version>0.0.1</jopenapi.version>
     <jopenapi.url>https://github.com/sp00m/jopenapi/releases/download/v${jopenapi.version}/jopenapi.jar</jopenapi.url>
     <jopenapi.jar>${project.build.directory}/jopenapi/jopenapi-v${jopenapi.version}.jar</jopenapi.jar>
     <jopenapi.package>com.example.api</jopenapi.package>
@@ -331,10 +331,11 @@ Use `maven-antrun-plugin` to download the fat JAR from the GitHub Release, then 
 Download the JAR and execute it as a `JavaExec` task wired before compilation:
 
 ```kotlin
-val jopenapiJar = layout.buildDirectory.file("jopenapi/jopenapi.jar")
+val jopenapiVersion = "0.0.1"
+val jopenapiJar = layout.buildDirectory.file("jopenapi/jopenapi-v${jopenapiVersion}.jar")
 
 val downloadJopenapi by tasks.registering {
-    val url = "https://github.com/sp00m/jopenapi/releases/download/v0.1.0/jopenapi.jar"
+    val url = "https://github.com/sp00m/jopenapi/releases/download/v${jopenapiVersion}/jopenapi.jar"
     val dest = jopenapiJar.get().asFile
     outputs.file(dest)
     doLast {

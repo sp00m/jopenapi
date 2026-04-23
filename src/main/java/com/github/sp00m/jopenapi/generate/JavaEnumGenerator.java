@@ -21,6 +21,17 @@ import static com.github.javaparser.StaticJavaParser.parseBlock;
 import static com.github.javaparser.StaticJavaParser.parseExpression;
 import static com.github.javaparser.ast.Modifier.Keyword.*;
 
+/**
+ * Generates enum declarations with a {@code String value} field, a reverse lookup map
+ * ({@code BY_VALUE}), and a {@code @JsonCreator findByValue} method.
+ *
+ * <p>When the enum has a default, invalid values fall back to it (with a warning log).
+ * When it has no default, invalid values throw {@code InvalidPropertyException}.
+ *
+ * <p>Optionally implements jOOQ's {@code EnumType} when the schema has an {@code x-jooq}
+ * extension, adding {@code getLiteral()}, {@code getName()}, and optional
+ * {@code getCatalog()}/{@code getSchema()} overrides.
+ */
 @RequiredArgsConstructor
 final class JavaEnumGenerator implements JavaTypeGenerator {
 

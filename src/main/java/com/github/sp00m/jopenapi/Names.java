@@ -12,6 +12,13 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.joining;
 
+/**
+ * Converts OpenAPI names (snake_case, kebab-case, etc.) to valid Java identifiers.
+ *
+ * <p>Handles edge cases: leading digits are spelled out ({@code 1foo → OneFoo}),
+ * purely numeric names are fully spelled out ({@code 42 → FourTwo}),
+ * and Java reserved words get a {@code Value} suffix.
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Names {
 
@@ -39,10 +46,16 @@ public final class Names {
                 .collect(collectingAndThen(joining("_"), Names::ensureValid));
     }
 
+    /** Appends {@code Value} if the name collides with a Java keyword or is otherwise invalid. */
     private static String ensureValid(String name) {
         return SourceVersion.isName(name) ? name : name + "Value";
     }
 
+    /**
+     * Splits a name into lowercase words. If the name is a valid number (e.g. an enum value
+     * like {@code "42"}), each digit/sign is spelled out individually — this is why we attempt
+     * {@code new BigDecimal(name)} first.
+     */
     private static Stream<String> toWords(String name) {
         try {
             new BigDecimal(name);
@@ -62,6 +75,10 @@ public final class Names {
         }
     }
 
+    /**
+     * Strips leading non-alphanumeric characters and spells out any leading digits,
+     * so the result can safely start a Java identifier.
+     */
     private static String clean(String name) {
         if (name.length() == 1) {
             if (name.matches("[a-zA-Z]")) {

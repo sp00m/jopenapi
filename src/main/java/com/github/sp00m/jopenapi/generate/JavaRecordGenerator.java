@@ -23,6 +23,21 @@ import static com.github.javaparser.StaticJavaParser.parseType;
 import static com.github.javaparser.ast.Modifier.Keyword.PUBLIC;
 import static com.github.javaparser.ast.Modifier.Keyword.STATIC;
 
+/**
+ * Generates Java record declarations with:
+ * <ul>
+ *   <li>{@code @Builder(toBuilder = true)} and {@code @With} — Lombok annotations that
+ *       will be expanded by the delombok pass in the write phase.</li>
+ *   <li>A compact constructor that ensures collection immutability and Optional non-nullness.</li>
+ *   <li>A package-private {@code @JsonCreator} static factory method ({@code create}) that
+ *       handles null-checking, defaults, and Optional wrapping. It is intentionally not public
+ *       so developers can't call it directly — only Jackson uses it via reflection.</li>
+ * </ul>
+ *
+ * <p>The factory accepts <em>boxed</em> types for all parameters (e.g. {@code Integer} instead
+ * of {@code int}) so Jackson can pass {@code null} to indicate a missing value. The factory
+ * then decides whether to throw, apply a default, or wrap in Optional.
+ */
 @RequiredArgsConstructor
 final class JavaRecordGenerator implements JavaTypeGenerator {
 
@@ -73,6 +88,14 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
         return getCompactConstructorStatement(field);
     }
 
+    /**
+     * Determines the record component type for a field. Three cases:
+     * <ol>
+     *   <li>Optional without default → {@code Optional<T>}</li>
+     *   <li>Has a primitive equivalent (Integer→int, etc.) → use primitive</li>
+     *   <li>Otherwise → use the type as-is</li>
+     * </ol>
+     */
     private static String getFieldType(JavaFieldDefinition fieldDefinition) {
         var fieldType = fieldDefinition.type();
         if (fieldDefinition.property().optional() && fieldType.decoratedDefaultValue() == null && !fieldType.collection()) {
@@ -83,6 +106,10 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
                 .orElse(fieldType.fullName());
     }
 
+    /**
+     * Returns the compact constructor statement for this field, or null if none needed.
+     * Only collections and bare optionals need handling here — defaults are the factory's job.
+     */
     static String getCompactConstructorStatement(JavaFieldDefinition fieldDefinition) {
         var fieldType = fieldDefinition.type();
         var fieldName = fieldDefinition.name();
@@ -108,6 +135,11 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
         recordDeclaration.addMember(compactConstructor);
     }
 
+    /**
+     * Builds the {@code @JsonCreator} factory. Read-only fields are excluded from the
+     * parameter list and receive {@code null} (the compact constructor will convert to
+     * empty collection / Optional.empty()).
+     */
     private void addFactoryMethod(RecordDeclaration recordDeclaration) {
 
         var factoryArgs = new ArrayList<Parameter>();
@@ -117,10 +149,13 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
         for (JavaFieldDefinition field : recordDefinition.fields()) {
 
             if (field.property().readOnly()) {
+                // Read-only fields aren't deserialized; pass null and let the compact constructor
+                // convert to Optional.empty() or an empty collection
                 constructorArgs.add("null");
                 continue;
             }
 
+            // Factory params use the boxed type (e.g. Integer not int) so Jackson can pass null for missing values
             var param = new Parameter(parseType(field.type().fullName()), field.name());
             field
                     .type()
@@ -129,14 +164,18 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
             factoryArgs.add(param);
 
             if (field.type().collection()) {
+                // Collections are passed through; the compact constructor handles null → empty + immutability
                 constructorArgs.add(field.name());
             } else if (!field.property().optional()) {
+                // Required field: null means the caller forgot it → throw
                 checks.add("if (%s == null) { throw new MissingPropertyException(\"%s\"); }".formatted(
                         field.name(), field.property().name()));
                 constructorArgs.add(field.name());
             } else if (field.type().decoratedDefaultValue() != null) {
+                // Optional with default: fall back to the default when absent
                 constructorArgs.add("Objects.requireNonNullElse(%s, %s)".formatted(field.name(), field.type().decoratedDefaultValue()));
             } else {
+                // Optional without default: wrap in Optional
                 constructorArgs.add("Optional.ofNullable(%s)".formatted(field.name()));
             }
 
@@ -156,6 +195,10 @@ final class JavaRecordGenerator implements JavaTypeGenerator {
                 .setParameters(new NodeList<>(factoryArgs));
     }
 
+    /**
+     * When a field's type has its own {@link JavaTypeDefinition} (e.g. an inline enum or
+     * nested object), that type is generated as a static inner class of the enclosing record.
+     */
     private static void addMember(CompilationUnit compiler, TypeDeclaration<?> parentType, JavaTypeDefinition innerTypeDefinition) {
         var innerTypeCompiler = JavaGenerator.generateCompiler(innerTypeDefinition);
         var innerType = innerTypeCompiler.getType(0);

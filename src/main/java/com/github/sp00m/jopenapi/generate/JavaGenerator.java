@@ -11,6 +11,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Phase 2 orchestrator. Dispatches each {@link JavaTypeDefinition} to the appropriate
+ * type-specific generator, then adds Javadoc (from schema descriptions), sets the package,
+ * and sorts imports for deterministic output (important for byte-exact test comparison).
+ */
 @RequiredArgsConstructor
 @Slf4j
 public final class JavaGenerator {
