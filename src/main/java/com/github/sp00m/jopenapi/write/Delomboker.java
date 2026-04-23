@@ -24,8 +24,14 @@ public final class Delomboker {
 
         List<String> command = new ArrayList<>();
         command.add(ProcessHandle.current().info().command().orElse("java"));
-        command.add("-jar");
-        command.add(lombokJar);
+        if (lombokJar.isFatJar()) {
+            command.add("-cp");
+            command.add(lombokJar.path());
+            command.add("lombok.launch.Main");
+        } else {
+            command.add("-jar");
+            command.add(lombokJar.path());
+        }
         command.add("delombok");
         command.add(inputDir.getAbsolutePath());
         command.add("-d");
@@ -53,12 +59,12 @@ public final class Delomboker {
         }
     }
 
-    private static String findLombokJar() {
+    private static LombokJar findLombokJar() {
 
         var classpath = System.getProperty("java.class.path");
         for (var entry : classpath.split(File.pathSeparator)) {
             if (entry.contains("lombok") && entry.endsWith(".jar")) {
-                return entry;
+                return new LombokJar(entry, false);
             }
         }
 
@@ -69,7 +75,7 @@ public final class Delomboker {
                 if (jar.isFile()) {
                     try (var zf = new ZipFile(jar)) {
                         if (zf.getEntry("lombok/Lombok.class") != null) {
-                            return jar.getAbsolutePath();
+                            return new LombokJar(jar.getAbsolutePath(), true);
                         }
                     }
                 }
@@ -80,5 +86,7 @@ public final class Delomboker {
         throw new IllegalStateException("Cannot find lombok.jar on the classpath");
     }
 
-}
+    private record LombokJar(String path, boolean isFatJar) {
+    }
 
+}
