@@ -56,3 +56,17 @@ components:
         catalog: test_catalog
         name: test_name
         schema: ""
+
+    FooBarEnum:
+      type: string
+      enum:
+        - foo
+        - bar
+
+    FooBarEnumDefaulted:
+      type: object
+      properties:
+        foobar:
+          allOf:
+            - $ref: '#/components/schemas/FooBarEnum'
+          default: bar

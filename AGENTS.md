@@ -40,7 +40,7 @@ Parses OpenAPI specs and produces value objects representing schemas.
 |--------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `OpenApiReader`          | Scans an input directory for `.yml`/`.yaml`/`.json` files (recursing into subdirectories) or accepts a single schema file directly when passed a `File` that is not a directory. Parses each file, links cross-schema references (interfaces for `oneOf`, enum defaults). When a single file is given, DTOs are placed directly in the base package with no subpackage. |
 | `OpenApiComponentReader` | Reads a single OpenAPI component schema and produces a `JavaTypeDefinition`. Wraps simple/collection types in `JavaValueRecordDefinition`.                                                                                                                                                                                                                              |
-| `OpenApiSchemaReader`    | Recursive schema reader. Handles `string`, `number`, `integer`, `boolean`, `array`, `object`, `$ref`, `allOf`, `oneOf`, `enum`. Returns a `JavaType`.                                                                                                                                                                                                                   |
+| `OpenApiSchemaReader`    | Recursive schema reader. Handles `string`, `number`, `integer`, `boolean`, `array`, `object`, `$ref`, `allOf`, `oneOf`, `enum`. A single-element `allOf` is treated as the inner schema directly (common pattern for attaching a `default` to a `$ref`). Returns a `JavaType`.                                                                                            |
 | `JavaPropertyAnnotator`  | Enum of annotation strategies (`MIN`, `MAX`, `MULTIPLE_OF`, `SIZE`, `PATTERN`, `JSON_UNWRAPPED`, `JSON_PROPERTY`). Each strategy implements two methods: `annotateRecordField` (applied to the record component) and `annotateFactoryArgument` (applied to the `@JsonCreator` factory parameter). Adds Jakarta Validation or Jackson annotations.                       |
 
 **Key value objects** (`read.vo`):
@@ -182,6 +182,10 @@ enums, refs, allOf, oneOf, anyOf, not, defaults, readwrite, and javadoc.
   If you change generation logic, always regenerate the expected files.
 - **`@JsonUnwrapped` + `@JsonCreator`.** This works since Jackson 2.19. `@JsonUnwrapped` fields in allOf records are
   included in the factory method parameters with the `@JsonUnwrapped` annotation (not `@JsonProperty`).
+- **Single-element `allOf` is unwrapped.** `readAllOf` short-circuits when the list has exactly one element, delegating
+  directly to a new `OpenApiSchemaReader` for that schema. This avoids wrapping a simple `$ref` in an unnecessary record
+  and is the standard OpenAPI pattern for attaching a `default` to a `$ref` (e.g.
+  `allOf: [{$ref: '#/.../MyEnum'}], default: value`).
 - **Read-only properties are treated as optional.** `isPropertyOptional()` in `OpenApiSchemaReader` returns `true` when
   `readOnly` is set, ensuring these fields become `Optional<T>` or collections. They are excluded from the
   `@JsonCreator` factory.

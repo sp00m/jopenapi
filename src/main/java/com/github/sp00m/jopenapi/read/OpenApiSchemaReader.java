@@ -273,11 +273,19 @@ final class OpenApiSchemaReader {
     }
 
     /**
-     * Handles {@code allOf} composition. {@code $ref} entries become {@code @JsonUnwrapped} fields
-     * (flattened into the record), while at most one inline {@code object} schema provides the
-     * record's own fields. This allows combining inherited types with local properties.
+     * Handles {@code allOf} composition. A single-element {@code allOf} is treated as that
+     * element directly — this is the common pattern for attaching a {@code default} to a
+     * {@code $ref} (e.g. {@code allOf: [{$ref: '#/.../Enum'}], default: value}).
+     *
+     * <p>For multi-element {@code allOf}, {@code $ref} entries become {@code @JsonUnwrapped}
+     * fields (flattened into the record), while at most one inline {@code object} schema
+     * provides the record's own fields. This allows combining inherited types with local
+     * properties.
      */
     private JavaType readAllOf(List<OpenApiSchema> allOf) {
+        if (allOf.size() == 1) {
+            return new OpenApiSchemaReader(packageName, schemaName, allOf.get(0)).read();
+        }
         var refFieldDefinitions = allOf
                 .stream()
                 .filter(allOfSchema -> allOfSchema.get$ref() != null)
