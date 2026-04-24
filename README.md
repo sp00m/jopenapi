@@ -119,6 +119,26 @@ public enum Status implements EnumType {
 
 > **Note:** your project must have `org.jooq:jooq` on the classpath to compile the generated enums that use `x-jooq`.
 
+## Comparison with other generators
+
+Two well-known tools already generate Java code from OpenAPI specs: [OpenAPI Generator](https://github.com/OpenAPITools/openapi-generator) (community fork) and [Swagger Codegen](https://github.com/swagger-api/swagger-codegen) (SmartBear). Both are full-featured SDK generators that can produce clients, server stubs, and documentation across dozens of languages. jopenapi does **one thing only** — generate strict, immutable Java DTOs — so the comparison below covers only the Java model-generation dimension.
+
+| Feature | jopenapi | OpenAPI Generator | Swagger Codegen |
+|---|---|---|---|
+| **Scope** | DTOs only | Full SDK: clients, servers, docs (50+ languages) | Full SDK: clients, servers, docs (40+ languages) |
+| **Model style** | Java `record` (Java 17+) | POJOs with getters/setters (records opt-in, experimental) | POJOs with getters/setters |
+| **Immutability** | Built-in; collections wrapped in `Collections.unmodifiableX` | Opt-in `immutableModels` removes setters, but no deep collection immutability | Mutable |
+| **Null-safety** | `Optional<T>` for optional fields; null collections → empty; primitives for required fields | Nullable fields remain nullable; no `Optional` support | Nullable fields remain nullable; no `Optional` support |
+| **Serialization** | Jackson 2/3 | Jackson, Gson, JSON-B, Moshi, kotlinx.serialization | Jackson, Gson |
+| **Validation** | Jakarta Validation (`@DecimalMin`, `@Size`, `@Pattern`, …) | Jakarta/Javax Validation (opt-in) | Javax Validation (opt-in) |
+| **Builders** | `@Builder` + `@With` (delombok'd to plain Java) | Opt-in via `generateBuilders` (fluent setters) | Not built-in |
+| **OpenAPI versions** | 3.x | 2.0, 3.0, 3.1 | 2.0, 3.0 |
+| **Build integration** | CLI fat JAR; Maven/Gradle via exec plugins | Dedicated Maven & Gradle plugins, CLI, Docker | Dedicated Maven & Gradle plugins, CLI, Docker |
+| **Customization** | None — AST-based generation (JavaParser) | Mustache/Handlebars templates, fully overridable | Mustache templates, fully overridable |
+| **Community** | New project | Very active, large community | Low activity on 3.x branch |
+
+**TL;DR:** if you need a full client/server SDK, multi-language support, or fine-grained template control, use [OpenAPI Generator](https://openapi-generator.tech/) (the de-facto community standard) or [Swagger Codegen](https://swagger.io/tools/swagger-codegen/). If you only need Java DTOs and want records that are immutable and null-safe out of the box, give jopenapi a try.
+
 ## Prerequisites
 
 - **Generated code** targets **Java 17+**.
