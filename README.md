@@ -119,6 +119,8 @@ public enum Status implements EnumType {
 
 > **Note:** your project must have `org.jooq:jooq` on the classpath to compile the generated enums that use `x-jooq`.
 
+> **⚠️ Layer pollution:** `x-jooq` couples your API-layer DTOs to a persistence library (`org.jooq`). While this is convenient for small projects, it violates clean-architecture boundaries by making the API/contract layer depend on the persistence layer. In larger codebases, consider keeping generated DTOs free of jOOQ concerns and mapping to dedicated persistence types instead.
+
 ## Comparison with other generators
 
 Two well-known tools already generate Java code from OpenAPI specs: [OpenAPI Generator](https://github.com/OpenAPITools/openapi-generator) (community fork) and [Swagger Codegen](https://github.com/swagger-api/swagger-codegen) (SmartBear). Both are full-featured SDK generators that can produce clients, server stubs, and documentation across dozens of languages. jopenapi does **one thing only** — generate strict, immutable Java DTOs — so the comparison below covers only the Java model-generation dimension.
@@ -144,6 +146,7 @@ Two well-known tools already generate Java code from OpenAPI specs: [OpenAPI Gen
 - **Generated code** targets **Java 17+**.
 - **OpenAPI 3.x** schemas (YAML or JSON).
 - **Jackson 2 or 3** annotations (`@JsonCreator`, `@JsonProperty`, `@JsonUnwrapped`, …). Jackson 3 still uses `jackson-annotations` 2.x, so the generated code is compatible with both versions.
+  > **Jackson 2 users:** register the `Jdk8Module` (`com.fasterxml.jackson.datatype:jackson-datatype-jdk8`) on your `ObjectMapper` so that `Optional` fields are serialized/deserialized correctly. Jackson 3 includes this support in `jackson-databind` out of the box.
 - **Jakarta Validation** annotations (`@DecimalMin`, `@DecimalMax`, `@Size`, `@Pattern`).
 
 The generated records also carry Lombok's `@Builder` and `@With` annotations. jopenapi runs a delombok pass before writing the final sources, so the output is **Lombok-agnostic** — your project does not need Lombok at runtime.
