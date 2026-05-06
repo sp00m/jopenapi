@@ -1,17 +1,28 @@
 # jopenapi
 
-Generate immutable, null-safe Java records from OpenAPI schemas — ready for Jackson 2/3 and Jakarta Validation.
+> Generate immutable, null-safe Java `record` DTOs from OpenAPI schemas — ready for Jackson 2/3 and Jakarta Validation.
+
+## Table of contents
+
+- [Design](#design)
+- [Comparison with other generators](#comparison-with-other-generators)
+- [Getting started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [CLI usage](#cli-usage)
+  - [Integration patterns](#integration-patterns)
+
+---
 
 ## Design
 
 jopenapi produces Java `record` types that enforce a few strict rules at the type level:
 
-| Concern | Approach                                                                                                                                                               |
-|---|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Immutability** | Records are used throughout. Collection fields (`List`, `Set`, `Map`) are wrapped into `Collections.unmodifiableX` in the compact constructor.                         |
-| **No nulls** | Optional properties without a default become `Optional<T>`. Null collections/optionals are replaced by their empty equivalents.                                        |
-| **Use primitives** | Required fields (or optional-with-default) that map to a Java primitive (`int`, `long`, `boolean`, …) use the primitive type for a better developer experience.        |
-| **Explicit null == no value** | An explicit `null` in JSON is treated identically to an absent value. If such a property is required, `com.github.jopenapi.support.MissingPropertyException` is thrown |
+| Concern | Approach |
+|---|---|
+| **Immutability** | Records are used throughout. Collection fields (`List`, `Set`, `Map`) are wrapped in `Collections.unmodifiableX` inside the compact constructor. |
+| **No nulls** | Optional properties without a default become `Optional<T>`. Null collections and optionals are replaced by their empty equivalents. |
+| **Use primitives** | Required fields — or optional fields with a default — that map to a Java primitive (`int`, `long`, `boolean`, …) use the primitive type for a better developer experience. |
+| **Explicit null == no value** | An explicit `null` in JSON is treated identically to an absent value. If the property is required, `com.github.jopenapi.support.MissingPropertyException` is thrown. |
 
 ### Enum defaults
 
@@ -23,17 +34,17 @@ When an enum schema has **no** `default`, attempting to deserialize an unknown v
 
 If you use [jOOQ](https://www.jooq.org/), you can make generated enums implement `org.jooq.EnumType` by adding an `x-jooq` extension to the schema. This lets jOOQ bind enum values directly to SQL enum columns without any manual mapping.
 
-> **⚠️ Layer pollution:** `x-jooq` couples your API-layer DTOs to a persistence library (`org.jooq`). While this is convenient for small projects, it violates clean-architecture boundaries by making the API/contract layer depend on the persistence layer. In larger codebases, consider keeping generated DTOs free of jOOQ concerns and mapping to dedicated persistence types instead.
+> **⚠️ Layer pollution:** `x-jooq` couples your API-layer DTOs to a persistence library. While convenient for small projects, it violates clean-architecture boundaries. In larger codebases, consider keeping generated DTOs free of jOOQ concerns and mapping to dedicated persistence types instead.
 
 The extension accepts the following optional fields:
 
 | Field | Type | Description |
 |---|---|---|
 | `name` | `string` | SQL type name returned by `getName()`. Omit to return `null` (anonymous type). |
-| `catalog` | `string` | Catalog name, generates a `getCatalog()` override. Omit to use the jOOQ default. |
-| `schema` | `string` | Schema name, generates a `getSchema()` override. Omit to use the jOOQ default. |
+| `catalog` | `string` | Catalog name — generates a `getCatalog()` override. Omit to use the jOOQ default. |
+| `schema` | `string` | Schema name — generates a `getSchema()` override. Omit to use the jOOQ default. |
 
-For example:
+**Example schema:**
 
 ```yaml
 components:
@@ -49,7 +60,7 @@ components:
         schema: my_schema
 ```
 
-Generates:
+**Generated code:**
 
 ```java
 public enum Status implements EnumType {
@@ -73,11 +84,13 @@ public enum Status implements EnumType {
 }
 ```
 
-> **Note:** your project must have `org.jooq:jooq` on the classpath to compile the generated enums that use `x-jooq`.
+> **Note:** your project must have `org.jooq:jooq` on the classpath to compile generated enums that use `x-jooq`.
+
+---
 
 ## Comparison with other generators
 
-Two well-known tools already generate Java code from OpenAPI specs: [OpenAPI Generator](https://github.com/OpenAPITools/openapi-generator) (community fork) and [Swagger Codegen](https://github.com/swagger-api/swagger-codegen) (SmartBear). Both are full-featured SDK generators that can produce clients, server stubs, and documentation across dozens of languages. jopenapi does **one thing only** — generate strict, immutable Java DTOs — so the comparison below covers only the Java model-generation dimension.
+Two well-known tools already generate Java code from OpenAPI specs: [OpenAPI Generator](https://github.com/OpenAPITools/openapi-generator) (community fork) and [Swagger Codegen](https://github.com/swagger-api/swagger-codegen) (SmartBear). Both are full-featured SDK generators that produce clients, server stubs, and documentation across dozens of languages. jopenapi does **one thing only** — generate strict, immutable Java DTOs — so the comparison below focuses on the Java model-generation dimension.
 
 | Feature | jopenapi | OpenAPI Generator | Swagger Codegen |
 |---|---|---|---|
@@ -93,26 +106,26 @@ Two well-known tools already generate Java code from OpenAPI specs: [OpenAPI Gen
 | **Customization** | None — AST-based generation (JavaParser) | Mustache/Handlebars templates, fully overridable | Mustache templates, fully overridable |
 | **Community** | New project | Very active, large community | Low activity on 3.x branch |
 
-**TL;DR:** if you need a full client/server SDK, multi-language support, or fine-grained template control, use [OpenAPI Generator](https://openapi-generator.tech/) (the de-facto community standard) or [Swagger Codegen](https://swagger.io/tools/swagger-codegen/). If you only need Java DTOs and want records that are immutable and null-safe out of the box, give jopenapi a try.
+**TL;DR:** if you need a full client/server SDK, multi-language support, or fine-grained template control, reach for [OpenAPI Generator](https://openapi-generator.tech/) or [Swagger Codegen](https://swagger.io/tools/swagger-codegen/). If you only need Java DTOs that are immutable and null-safe out of the box, give jopenapi a try.
 
-## Prerequisites
-
-- **Generated code** targets **Java 17+**.
-- **OpenAPI 3.x** schemas (YAML or JSON).
-- **Jackson 2 or 3** annotations (`@JsonCreator`, `@JsonProperty`, `@JsonUnwrapped`, …). Jackson 3 still uses `jackson-annotations` 2.x, so the generated code is compatible with both versions.
-- **Jakarta Validation** annotations (`@DecimalMin`, `@DecimalMax`, `@Size`, `@Pattern`).
-
-> **Jackson 2 users:** register the `Jdk8Module` (`com.fasterxml.jackson.datatype:jackson-datatype-jdk8`) on your `ObjectMapper` so that `Optional` fields are serialized/deserialized correctly. Jackson 3 includes this support in `jackson-databind` out of the box.
-
-The generated records also carry Lombok's `@Builder` and `@With` annotations. jopenapi runs a delombok pass before writing the final sources, so the output is **Lombok-agnostic** — your project does not need Lombok at runtime.
+---
 
 ## Getting started
 
 Download the latest `jopenapi.jar` from the [Releases](https://github.com/sp00m/jopenapi/releases) page.
 
-Requires **Java 17+** to run the tool itself.
+### Prerequisites
 
-## CLI usage
+- **Java 17+** — both to run the tool and as the target for generated code.
+- **OpenAPI 3.x** schemas (YAML or JSON).
+- **Jackson 2 or 3** — generated code uses `@JsonCreator`, `@JsonProperty`, `@JsonUnwrapped`, etc. Jackson 3 still uses `jackson-annotations` 2.x, so the output is compatible with both versions.
+- **Jakarta Validation** — generated code uses `@DecimalMin`, `@DecimalMax`, `@Size`, `@Pattern`, etc.
+
+> **Jackson 2 users:** register the `Jdk8Module` (`com.fasterxml.jackson.datatype:jackson-datatype-jdk8`) on your `ObjectMapper` so that `Optional` fields serialize/deserialize correctly. Jackson 3 includes this support in `jackson-databind` out of the box.
+
+The generated records carry Lombok's `@Builder` and `@With` annotations. jopenapi runs a delombok pass before writing the final sources, so the output is **Lombok-agnostic** — your project does not need Lombok at runtime.
+
+### CLI usage
 
 ```
 Usage: jopenapi [-hV] -i=<inputDir> -o=<outputDir> -p=<packageName>
@@ -120,15 +133,16 @@ Usage: jopenapi [-hV] -i=<inputDir> -o=<outputDir> -p=<packageName>
 Generate Java DTOs from OpenAPI schemas.
 
   -p, --package=<packageName>   Base Java package name for generated classes (e.g. com.example.api).
-  -i, --input=<inputDir>        Input directory or single file containing OpenAPI schema(s) (.yml, .yaml, .json). When a single file is provided, DTOs are placed directly in the base package.
+  -i, --input=<inputDir>        Input directory or single file containing OpenAPI schema(s) (.yml, .yaml, .json).
+                                When a single file is provided, DTOs are placed directly in the base package.
   -o, --output=<outputDir>      Output directory for generated Java source files.
   -h, --help                    Show this help message and exit.
   -V, --version                 Print version information and exit.
 ```
 
-### Example
+#### Example
 
-Given the following schema:
+Given this schema:
 
 ```yaml
 MyObject:
@@ -179,30 +193,30 @@ public record MyObject(
 }
 ```
 
-### Exit codes
+#### Exit codes
 
-| Code | Meaning                                   |
-|------|-------------------------------------------|
-| 0    | Success                                   |
-| 1    | Generation error (bad input, I/O failure) |
-| 2    | Usage error (missing/invalid arguments)   |
+| Code | Meaning |
+|------|---|
+| `0` | Success |
+| `1` | Generation error (bad input, I/O failure) |
+| `2` | Usage error (missing or invalid arguments) |
 
-## Integration patterns
+### Integration patterns
 
-### Shell / CI
+#### Shell / CI
 
-Run the fat JAR directly in any script or CI pipeline:
+Run the fat JAR directly from any script or CI pipeline:
 
 ```bash
 java -jar jopenapi.jar \
   --package com.example.api \
-  --input ./schemas \
+  --input  ./schemas \
   --output ./src/main/java
 ```
 
-### Maven
+#### Maven
 
-Use `maven-antrun-plugin` to download the fat JAR from the GitHub Release, then `exec-maven-plugin` to run it during `generate-sources`:
+Use `maven-antrun-plugin` to download the JAR from the GitHub Release, then `exec-maven-plugin` to invoke it during `generate-sources`:
 
 ```xml
 <properties>
@@ -295,9 +309,9 @@ Use `maven-antrun-plugin` to download the fat JAR from the GitHub Release, then 
 </build>
 ```
 
-### Gradle (Kotlin DSL)
+#### Gradle (Kotlin DSL)
 
-Download the JAR and execute it as a `JavaExec` task wired before compilation:
+Download the JAR and run it as a `JavaExec` task wired before compilation:
 
 ```kotlin
 val jopenapiVersion = "0.0.1"
@@ -318,7 +332,7 @@ val generateDtos by tasks.registering(JavaExec::class) {
     classpath(jopenapiJar)
     args(
         "--package", "com.example.api",
-        "--input", file("src/main/openapi").absolutePath,
+        "--input",  file("src/main/openapi").absolutePath,
         "--output", layout.buildDirectory.dir("generated-sources/jopenapi").get().asFile.absolutePath
     )
 }
