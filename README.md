@@ -6,24 +6,12 @@ Generate immutable, null-safe Java records from OpenAPI schemas — ready for Ja
 
 jopenapi produces Java `record` types that enforce a few strict rules at the type level:
 
-| Concern | Approach |
-|---|---|
-| **Immutability** | Records are used throughout. Collection fields (`List`, `Set`, `Map`) are wrapped into `Collections.unmodifiableX` in the compact constructor. |
-| **No nulls** | Optional properties without a default become `Optional<T>`. Null collections/optionals are replaced by their empty equivalents. |
-| **Use primitives** | Required fields (or optional-with-default) that map to a Java primitive (`int`, `long`, `boolean`, …) use the primitive type for a better developer experience. |
-| **Explicit null == no value** | An explicit `null` in JSON is treated identically to an absent value. |
-
-### Deserialization via `@JsonCreator`
-
-Every generated record includes a `@JsonCreator` static factory method. The factory:
-
-- Accepts **boxed types** for all parameters (e.g. `Integer` instead of `int`) so Jackson can distinguish missing values from zero/false.
-- **Validates required fields** — throws `com.github.jopenapi.support.MissingPropertyException` when a required property is `null`.
-- **Applies defaults** — uses `Objects.requireNonNullElse(value, default)` for optional properties with a schema-level default.
-- **Wraps optionals** — uses `Optional.ofNullable(value)` for optional properties without a default.
-- **Excludes read-only fields** — read-only properties are not part of the factory signature; they receive a safe default (`Optional.empty()`, empty collection, …).
-
-The compact constructor remains a safety net: it ensures collection immutability and converts null `Optional` references to `Optional.empty()`.
+| Concern | Approach                                                                                                                                                               |
+|---|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Immutability** | Records are used throughout. Collection fields (`List`, `Set`, `Map`) are wrapped into `Collections.unmodifiableX` in the compact constructor.                         |
+| **No nulls** | Optional properties without a default become `Optional<T>`. Null collections/optionals are replaced by their empty equivalents.                                        |
+| **Use primitives** | Required fields (or optional-with-default) that map to a Java primitive (`int`, `long`, `boolean`, …) use the primitive type for a better developer experience.        |
+| **Explicit null == no value** | An explicit `null` in JSON is treated identically to an absent value. If such a property is required, `com.github.jopenapi.support.MissingPropertyException` is thrown |
 
 ### Enum defaults
 
@@ -35,6 +23,8 @@ When an enum schema has **no** `default`, attempting to deserialize an unknown v
 
 If you use [jOOQ](https://www.jooq.org/), you can make generated enums implement `org.jooq.EnumType` by adding an `x-jooq` extension to the schema. This lets jOOQ bind enum values directly to SQL enum columns without any manual mapping.
 
+> **⚠️ Layer pollution:** `x-jooq` couples your API-layer DTOs to a persistence library (`org.jooq`). While this is convenient for small projects, it violates clean-architecture boundaries by making the API/contract layer depend on the persistence layer. In larger codebases, consider keeping generated DTOs free of jOOQ concerns and mapping to dedicated persistence types instead.
+
 The extension accepts the following optional fields:
 
 | Field | Type | Description |
@@ -43,41 +33,7 @@ The extension accepts the following optional fields:
 | `catalog` | `string` | Catalog name, generates a `getCatalog()` override. Omit to use the jOOQ default. |
 | `schema` | `string` | Schema name, generates a `getSchema()` override. Omit to use the jOOQ default. |
 
-**Minimal opt-in** (no SQL metadata — `getName()` returns `null`):
-
-```yaml
-components:
-  schemas:
-    Status:
-      type: string
-      enum:
-        - active
-        - inactive
-      x-jooq: {}
-```
-
-Generates:
-
-```java
-public enum Status implements EnumType {
-
-    ACTIVE("active"), INACTIVE("inactive");
-
-    // ... BY_VALUE map, value field, @JsonValue, @JsonCreator ...
-
-    @Override
-    public String getLiteral() {
-        return value;
-    }
-
-    @Override
-    public String getName() {
-        return null;
-    }
-}
-```
-
-**Full metadata** (bound to a specific catalog/schema/type):
+For example:
 
 ```yaml
 components:
@@ -119,8 +75,6 @@ public enum Status implements EnumType {
 
 > **Note:** your project must have `org.jooq:jooq` on the classpath to compile the generated enums that use `x-jooq`.
 
-> **⚠️ Layer pollution:** `x-jooq` couples your API-layer DTOs to a persistence library (`org.jooq`). While this is convenient for small projects, it violates clean-architecture boundaries by making the API/contract layer depend on the persistence layer. In larger codebases, consider keeping generated DTOs free of jOOQ concerns and mapping to dedicated persistence types instead.
-
 ## Comparison with other generators
 
 Two well-known tools already generate Java code from OpenAPI specs: [OpenAPI Generator](https://github.com/OpenAPITools/openapi-generator) (community fork) and [Swagger Codegen](https://github.com/swagger-api/swagger-codegen) (SmartBear). Both are full-featured SDK generators that can produce clients, server stubs, and documentation across dozens of languages. jopenapi does **one thing only** — generate strict, immutable Java DTOs — so the comparison below covers only the Java model-generation dimension.
@@ -146,8 +100,9 @@ Two well-known tools already generate Java code from OpenAPI specs: [OpenAPI Gen
 - **Generated code** targets **Java 17+**.
 - **OpenAPI 3.x** schemas (YAML or JSON).
 - **Jackson 2 or 3** annotations (`@JsonCreator`, `@JsonProperty`, `@JsonUnwrapped`, …). Jackson 3 still uses `jackson-annotations` 2.x, so the generated code is compatible with both versions.
-  > **Jackson 2 users:** register the `Jdk8Module` (`com.fasterxml.jackson.datatype:jackson-datatype-jdk8`) on your `ObjectMapper` so that `Optional` fields are serialized/deserialized correctly. Jackson 3 includes this support in `jackson-databind` out of the box.
 - **Jakarta Validation** annotations (`@DecimalMin`, `@DecimalMax`, `@Size`, `@Pattern`).
+
+> **Jackson 2 users:** register the `Jdk8Module` (`com.fasterxml.jackson.datatype:jackson-datatype-jdk8`) on your `ObjectMapper` so that `Optional` fields are serialized/deserialized correctly. Jackson 3 includes this support in `jackson-databind` out of the box.
 
 The generated records also carry Lombok's `@Builder` and `@With` annotations. jopenapi runs a delombok pass before writing the final sources, so the output is **Lombok-agnostic** — your project does not need Lombok at runtime.
 
@@ -222,15 +177,6 @@ public record MyObject(
         );
     }
 }
-```
-
-Run the tool:
-
-```bash
-java -jar jopenapi.jar \
-  --package com.example.api \
-  --input ./schemas \
-  --output ./src/main/java
 ```
 
 ### Exit codes
