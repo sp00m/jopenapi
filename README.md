@@ -2,18 +2,18 @@
 
 > Generate immutable, null-safe Java `record` DTOs from OpenAPI schemas — ready for Jackson 2/3 and Jakarta Validation.
 
-## Table of contents
+## 📖 Table of contents
 
-- [Design](#design)
-- [Comparison with other generators](#comparison-with-other-generators)
-- [Getting started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [CLI usage](#cli-usage)
-  - [Integration patterns](#integration-patterns)
+- [🎨 Design](#design)
+- [⚖️ Comparison with other generators](#comparison-with-other-generators)
+- [🚀 Getting started](#getting-started)
+  - [✅ Prerequisites](#prerequisites)
+  - [💻 CLI usage](#cli-usage)
+  - [🔧 Integration patterns](#integration-patterns)
 
 ---
 
-## Design
+## 🎨 Design
 
 jopenapi produces Java `record` types that enforce a few strict rules at the type level:
 
@@ -24,13 +24,13 @@ jopenapi produces Java `record` types that enforce a few strict rules at the typ
 | **Use primitives** | Required fields — or optional fields with a default — that map to a Java primitive (`int`, `long`, `boolean`, …) use the primitive type for a better developer experience. |
 | **Explicit null == no value** | An explicit `null` in JSON is treated identically to an absent value. If the property is required, `com.github.jopenapi.support.MissingPropertyException` is thrown. |
 
-### Enum defaults
+### 🔢 Enum defaults
 
 When an enum schema has a `default`, that value is used as a fallback for invalid inputs and a warning is logged. If an optional property references such an enum without a local default, the enum's default is inherited automatically.
 
 When an enum schema has **no** `default`, attempting to deserialize an unknown value throws `com.github.jopenapi.support.InvalidPropertyException`.
 
-### jOOQ integration
+### 🗄️ jOOQ integration
 
 If you use [jOOQ](https://www.jooq.org/), you can make generated enums implement `org.jooq.EnumType` by adding an `x-jooq` extension to the schema. This lets jOOQ bind enum values directly to SQL enum columns without any manual mapping.
 
@@ -88,7 +88,7 @@ public enum Status implements EnumType {
 
 ---
 
-## Comparison with other generators
+## ⚖️ Comparison with other generators
 
 Two well-known tools already generate Java code from OpenAPI specs: [OpenAPI Generator](https://github.com/OpenAPITools/openapi-generator) (community fork) and [Swagger Codegen](https://github.com/swagger-api/swagger-codegen) (SmartBear). Both are full-featured SDK generators that produce clients, server stubs, and documentation across dozens of languages. jopenapi does **one thing only** — generate strict, immutable Java DTOs — so the comparison below focuses on the Java model-generation dimension.
 
@@ -110,11 +110,11 @@ Two well-known tools already generate Java code from OpenAPI specs: [OpenAPI Gen
 
 ---
 
-## Getting started
+## 🚀 Getting started
 
 Download the latest `jopenapi.jar` from the [Releases](https://github.com/sp00m/jopenapi/releases) page.
 
-### Prerequisites
+### ✅ Prerequisites
 
 - **Java 17+** — both to run the tool and as the target for generated code.
 - **OpenAPI 3.x** schemas (YAML or JSON).
@@ -125,7 +125,7 @@ Download the latest `jopenapi.jar` from the [Releases](https://github.com/sp00m/
 
 The generated records carry Lombok's `@Builder` and `@With` annotations. jopenapi runs a delombok pass before writing the final sources, so the output is **Lombok-agnostic** — your project does not need Lombok at runtime.
 
-### CLI usage
+### 💻 CLI usage
 
 ```
 Usage: jopenapi [-hV] -i=<inputDir> -o=<outputDir> -p=<packageName>
@@ -140,7 +140,7 @@ Generate Java DTOs from OpenAPI schemas.
   -V, --version                 Print version information and exit.
 ```
 
-#### Example
+#### 📝 Example
 
 Given this schema:
 
@@ -193,7 +193,7 @@ public record MyObject(
 }
 ```
 
-#### Exit codes
+#### 🔢 Exit codes
 
 | Code | Meaning |
 |------|---|
@@ -201,9 +201,9 @@ public record MyObject(
 | `1` | Generation error (bad input, I/O failure) |
 | `2` | Usage error (missing or invalid arguments) |
 
-### Integration patterns
+### 🔧 Integration patterns
 
-#### Shell / CI
+#### 🐚 Shell / CI
 
 Run the fat JAR directly from any script or CI pipeline:
 
@@ -214,7 +214,7 @@ java -jar jopenapi.jar \
   --output ./src/main/java
 ```
 
-#### Maven
+#### 🪶 Maven
 
 Use `maven-antrun-plugin` to download the JAR from the GitHub Release, then `exec-maven-plugin` to invoke it during `generate-sources`:
 
@@ -309,7 +309,7 @@ Use `maven-antrun-plugin` to download the JAR from the GitHub Release, then `exe
 </build>
 ```
 
-#### Gradle (Kotlin DSL)
+#### 🐘 Gradle (Kotlin DSL)
 
 Download the JAR and run it as a `JavaExec` task wired before compilation:
 
