@@ -47,17 +47,15 @@ The extension accepts the following optional fields:
 **Example schema:**
 
 ```yaml
-components:
-  schemas:
-    Status:
-      type: string
-      enum:
-        - active
-        - inactive
-      x-jooq:
-        name: status
-        catalog: my_catalog
-        schema: my_schema
+Status:
+  type: string
+  enum:
+    - active
+    - inactive
+  x-jooq:
+    name: status
+    catalog: my_catalog
+    schema: my_schema
 ```
 
 **Generated code:**
